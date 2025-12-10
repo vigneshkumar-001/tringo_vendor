@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_loader.dart';
@@ -486,26 +487,23 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
 
                       SizedBox(height: 30),
 
-                      /// OTP Switcher
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 400),
-                        transitionBuilder:
-                            (child, animation) => FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                        child: CommonContainer.mobileNumberField(
-                          controller: mobileController,
-                          // validator: (value) {
-                          //   if (value == null || value.isEmpty) {
-                          //     return 'Mobile number required';
-                          //   }
-                          //   if (value.length != 10) {
-                          //     return 'Enter valid 10-digit number';
-                          //   }
-                          //   return null;
-                          // },
-                        ),
+                      Text(
+                        'Mobile Number',
+                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                      ),
+                      SizedBox(height: 10),
+                      CommonContainer.fillingContainer(
+                        controller: mobileController,
+                        verticalDivider: false,
+                        isMobile: true, // mobile behavior +91 etc
+                        text: '',
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter Mobile Number';
+                          }
+                          return null;
+                        },
                       ),
                       SizedBox(height: 30),
 
@@ -617,10 +615,12 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                       /// SUBMIT
                       CommonContainer.button(
                         buttonColor: AppColor.darkBlue,
-                        imagePath: AppImages.rightStickArrow,
-                        text: state.isLoading
-                            ?  ThreeDotsLoader()
-                            : Text('Save & Continue'),
+                        imagePath:
+                            state.isLoading ? null : AppImages.rightStickArrow,
+                        text:
+                            state.isLoading
+                                ? ThreeDotsLoader()
+                                : Text('Save & Continue'),
                         onTap: () async {
                           setState(() => _isSubmitted = true);
 
@@ -682,12 +682,13 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
+                                screen: VendorRegisterScreen.screen1,
                                 vendorName: englishName,
                                 vendorNameTamil: tamilName,
                                 phoneNumber: mobile,
                                 aadharNumber: aadhar,
                                 aadharDocumentUrl:
-                                    aadharDocUrl, // ✅ now sending Aadhaar photo
+                                    aadharDocUrl, //  now sending Aadhaar photo
                                 bankAccountNumber: '',
                                 bankAccountName: '',
                                 bankBranch: '',

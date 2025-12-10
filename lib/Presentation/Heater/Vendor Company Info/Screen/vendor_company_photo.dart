@@ -4,14 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Session/registration_product_seivice.dart';
 import '../../../../Core/Session/registration_session.dart';
+import '../../../../Core/Utility/app_loader.dart';
 import '../../../../Core/Utility/app_snackbar.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
+import '../../Heater Register/Controller/heater_register_notifier.dart';
 
 class VendorCompanyPhoto extends ConsumerStatefulWidget {
   final String? pages;
@@ -235,8 +238,7 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
 
   @override
   Widget build(BuildContext context) {
-    // final state = ref.watch(shopCategoryNotifierProvider);
-    // final notifier = ref.read(shopCategoryNotifierProvider.notifier);
+    final state = ref.watch(heaterRegisterNotifier);
 
     return Scaffold(
       body: SafeArea(
@@ -312,29 +314,93 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
 
                     CommonContainer.button(
                       buttonColor: AppColor.black,
-                      onTap: () {
-                        context.push(AppRoutes.heaterHomeScreenPath);
+                      onTap: () async {
+                        // 1) Validate logo image
+                        final file = _pickedImages[0];
+                        final url = _existingUrls[0];
+                        final hasLogo =
+                            file != null || (url != null && url.isNotEmpty);
+
+                        if (!hasLogo) {
+                          setState(() {
+                            _hasError[0] = true;
+                          });
+                          AppSnackBar.error(
+                            context,
+                            'Please upload your company logo',
+                          );
+                          return;
+                        }
+
+                        String avatarUrl;
+                        if (file != null) {
+                          // TODO: upload `file` to server and get real URL
+                          // avatarUrl = await uploadLogoAndGetUrl(file);
+                          avatarUrl = file.path;
+                        } else {
+                          avatarUrl = url!; // existing URL
+                        }
+
+                        await ref
+                            .read(heaterRegisterNotifier.notifier)
+                            .registerVendor(
+                              screen: VendorRegisterScreen.screen4,
+                              vendorName: '',
+                              vendorNameTamil: '',
+                              phoneNumber: '',
+                              email: '',
+                              dateOfBirth: '',
+                              gender: '',
+                              aadharNumber: '',
+                              aadharDocumentUrl: '',
+                              bankAccountNumber: '',
+                              bankAccountName: '',
+                              bankBranch: '',
+                              bankIfsc: '',
+                              companyName: '',
+                              companyAddress: '',
+                              gpsLatitude: '',
+                              gpsLongitude: '',
+                              primaryCity: '',
+                              primaryState: '',
+                              companyContactNumber: '',
+                              alternatePhone: '',
+                              companyEmail: '',
+                              gstNumber: '',
+                              avatarUrl: avatarUrl,
+                            );
+
+                        if (!mounted) return;
+                        final newState = ref.read(heaterRegisterNotifier);
+
+                        if (newState.error != null) {
+                          AppSnackBar.error(context, newState.error!);
+                        } else if (newState.vendorResponse != null) {
+                          AppSnackBar.success(
+                            context,
+                            "Company logo saved successfully",
+                          );
+
+                          // 👇 Now move to next screen
+                          context.push(AppRoutes.heaterAddEmployeePath);
+                        }
                       },
                       text:
-                      // state.isLoading
-                      //     ? const ThreeDotsLoader()
-                      //     :
-                      Text(
-                        'Save & Continue',
-                        style: AppTextStyles.mulish(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                          state.isLoading
+                              ? ThreeDotsLoader()
+                              : Text(
+                                'Save & Continue',
+                                style: AppTextStyles.mulish(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                       imagePath:
-                          // state.isLoading
-                          //     ? null
-                          //     :
-                          AppImages.rightStickArrow,
+                          state.isLoading ? null : AppImages.rightStickArrow,
                       imgHeight: 20,
                     ),
 
-                    const SizedBox(height: 36),
+                    SizedBox(height: 36),
                   ],
                 ),
               ),

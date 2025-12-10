@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
+import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_loader.dart';
@@ -631,7 +632,8 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       SizedBox(height: 30),
                       CommonContainer.button(
                         buttonColor: AppColor.darkBlue,
-                        imagePath: AppImages.rightStickArrow,
+                        imagePath:
+                            state.isLoading ? null : AppImages.rightStickArrow,
                         text:
                             state.isLoading
                                 ? ThreeDotsLoader()
@@ -645,18 +647,30 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
 
                           final englishName =
                               _shopNameEnglishController.text.trim();
-                          final tamilName =
-                              _addressEnglishController.text.trim();
-                          final mobile = _primaryMobileController.text.trim();
+                          final address = _addressEnglishController.text.trim();
+                          final primaryMobile =
+                              _primaryMobileController.text.trim();
                           final alternateMobileNumber =
                               _alternateMobileNumberController.text.trim();
                           final email = _emailController.text.trim();
-                          final gender = _gpsController.text.trim();
-                          final aadhar = _gSTNumberController.text.trim();
+                          // final gps = _gpsController.text.trim();
+                          final gSTNumber = _gSTNumberController.text.trim();
+
+                          if (!mounted) return;
+                          final gpsText = _gpsController.text.trim();
+                          String latitude = '';
+                          String longitude = '';
+
+                          if (gpsText.isNotEmpty && gpsText.contains(',')) {
+                            final parts = gpsText.split(',');
+                            latitude = parts[0].trim();
+                            longitude = parts[1].trim();
+                          }
 
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
+                                screen: VendorRegisterScreen.screen3,
                                 vendorName: '',
                                 vendorNameTamil: '',
                                 phoneNumber: '',
@@ -666,16 +680,16 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                                 bankAccountName: '',
                                 bankBranch: '',
                                 bankIfsc: '',
-                                companyName: '',
-                                companyAddress: '',
-                                gpsLatitude: '',
-                                gpsLongitude: '',
+                                companyName: englishName,
+                                companyAddress: address,
+                                gpsLatitude: latitude,
+                                gpsLongitude: longitude,
                                 primaryCity: '',
                                 primaryState: '',
-                                companyContactNumber: '',
-                                alternatePhone: '',
-                                companyEmail: '',
-                                gstNumber: '',
+                                companyContactNumber: primaryMobile,
+                                alternatePhone: alternateMobileNumber,
+                                companyEmail: email,
+                                gstNumber: gSTNumber,
                                 avatarUrl: '',
                                 email: '',
                                 dateOfBirth: '',
@@ -691,7 +705,8 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                               context,
                               "Owner information saved successfully",
                             );
-                            context.push(AppRoutes.vendorCompanyInfoPath);
+                            context.push(AppRoutes.vendorCompanyPhotoPath); // ✅ correct next screen
+
 
                             AppLogger.log.i(
                               "Owner Info Saved  ${newState.vendorResponse?.toJson()}",
