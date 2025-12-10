@@ -284,6 +284,7 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber> {
                                     ],
                                   ),
                                 ),
+
                                 // Text(
                                 //   '+91',
                                 //   style: AppTextStyles.mulish(
@@ -292,12 +293,6 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber> {
                                 //     color: AppColor.gray84,
                                 //   ),
                                 // ),
-                                SizedBox(width: 8),
-                                Image.asset(
-                                  AppImages.drapDownImage,
-                                  height: 14,
-                                  color: AppColor.darkGrey,
-                                ),
                                 SizedBox(width: 8),
                                 Container(
                                   width: 2,

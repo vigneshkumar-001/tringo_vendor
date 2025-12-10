@@ -14,6 +14,7 @@ class AppColor {
   static const lowLightWhite = Color(0xffFFF6F6);
   static const black = Color(0xff000000);
   static const red = Color(0xffF5465C);
+  static const lavenderMist = Color(0xffEBEFFF);
   static const gray84 = Color(0xFF6D6D6D);
   static const lowGery1 = Color(0xffF2F2F2);
   static const darkGrey = Color(0xffA1A1A1);
@@ -51,6 +52,7 @@ class AppColor {
   static const lowLightGreen2 = Color(0xffD8F4D8);
   static const lowLightGreen3 = Color(0xff90B290);
   static const lightGreen = Color(0xff3DA33D);
+  static const iceGreen = Color(0xffE6F9EC);
   static const borderGray = Color(0xffD0D0D0);
   static const aliceBlue = Color(0xffECF3F8);
   static const babyBlue = Color(0xffEDF7FD);
@@ -66,4 +68,7 @@ class AppColor {
   static const steelNavy = Color(0xff1E2A4A);
   static const iceGray = Color(0xffF5F7F9);
   static const mildBlack = Color(0xFF252525);
+  static const brightBlue = Color(0xff1C71FD);
+  static const steelBlueGray = Color(0xff646882);
+  static const softRose = Color(0xffF9E6E6);
 }

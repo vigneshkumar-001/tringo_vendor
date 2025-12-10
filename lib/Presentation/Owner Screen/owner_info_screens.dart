@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
-
+import '../../../Core/Session/registration_session.dart';
 import '../../Core/Const/app_color.dart';
 import '../../Core/Const/app_images.dart';
 import '../../Core/Utility/app_loader.dart';
@@ -16,12 +16,20 @@ import '../../Core/Widgets/app_go_routes.dart';
 import '../../Core/Widgets/common_container.dart';
 
 class OwnerInfoScreens extends ConsumerStatefulWidget {
-  const OwnerInfoScreens({super.key});
-
+  final bool isService;
+  final bool isIndividual;
+  const OwnerInfoScreens({
+    super.key,
+    this.isCompany,
+    required this.isService,
+    required this.isIndividual,
+  });
+  final bool? isCompany;
   @override
   ConsumerState<OwnerInfoScreens> createState() => _OwnerInfoScreensState();
 }
 
+///new///
 class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitted = false;
@@ -51,6 +59,9 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   void initState() {
     super.initState();
 
+    ownershipType = widget.isIndividual ? 'INDIVIDUAL' : 'COMPANY';
+    businessTypeForApi = widget.isService ? 'SERVICES' : 'SELLING_PRODUCTS';
+
     otpControllers = List.generate(otpLength, (_) => TextEditingController());
     otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
   }
@@ -73,6 +84,14 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
     super.dispose();
   }
 
+  void _onSubmitOtp() {
+    final otp = otpControllers.map((c) => c.text).join();
+    debugPrint("Entered OTP: $otp");
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text("OTP Entered: $otp")));
+  }
+
   void _startResendTimer() {
     resendSeconds = 30;
     Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -89,6 +108,8 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
   @override
   Widget build(BuildContext context) {
+    // final state = ref.watch(ownerInfoNotifierProvider);
+    final bool isIndividualFlow = widget.isIndividual ?? true;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -102,34 +123,53 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 /// HEADER BAR
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(
-                //     horizontal: 15,
-                //     vertical: 16,
-                //   ),
-                //   child: Row(
-                //     children: [
-                //       // CommonContainer.topLeftArrow(
-                //       //   onTap: () {
-                //       //     if (showOtpCard) {
-                //       //       setState(() => showOtpCard = false);
-                //       //     } else {
-                //       //       Navigator.pop(context);
-                //       //     }
-                //       //   },
-                //       // ),
-                //       SizedBox(width: 50),
-                //       Text(
-                //         'Register Shop - Individual',
-                //         style: AppTextStyles.mulish(
-                //           fontSize: 16,
-                //           fontWeight: FontWeight.w400,
-                //           color: AppColor.mildBlack,
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 16,
+                  ),
+                  child: Row(
+                    children: [
+                      CommonContainer.topLeftArrow(
+                        onTap: () {
+                          if (showOtpCard) {
+                            setState(() => showOtpCard = false);
+                          } else {
+                            Navigator.pop(context);
+                          }
+                        },
+                      ),
+                      SizedBox(width: 50),
+                      Text(
+                        'Register Vendor',
+                        style: AppTextStyles.mulish(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: AppColor.mildBlack,
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      // Text(
+                      //   '-',
+                      //   style: AppTextStyles.mulish(
+                      //     fontSize: 16,
+                      //     fontWeight: FontWeight.w400,
+                      //     color: AppColor.mildBlack,
+                      //   ),
+                      // ),
+                      // SizedBox(width: 5),
+                      Text(
+                        isIndividualFlow ? 'Individual' : 'Company',
+                        style: AppTextStyles.mulish(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColor.mildBlack,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
                 SizedBox(height: 35),
 
                 /// HEADER BLOCK
@@ -138,6 +178,11 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                     image: DecorationImage(
                       image: AssetImage(AppImages.registerBCImage),
                       fit: BoxFit.cover,
+                    ),
+                    gradient: LinearGradient(
+                      colors: [AppColor.white, AppColor.iceGreen],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                     borderRadius: const BorderRadius.only(
                       bottomRight: Radius.circular(30),
@@ -149,7 +194,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                     child: Column(
                       children: [
                         Image.asset(AppImages.person, height: 85),
-                        SizedBox(height: 15),
+                        const SizedBox(height: 15),
                         Text(
                           'Owner’s Info',
                           style: AppTextStyles.mulish(
@@ -158,7 +203,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                             color: AppColor.mildBlack,
                           ),
                         ),
-                        SizedBox(height: 30),
+                        const SizedBox(height: 30),
                         LinearProgressIndicator(
                           minHeight: 12,
                           value: 0.3,
@@ -168,13 +213,13 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                           backgroundColor: AppColor.white,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        SizedBox(height: 25),
+                        const SizedBox(height: 25),
                       ],
                     ),
                   ),
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -193,7 +238,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                               text: 'Name of the User ',
                               style: TextStyle(color: AppColor.mildBlack),
                             ),
-                            TextSpan(
+                            const TextSpan(
                               text: '( As per Govt Certificate )',
                               style: TextStyle(color: AppColor.mediumLightGray),
                             ),
@@ -201,7 +246,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         ),
                       ),
 
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
                       /// ENGLISH NAME
                       CommonContainer.fillingContainer(
@@ -209,14 +254,14 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         verticalDivider: true,
                         controller: englishNameController,
                         context: context,
-                        validator:
-                            (v) =>
-                                v == null || v.trim().isEmpty
-                                    ? 'Enter English name'
-                                    : null,
+                        // validator:
+                        //     (v) =>
+                        //         v == null || v.trim().isEmpty
+                        //             ? 'Enter English name'
+                        //             : null,
                       ),
 
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
                       /// TAMIL NAME
                       CommonContainer.fillingContainer(
@@ -234,11 +279,11 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         verticalDivider: true,
                         controller: tamilNameController,
                         context: context,
-                        validator:
-                            (v) =>
-                                v == null || v.trim().isEmpty
-                                    ? 'Enter Tamil name'
-                                    : null,
+                        // validator:
+                        //     (v) =>
+                        //         v == null || v.trim().isEmpty
+                        //             ? 'Enter Tamil name'
+                        //             : null,
                       ),
 
                       if (isTamilNameLoading)
@@ -277,42 +322,37 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                           ),
                         ),
 
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
-                      /// MOBILE NUMBER
-                      Text(
-                        'Mobile Number',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                      /// OTP Switcher
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        transitionBuilder:
+                            (child, animation) => FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            ),
+                        child: CommonContainer.mobileNumberField(
+                          controller: mobileController,
+                          // validator: (value) {
+                          //   if (value == null || value.isEmpty) {
+                          //     return 'Mobile number required';
+                          //   }
+                          //   if (value.length != 10) {
+                          //     return 'Enter valid 10-digit number';
+                          //   }
+                          //   return null;
+                          // },
+                        ),
                       ),
-                      SizedBox(height: 10),
-
-                      CommonContainer.fillingContainer(
-                        controller: mobileController,
-                        verticalDivider: true,
-                        isMobile: true,
-                        text: 'Mobile No',
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Mobile number required';
-                          }
-                          if (v.length != 10) {
-                            return 'Enter valid 10-digit mobile number';
-                          }
-                          if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) {
-                            return 'Invalid mobile number';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
                       /// EMAIL
                       Text(
                         'Email Id',
                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
                         keyboardType: TextInputType.emailAddress,
@@ -320,27 +360,27 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         verticalDivider: true,
                         controller: emailIdController,
                         context: context,
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Email required';
-                          }
-                          if (!RegExp(
-                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                          ).hasMatch(v)) {
-                            return 'Enter valid email';
-                          }
-                          return null;
-                        },
+                        // validator: (v) {
+                        //   if (v == null || v.isEmpty) {
+                        //     return 'Email required';
+                        //   }
+                        //   if (!RegExp(
+                        //     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                        //   ).hasMatch(v)) {
+                        //     return 'Enter valid email';
+                        //   }
+                        //   return null;
+                        // },
                       ),
 
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
                       /// DOB
                       Text(
                         'Date of Birth',
                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
                         isDOB: true,
@@ -352,12 +392,12 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         textFontWeight: FontWeight.w700,
                         context: context,
                         datePickMode: DatePickMode.single,
-                        validator:
-                            (v) =>
-                                v == null || v.isEmpty ? 'DOB required' : null,
+                        // validator:
+                        //     (v) =>
+                        //         v == null || v.isEmpty ? 'DOB required' : null,
                       ),
 
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
                       /// GENDER
                       Text(
@@ -372,19 +412,96 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         dropdownItems: ['Male', 'Female', 'Others'],
                         verticalDivider: false,
                         imagePath: AppImages.drapDownImage,
+                        imageColor: AppColor.gray84,
                         controller: genderController,
                         context: context,
-                        validator:
-                            (v) =>
-                                v == null || v.isEmpty ? 'Select gender' : null,
+                        // validator:
+                        //     (v) =>
+                        //         v == null || v.isEmpty ? 'Select gender' : null,
                       ),
 
                       SizedBox(height: 30),
+
+                      /// SUBMIT
                       CommonContainer.button(
-                        onTap: () {
-                          context.goNamed(AppRoutes.home);
-                        },
+                        imagePath: AppImages.rightStickArrow,
                         text: Text('Save & Continue'),
+                        onTap: () async {
+                          setState(() => _isSubmitted = true);
+
+                          // if (!_formKey.currentState!.validate()) {
+                          //   return;
+                          // }
+
+                          // final englishName = englishNameController.text.trim();
+                          // final tamilName = tamilNameController.text.trim();
+                          // final mobile = mobileController.text.trim();
+                          // final email = emailIdController.text.trim();
+                          // final input = dateOfBirthController.text.trim();
+                          //
+                          // String dobForApi = '';
+                          // try {
+                          //   final parsedDate = DateFormat(
+                          //     'dd-MM-yyyy',
+                          //   ).parseStrict(input);
+                          //   dobForApi = DateFormat(
+                          //     'yyyy-MM-dd',
+                          //   ).format(parsedDate);
+                          // } catch (e) {
+                          //   AppSnackBar.error(context, "Invalid DOB");
+                          //   return;
+                          // }
+
+                          final gender = genderController.text.trim();
+
+                          AppLogger.log.i(
+                            'ownershipType: $ownershipType, businessType: $businessTypeForApi',
+                          );
+
+                          // await ref
+                          //     .read(ownerInfoNotifierProvider.notifier)
+                          //     .submitOwnerInfo(
+                          //       ownershipType:
+                          //           ownershipType, // ✅ "INDIVIDUAL" / "COMPANY"
+                          //       businessType:
+                          //           businessTypeForApi, // ✅ "PRODUCT" / "SERVICE" (adjust if backend uses different strings)
+                          //       ownerNameTamil: tamilName,
+                          //       identityDocumentUrl: '',
+                          //       govtRegisteredName: englishName,
+                          //       gender: gender,
+                          //       fullName: englishName,
+                          //       dateOfBirth: dobForApi,
+                          //       email: email,
+                          //       preferredLanguage: '',
+                          //     );
+                          //
+                          // final newState = ref.read(ownerInfoNotifierProvider);
+                          //
+                          // if (newState.error != null) {
+                          //   AppSnackBar.error(context, newState.error!);
+                          // } else if (newState.ownerResponse != null) {
+                          //   AppSnackBar.success(
+                          //     context,
+                          //     "Owner information saved successfully",
+                          //   );
+                          context.push(
+                            AppRoutes.shopCategoryInfoPath,
+                            extra: {
+                              'isService': widget.isService,
+                              'isIndividual': widget.isIndividual,
+                              'initialShopNameEnglish':
+                                  englishNameController.text.trim(),
+                              'initialShopNameTamil':
+                                  tamilNameController.text.trim(),
+                              'pages': 'OwnerInfoScreens',
+                            },
+                          );
+                          //
+                          //   AppLogger.log.i(
+                          //     "Owner Info Saved  ${newState.ownerResponse?.toJson()}",
+                          //   );
+                          // }
+                        },
                       ),
                     ],
                   ),
