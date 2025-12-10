@@ -45,6 +45,7 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
   }
 
   Future<void> registerVendor({
+    required VendorRegisterScreen screen,
     // 1️⃣ Screen 1
     required String vendorName,
     required String vendorNameTamil,
@@ -81,6 +82,7 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
       state = state.copyWith(isLoading: true, clearError: true);
 
       final result = await api.heaterRegister(
+        screen: screen,
         vendorName: vendorName,
         vendorNameTamil: vendorNameTamil,
         phoneNumber: phoneNumber,

@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
+import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_loader.dart';
@@ -18,15 +19,8 @@ import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 
 class HeaterRegister2 extends ConsumerStatefulWidget {
-  // final bool isService;
-  // final bool isIndividual;
-  const HeaterRegister2({
-    super.key,
-    this.isCompany,
-    // required this.isService,
-    // required this.isIndividual,
-  });
-  final bool? isCompany;
+  const HeaterRegister2({super.key});
+
   @override
   ConsumerState<HeaterRegister2> createState() => _HeaterRegister2State();
 }
@@ -58,9 +52,6 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
   @override
   void initState() {
     super.initState();
-
-    // ownershipType = widget.isIndividual ? 'INDIVIDUAL' : 'COMPANY';
-    // businessTypeForApi = widget.isService ? 'SERVICES' : 'SELLING_PRODUCTS';
 
     otpControllers = List.generate(otpLength, (_) => TextEditingController());
     otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
@@ -382,9 +373,15 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         verticalDivider: false,
                         controller: accountNumberController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.isEmpty ? 'Bank Account Number' : null,
+                        // validator: (v) {
+                        //   if (v == null || v.trim().isEmpty) {
+                        //     return 'Bank Account Number is required';
+                        //   }
+                        //   if (v.length < 8) {
+                        //     return 'Enter a valid account number';
+                        //   }
+                        //   return null;
+                        // },
                       ),
 
                       SizedBox(height: 30),
@@ -393,7 +390,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         'Bank Account Name',
                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
                         keyboardType: TextInputType.name,
@@ -422,7 +419,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         context: context,
                         // validator:
                         //     (v) =>
-                        //         v == null || v.isEmpty ? 'Bank Account Name' : null,
+                        //         v == null || v.isEmpty ? 'Bank Account Branch' : null,
                       ),
 
                       SizedBox(height: 30),
@@ -448,7 +445,8 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
 
                       CommonContainer.button(
                         buttonColor: AppColor.darkBlue,
-                        imagePath: AppImages.rightStickArrow,
+                        imagePath:
+                            state.isLoading ? null : AppImages.rightStickArrow,
                         text:
                             state.isLoading
                                 ? ThreeDotsLoader()
@@ -468,15 +466,10 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                           final accountIFSCCode =
                               accountIFSCCodeController.text.trim();
 
-                          String dobForApi = '';
-
-                          AppLogger.log.i(
-                            'ownershipType: $ownershipType, businessType: $businessTypeForApi',
-                          );
-
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
+                            screen: VendorRegisterScreen.screen2,
                                 vendorName: '',
                                 vendorNameTamil: '',
                                 phoneNumber: '',
@@ -498,7 +491,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                                 gstNumber: '',
                                 avatarUrl: '',
                                 email: '',
-                                dateOfBirth: dobForApi,
+                                dateOfBirth: '',
                                 gender: '',
                               );
 

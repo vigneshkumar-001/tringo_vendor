@@ -6,6 +6,7 @@ import '../../Presentation/AddProduct/Screens/add_product_list.dart';
 import '../../Presentation/AddProduct/Screens/product_category_screens.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Screen/employee_approval_pending.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Screen/employee_approval_rejected.dart';
+import '../../Presentation/Heater/Add Vendor Employee/Screen/heater_add_employee.dart';
 import '../../Presentation/Heater/Heater Register/Screen/heater_register_1.dart';
 import '../../Presentation/Heater/Heater Register/Screen/heater_register_2.dart';
 import '../../Presentation/Heater/Vendor Company Info/Screen/vendor_company_info.dart';
@@ -39,6 +40,7 @@ class AppRoutes {
   static const String heaterHomeScreen = 'HeaterHomeScreen';
   static const String employeeApprovalPending = 'EmployeeApprovalPending';
   static const String employeeApprovalRejected = 'EmployeeApprovalRejected';
+  static const String heaterAddEmployee = 'HeaterAddEmployee';
 
   static const String splashScreenPath = '/splashScreen';
   static const String loginPath = '/login';
@@ -57,6 +59,7 @@ class AppRoutes {
   static const String vendorCompanyPhotoPath = '/VendorCompanyPhoto';
   static const String heaterHomeScreenPath = '/HeaterHomeScreen';
   static const String employeeApprovalPendingPath = '/EmployeeApprovalPending';
+  static const String heaterAddEmployeePath = '/HeaterAddEmployee';
   static const String employeeApprovalRejectedPath =
       '/EmployeeApprovalRejected';
 }
@@ -215,6 +218,11 @@ final goRouter = GoRouter(
       path: AppRoutes.heaterHomeScreenPath,
       name: AppRoutes.heaterHomeScreen,
       builder: (context, state) => HeaterBottomNavigationBar(initialIndex: 0),
+    ),
+    GoRoute(
+      path: AppRoutes.heaterAddEmployeePath,
+      name: AppRoutes.heaterAddEmployee,
+      builder: (context, state) => HeaterAddEmployee(),
     ),
     GoRoute(
       path: AppRoutes.employeeApprovalPendingPath,
