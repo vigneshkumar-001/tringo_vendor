@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../Presentation/Home Screen/home_screen.dart';
+import '../../Presentation/Register Screen/Screen/register_screen.dart';
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
 
@@ -50,9 +51,7 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
       case 1:
       // return const EnquiryScreens();
       case 2:
-
-      // return isPremium();
-
+        return RegisterScreen();
       case 3:
       // return AboutMeScreens(initialTab: widget.initialAboutMeTab ?? 0);
       case 4:

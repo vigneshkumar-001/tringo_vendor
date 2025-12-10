@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +13,273 @@ import '../Const/app_images.dart';
 enum DatePickMode { none, single, range }
 
 class CommonContainer {
+  static Widget sellingProduct({
+    required String image,
+    required VoidCallback onTap,
+    VoidCallback? buttonTap,
+    required String title,
+    required String description,
+    required bool isSelected,
+    required bool? selectedKind, // null until user chooses
+    bool isSellingCard = true,
+    required ValueChanged<bool?> onToggle, // true/false/null
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border:
+              isSelected
+                  ? Border(
+                    bottom: BorderSide(width: 8, color: Colors.black),
+                    top: BorderSide(width: 2, color: Colors.black),
+                    left: BorderSide(width: 2, color: Colors.black),
+                    right: BorderSide(width: 2, color: Colors.black),
+                  )
+                  : Border.all(color: Color(0xffD0D0D0), width: 1.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon
+            Image.asset(image, height: 50, width: 50),
+            SizedBox(height: 14),
+
+            // Title with bold second half
+            RichText(
+              text: TextSpan(
+                text: title.split(' ').take(2).join(' ') + ' ',
+                style: AppTextStyles.mulish(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
+                ),
+                children: [
+                  TextSpan(
+                    text: title.split(' ').skip(2).join(' '),
+                    style: AppTextStyles.mulish(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12),
+
+            Text(
+              description,
+              style: AppTextStyles.mulish(
+                fontSize: 13,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+
+            if (isSellingCard) ...[
+              SizedBox(height: 24),
+
+              if (isSelected) ...[
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Builder(
+                    builder: (_) {
+                      final bool isIndiv = selectedKind == true;
+                      final bool isComp = selectedKind == false;
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // --- Individual ---
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => onToggle(true),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 5),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isIndiv
+                                          ? Colors.white
+                                          : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow:
+                                      isIndiv
+                                          ? [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.08,
+                                              ),
+                                              offset: Offset(0, 2),
+                                              blurRadius: 10,
+                                            ),
+                                          ]
+                                          : [],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Individual",
+                                      style: AppTextStyles.mulish(
+                                        fontWeight:
+                                            isIndiv
+                                                ? FontWeight.w800
+                                                : FontWeight
+                                                    .normal, // << change
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    if (isIndiv)
+                                      Text(
+                                        "Selected",
+                                        style: AppTextStyles.mulish(
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // --- Center "or" chip: only BEFORE user chooses ---
+                          if (selectedKind == null)
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 15,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 5,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  "or",
+                                  style: AppTextStyles.mulish(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          // --- Company ---
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => onToggle(false),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isComp
+                                          ? Colors.white
+                                          : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow:
+                                      isComp
+                                          ? [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.08,
+                                              ),
+                                              offset: Offset(0, 2),
+                                              blurRadius: 10,
+                                            ),
+                                          ]
+                                          : [],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Company",
+                                      style: AppTextStyles.mulish(
+                                        fontWeight:
+                                            isComp
+                                                ? FontWeight.w800
+                                                : FontWeight
+                                                    .normal, // << change
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    if (isComp)
+                                      Text(
+                                        "Selected",
+                                        style: AppTextStyles.mulish(
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                SizedBox(height: 20),
+
+                if (selectedKind != null)
+                  GestureDetector(
+                    onTap: buttonTap,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Save & Continue",
+                            style: AppTextStyles.mulish(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Image.asset(AppImages.rightStickArrow, height: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+              ] else ...[
+                // When not selected: show NOTHING (matches screenshot-1)
+                SizedBox.shrink(),
+              ],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   static Widget button({
     required GestureTapCallback? onTap,
     required Widget text,
@@ -28,7 +297,6 @@ class CommonContainer {
     String? imagePath,
   }) {
     final bool showLoading = isLoading ?? (loader != null); // 👈 auto mode
-
     return SizedBox(
       width: size,
       child: ElevatedButton(
@@ -78,6 +346,7 @@ class CommonContainer {
       ),
     );
   }
+
   static button2({
     BuildContext? context,
     VoidCallback? onTap,
@@ -99,11 +368,12 @@ class CommonContainer {
         child: Container(
           decoration: BoxDecoration(
             color:
-            backgroundColor ??
+                backgroundColor ??
                 (isBorder ? AppColor.white : AppColor.skyBlue),
-            border: isBorder
-                ? Border.all(color: const Color(0xff3F5FF2), width: 2)
-                : null,
+            border:
+                isBorder
+                    ? Border.all(color: const Color(0xff3F5FF2), width: 2)
+                    : null,
             borderRadius: BorderRadius.circular(18),
           ),
           child: ElevatedButton(
@@ -116,32 +386,32 @@ class CommonContainer {
               backgroundColor: MaterialStateProperty.all(Colors.transparent),
             ),
             onPressed: onTap,
-            child: loader != null
-                ? loader
-                : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  text,
-                  style: TextStyle(
-                    fontFamily: "Roboto-normal",
-                    fontSize: fontSize,
-                    color: textColor,
-                    fontWeight: fontWeight,
-                  ),
-                ),
-                if (image != null) ...[
-                  const SizedBox(width: 15),
-                  Image.asset(image, height: 20),
-                ],
-              ],
-            ),
+            child:
+                loader != null
+                    ? loader
+                    : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          text,
+                          style: TextStyle(
+                            fontFamily: "Roboto-normal",
+                            fontSize: fontSize,
+                            color: textColor,
+                            fontWeight: fontWeight,
+                          ),
+                        ),
+                        if (image != null) ...[
+                          const SizedBox(width: 15),
+                          Image.asset(image, height: 20),
+                        ],
+                      ],
+                    ),
           ),
         ),
       ),
     );
   }
-
 
   static void _showDropdownBottomSheet(
     BuildContext context,
@@ -169,7 +439,7 @@ class CommonContainer {
                 style: AppTextStyles.mulish(
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? AppColor.lightSkyBlue : Colors.black,
+                  color: isSelected ? AppColor.skyBlue : Colors.black,
                 ),
               ),
               onTap: () {
@@ -186,6 +456,7 @@ class CommonContainer {
 
   static Widget fillingContainer({
     String? text,
+    String? text1,
     double? textSize = 14,
     Color? textColor = AppColor.mediumGray,
     FontWeight? textFontWeight,
@@ -414,7 +685,7 @@ class CommonContainer {
                                                         value.text.trim();
                                                     if (raw.isEmpty) {
                                                       return Text(
-                                                        text ?? '',
+                                                        text1 ?? '',
                                                         style:
                                                             AppTextStyles.mulish(
                                                               fontSize: 14,
@@ -634,6 +905,456 @@ class CommonContainer {
     );
   }
 
+  static Widget mobileNumberField({
+    Key? fieldKey,
+    TextEditingController? controller,
+    Function(String)? onChanged,
+    TextInputType? keyboardType,
+    FocusNode? focusNode,
+    FormFieldValidator<String>? validator,
+    bool readOnly = false,
+  }) {
+    // OTP controllers (created once per widget build)
+    final List<TextEditingController> otpControllers = List.generate(
+      4,
+      (_) => TextEditingController(),
+    );
+
+    bool showOtp = false;
+    bool isVerified = false;
+    bool showOtpError = false;
+
+    int resendSeconds = 30;
+    Timer? resendTimer;
+
+    // NOTE: takes StateSetter, not VoidCallback
+    void startResendTimer(StateSetter localSetState) {
+      resendTimer?.cancel();
+      resendSeconds = 30;
+
+      resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (resendSeconds == 0) {
+          timer.cancel();
+        } else {
+          localSetState(() {
+            resendSeconds--;
+          });
+        }
+      });
+    }
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        final textValue = controller?.text ?? '';
+        final isTenDigits = textValue.length == 10;
+        final hasMobile = textValue.isNotEmpty;
+        final last4Digits =
+            hasMobile && textValue.length >= 4
+                ? textValue.substring(textValue.length - 4)
+                : '';
+
+        return FormField<String>(
+          key: fieldKey,
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          builder: (state) {
+            final hasError = state.hasError;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Mobile Number',
+                  style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                ),
+                const SizedBox(height: 10),
+
+                // MAIN CONTAINER
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFFF5F5F5),
+                    border: Border.all(
+                      color: hasError ? Colors.red : Colors.transparent,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ───────── MOBILE FIELD + VERIFY / VERIFIED ─────────
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: controller,
+                                focusNode: focusNode,
+                                readOnly: readOnly,
+                                maxLength: 10,
+                                keyboardType:
+                                    keyboardType ?? TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
+                                decoration: const InputDecoration(
+                                  counterText: '',
+                                  hintText: ' ',
+                                  border: InputBorder.none,
+                                ),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                  letterSpacing: 0.5,
+                                ),
+                                onChanged: (v) {
+                                  state.didChange(v);
+                                  onChanged?.call(v);
+
+                                  setState(() {
+                                    showOtpError = false;
+                                    if (!isVerified) {
+                                      showOtp = false;
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+
+                            if (hasMobile && !isVerified)
+                              GestureDetector(
+                                onTap: () {
+                                  controller?.clear();
+                                  state.didChange('');
+                                  setState(() {
+                                    showOtp = false;
+                                    showOtpError = false;
+                                    resendTimer?.cancel();
+                                  });
+                                },
+                                child: Icon(
+                                  Icons.close,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                              ),
+
+                            SizedBox(width: 8),
+
+                            // if (verticalDivider)
+                            Container(
+                              width: 2,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.grey.shade200,
+                                    Colors.grey.shade300,
+                                    Colors.grey.shade200,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(1),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            if (!hasMobile)
+                              Text(
+                                'Mobile No',
+                                style: AppTextStyles.mulish(
+                                  color: AppColor.mediumGray,
+                                ),
+                              ),
+
+                            // VERIFY BUTTON
+                            if (isTenDigits && !isVerified && !showOtp)
+                              GestureDetector(
+                                onTap: () {
+                                  // TODO: call send-OTP API here
+                                  setState(() {
+                                    showOtp = true;
+                                    showOtpError = false;
+                                    for (final c in otpControllers) {
+                                      c.clear();
+                                    }
+                                    startResendTimer(setState);
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2196F3),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    "Verify",
+                                    style: AppTextStyles.mulish(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            // VERIFIED LABEL
+                            if (isVerified)
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppColor.green,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 15,
+                                    vertical: 5,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Image.asset(
+                                        AppImages.tickImage,
+                                        height: 11,
+                                        color: AppColor.white,
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'Verified',
+                                        style: AppTextStyles.mulish(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        // ───────── OTP CARD (screenshot style) ─────────
+                        if (showOtp && !isVerified && hasMobile) ...[
+                          SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFF2F2F2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          showOtp = false;
+                                          showOtpError = false;
+                                          resendTimer?.cancel();
+                                        });
+                                      },
+                                      child: Icon(
+                                        Icons.arrow_back_ios_new,
+                                        size: 14,
+                                        color: AppColor.mediumGray,
+                                      ),
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      "OTP Sent to your xxx$last4Digits",
+                                      style: AppTextStyles.mulish(
+                                        color: AppColor.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "If you didn’t get otp by sms, resend otp using the button",
+                                  style: AppTextStyles.mulish(
+                                    color: AppColor.darkGrey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  resendSeconds > 0
+                                      ? "Resend in ${resendSeconds}s"
+                                      : "Resend OTP",
+                                  style: AppTextStyles.mulish(
+                                    color: AppColor.blue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    ...List.generate(4, (index) {
+                                      return SizedBox(
+                                        width: 53,
+                                        height: 52,
+                                        child: TextField(
+                                          controller: otpControllers[index],
+                                          textAlign: TextAlign.center,
+                                          keyboardType: TextInputType.number,
+                                          maxLength: 1,
+                                          style: AppTextStyles.mulish(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            counterText: '',
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide: BorderSide(
+                                                color:
+                                                    showOtpError
+                                                        ? Colors.red
+                                                        : Colors.white,
+                                              ),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide: BorderSide(
+                                                color:
+                                                    showOtpError
+                                                        ? Colors.red
+                                                        : Colors.white,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              borderSide: const BorderSide(
+                                                color: Colors.black,
+                                                width: 2.5,
+                                              ),
+                                            ),
+                                          ),
+                                          onChanged: (value) {
+                                            if (value.isNotEmpty && index < 3) {
+                                              FocusScope.of(
+                                                context,
+                                              ).nextFocus();
+                                            } else if (value.isEmpty &&
+                                                index > 0) {
+                                              FocusScope.of(
+                                                context,
+                                              ).previousFocus();
+                                            }
+                                          },
+                                        ),
+                                      );
+                                    }),
+
+                                    //  button
+                                    GestureDetector(
+                                      onTap: () {
+                                        final otp =
+                                            otpControllers
+                                                .map((c) => c.text)
+                                                .join();
+
+                                        if (otp.length == 4) {
+                                          // TODO: call verify-OTP API here
+                                          setState(() {
+                                            isVerified = true;
+                                            showOtp = false;
+                                            showOtpError = false;
+                                            resendTimer?.cancel();
+                                          });
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Mobile number verified successfully',
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          setState(() {
+                                            showOtpError = true;
+                                          });
+                                        }
+                                      },
+                                      child: Container(
+                                        width: 53,
+                                        height: 52,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black,
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.check,
+                                          color: Colors.white,
+                                          size: 28,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                if (showOtpError)
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 8, left: 4),
+                                    child: Text(
+                                      "⚠️ Please Enter Valid OTP",
+                                      style: AppTextStyles.mulish(
+                                        color: Colors.red,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+
+                if (hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0, top: 4),
+                    child: Text(
+                      state.errorText ?? '',
+                      style: AppTextStyles.mulish(
+                        color: Colors.red,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   static topLeftArrow({required VoidCallback onTap, bool isMenu = false}) {
     return Row(
       children: [
@@ -700,6 +1421,560 @@ class CommonContainer {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  static registerTopContainer({
+    Color? gradientColor,
+    required String image,
+    required String text,
+    double? imageHeight,
+    double? imageWidth,
+    double? value,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(AppImages.registerBCImage),
+          fit: BoxFit.cover,
+        ),
+        gradient: LinearGradient(
+          colors: [AppColor.white, gradientColor!],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(30),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            Image.asset(image, height: imageHeight, width: imageWidth),
+            SizedBox(height: 15),
+            Text(
+              text,
+              style: AppTextStyles.mulish(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColor.mildBlack,
+              ),
+            ),
+            SizedBox(height: 30),
+            LinearProgressIndicator(
+              minHeight: 12,
+              value: value,
+              valueColor: AlwaysStoppedAnimation<Color>(AppColor.green),
+              backgroundColor: AppColor.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            SizedBox(height: 25),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget containerTitle({
+    required String title,
+    required String image,
+    String? infoMessage,
+    VoidCallback? onTap,
+    BuildContext? context,
+  }) {
+    return Row(
+      children: [
+        Text(title, style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+        SizedBox(width: 7),
+        InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: () {
+            if (onTap != null) {
+              onTap();
+            } else if (context != null && infoMessage != null) {
+              showDialog(
+                context: context,
+                builder:
+                    (_) => AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      backgroundColor: Colors.white,
+                      contentPadding: const EdgeInsets.all(20),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Image.asset(image, height: 18, width: 18),
+                              SizedBox(width: 8),
+                              Text(
+                                title,
+                                style: AppTextStyles.mulish(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColor.mildBlack,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            infoMessage,
+                            style: AppTextStyles.mulish(
+                              color: AppColor.mediumLightGray,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 18),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColor.skyBlue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text(
+                                'Got it',
+                                style: AppTextStyles.mulish(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+              );
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColor.iceBlue,
+              borderRadius: BorderRadius.circular(50),
+            ),
+            padding: const EdgeInsets.all(5),
+            child: Image.asset(image, height: 10),
+          ),
+        ),
+      ],
+    );
+  }
+  static Widget gradientContainer({
+    required String text,
+    String? locationImage,
+    String? iconImage,
+    Color lIconColor = AppColor.darkBlue,
+    Color dIconColor = AppColor.darkBlue,
+    Color textColor = AppColor.darkBlue,
+    FontWeight? fontWeight,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColor.lowLightBlue,
+              AppColor.lowLightBlue.withOpacity(0.5),
+              AppColor.white.withOpacity(0.3),
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (locationImage != null)
+              Image.asset(locationImage, height: 24, color: lIconColor),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                text,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: AppTextStyles.mulish(
+                  color: textColor,
+                  fontWeight: fontWeight,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            if (iconImage != null)
+              Image.asset(iconImage, height: 11, color: dIconColor),
+          ],
+        ),
+      ),
+    );
+  }
+  static doorDelivery({
+    Color? containerColor = AppColor.iceBlue,
+    Color? imageColor,
+    Color? textColor,
+    String? text,
+    FontWeight? fontWeight,
+    double fontSize = 0.0,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: containerColor,
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Row(
+          children: [
+            Image.asset(AppImages.deliveryImage, height: 14, color: imageColor),
+            SizedBox(width: 5),
+            Text(
+              text ?? '',
+              style: AppTextStyles.mulish(
+                fontSize: fontSize,
+                fontWeight: fontWeight,
+                color: textColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static callNowButton({
+    VoidCallback? callOnTap,
+    VoidCallback? orderOnTap,
+    VoidCallback? mapOnTap,
+    VoidCallback? messageOnTap,
+    VoidCallback? whatsAppOnTap,
+    VoidCallback? fireOnTap,
+    bool messageContainer = false,
+    bool mapBox = false,
+    bool whatsAppIcon = false,
+    bool MessageIcon = false,
+    bool FireIcon = false,
+    bool order = false,
+
+    // Custom paddings
+    EdgeInsetsGeometry? callNowPadding,
+    EdgeInsetsGeometry? mapBoxPadding,
+    EdgeInsetsGeometry? iconContainerPadding,
+
+    // Custom sizes
+    double? callIconSize,
+    double? callTextSize,
+    double? mapIconSize,
+    double? mapTextSize,
+    double? messagesIconSize,
+    double? whatsAppIconSize,
+    double? fireIconSize,
+
+    Color? callImageColor,
+
+    String? mapImage,
+    String? mapText,
+    String? callImage,
+    String? callText,
+    String? orderText,
+    String? orderImage,
+  }) {
+    return Row(
+      children: [
+        if (order)
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: InkWell(
+              onTap: orderOnTap,
+              child: Container(
+                padding:
+                callNowPadding ??
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColor.blueGradient1,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset(orderImage!, height: callIconSize ?? 16),
+                    const SizedBox(width: 7),
+                    Text(
+                      orderText!,
+                      style: AppTextStyles.mulish(
+                        fontWeight: FontWeight.bold,
+                        fontSize: callTextSize ?? 16,
+                        color: AppColor.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+        // ---- Call button (smart flexible) ----
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final bounded =
+                constraints.hasBoundedWidth && constraints.maxWidth.isFinite;
+
+            final callBtn = InkWell(
+              onTap: callOnTap,
+              child: Container(
+                padding:
+                callNowPadding ??
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColor.skyBlue,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center, // nice centering
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      callImage!,
+                      height: callIconSize ?? 16,
+                      color: callImageColor,
+                    ),
+                    const SizedBox(width: 7),
+                    Text(
+                      callText!,
+                      style: AppTextStyles.mulish(
+                        fontWeight: FontWeight.bold,
+                        fontSize: callTextSize ?? 14,
+                        color: AppColor.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+
+            // If width is bounded (typical page layout), behave like Expanded.
+            // If unbounded (inside horizontal SingleChildScrollView), return intrinsic size.
+            return bounded ? Expanded(child: callBtn) : callBtn;
+          },
+        ),
+
+        if (mapBox)
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: mapOnTap,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColor.skyBlue, width: 1.5),
+                ),
+                child: Padding(
+                  padding:
+                  mapBoxPadding ??
+                      const EdgeInsets.symmetric(horizontal: 17, vertical: 5),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        mapImage!,
+                        height: mapIconSize ?? 21,
+                        color: AppColor.skyBlue,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        mapText!,
+                        style: AppTextStyles.mulish(
+                          fontWeight: FontWeight.bold,
+                          fontSize: mapTextSize ?? 16,
+                          color: AppColor.skyBlue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        // ⬇️ only add gap if the pill is going to show
+        if (messageContainer && (MessageIcon || whatsAppIcon || FireIcon))
+          const SizedBox(width: 9),
+
+        if (messageContainer && (MessageIcon || whatsAppIcon || FireIcon))
+          Container(
+            padding:
+            iconContainerPadding ??
+                const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColor.white2,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            // ⬇️ auto-size & auto-center the icons based on how many are visible
+            child: Wrap(
+              spacing: 16, // even spacing for 2+ icons
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (MessageIcon)
+                  GestureDetector(
+                    onTap: messageOnTap,
+                    child: Image.asset(
+                      AppImages.messageImage,
+                      height: messagesIconSize ?? 19,
+                    ),
+                  ),
+                if (whatsAppIcon)
+                  GestureDetector(
+                    onTap: whatsAppOnTap,
+                    child: Image.asset(
+                      AppImages.whatsappImage,
+                      height: whatsAppIconSize ?? 19,
+                    ),
+                  ),
+                if (FireIcon)
+                  GestureDetector(
+                    onTap: fireOnTap,
+                    child: Image.asset(
+                      AppImages.fireImage,
+                      height: fireIconSize ?? 19,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  static reviewBox() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColor.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border(
+            bottom: BorderSide(color: AppColor.borderLightGrey, width: 8),
+            left: BorderSide(color: AppColor.borderLightGrey, width: 2),
+            right: BorderSide(color: AppColor.borderLightGrey, width: 2),
+            top: BorderSide(color: AppColor.borderLightGrey, width: 2),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Great People',
+                    style: AppTextStyles.mulish(
+                      fontSize: 16,
+                      color: AppColor.darkBlue,
+                    ),
+                  ),
+                  SizedBox(width: 9),
+                  Image.asset(AppImages.dratImage, height: 8, width: 6),
+                  SizedBox(width: 9),
+                  Image.asset(
+                    AppImages.starImage,
+                    height: 12,
+                    color: AppColor.green,
+                  ),
+                  SizedBox(width: 4),
+                  Image.asset(
+                    AppImages.starImage,
+                    height: 12,
+                    color: AppColor.green,
+                  ),
+                  SizedBox(width: 4),
+                  Image.asset(
+                    AppImages.starImage,
+                    height: 12,
+                    color: AppColor.green,
+                  ),
+                  SizedBox(width: 4),
+                  Image.asset(
+                    AppImages.starImage,
+                    height: 12,
+                    color: AppColor.green,
+                  ),
+                  SizedBox(width: 4),
+                  Image.asset(
+                    AppImages.starImage,
+                    height: 12,
+                    color: AppColor.borderGray,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '4',
+                    style: AppTextStyles.mulish(
+                      fontWeight: FontWeight.bold,
+                      color: AppColor.green,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 15),
+              Text(
+                'Praesent viverra volutpat lorem, eu convallis lacus maximus quis. Nam at lorem mi. In tempor commodo bibendum. Donec euismod urna pharetra justo finibus, eget volutpat justo dapibus. ',
+                style: AppTextStyles.mulish(color: AppColor.gray84),
+              ),
+              SizedBox(height: 15),
+              CommonContainer.horizonalDivider(),
+              SizedBox(height: 15),
+              Text(
+                '1 Month Ago',
+                style: AppTextStyles.mulish(color: AppColor.darkGrey),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static horizonalDivider({bool isSubscription = false}) {
+    return Container(
+      width: double.infinity,
+      height: 2,
+      decoration: BoxDecoration(
+        gradient: isSubscription
+            ? LinearGradient(
+          begin: Alignment.centerRight,
+          end: Alignment.centerLeft,
+          colors: [
+            Color(0xFFFFFFFF),
+            Color(0xFFE1E1E1),
+            Color(0xFFE1E1E1),
+            Color(0xFFE1E1E1),
+            Color(0xFFE1E1E1),
+            Color(0xFFFFFFFF),
+          ],
+        )
+            : LinearGradient(
+          begin: Alignment.centerRight,
+          end: Alignment.centerLeft,
+          colors: [
+            AppColor.white.withOpacity(0.5),
+            AppColor.white3,
+            AppColor.white3,
+            AppColor.white3,
+            AppColor.white3,
+            AppColor.white3,
+            AppColor.white3,
+            AppColor.white.withOpacity(0.5),
+          ],
+        ),
+
+        borderRadius: BorderRadius.circular(1),
       ),
     );
   }

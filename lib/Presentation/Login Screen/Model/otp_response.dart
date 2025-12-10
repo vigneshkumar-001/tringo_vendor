@@ -1,4 +1,4 @@
-class  OtpResponse  {
+class OtpResponse {
   final bool status;
   final int code;
   final OtpData? data;
@@ -31,12 +31,14 @@ class OtpData {
   final String refreshToken;
   final String role;
   final String sessionToken;
+  final bool isNewOwner;
 
   OtpData({
     required this.accessToken,
     required this.refreshToken,
     required this.role,
     required this.sessionToken,
+    required this.isNewOwner,
   });
 
   factory OtpData.fromJson(Map<String, dynamic> json) {
@@ -45,6 +47,7 @@ class OtpData {
       refreshToken: json['refreshToken'] ?? '',
       role: json['role'] ?? '',
       sessionToken: json['sessionToken'] ?? '',
+      isNewOwner: json['isNewOwner'] ?? false,
     );
   }
 
@@ -54,6 +57,7 @@ class OtpData {
       'refreshToken': refreshToken,
       'role': role,
       'sessionToken': sessionToken,
+      'isNewOwner': isNewOwner,
     };
   }
 }
