@@ -7,23 +7,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Controller/add_employee_notifier.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
+import '../../../../Core/Utility/app_loader.dart';
+import '../../../../Core/Utility/app_snackbar.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Utility/thanglish_to_tamil.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 
 class HeaterAddEmployee extends ConsumerStatefulWidget {
-  final bool? isService;
-  final bool? isIndividual;
-  const HeaterAddEmployee({
-    super.key,
-    this.isCompany,
-    this.isService,
-    this.isIndividual,
-  });
-  final bool? isCompany;
+  const HeaterAddEmployee({super.key});
+
   @override
   ConsumerState<HeaterAddEmployee> createState() => _HeaterAddEmployeeState();
 }
@@ -34,10 +30,9 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
 
   final TextEditingController englishNameController = TextEditingController();
   final TextEditingController emergencyNameController = TextEditingController();
-  final TextEditingController emergencyRelationShipController = TextEditingController();
+  final TextEditingController emergencyRelationShipController =
+      TextEditingController();
   final TextEditingController emailIdController = TextEditingController();
-  final TextEditingController dateOfBirthController = TextEditingController();
-  final TextEditingController genderController = TextEditingController();
   final TextEditingController mobileController = TextEditingController();
   final TextEditingController aadharController = TextEditingController();
   final TextEditingController emergencyMobileController =
@@ -70,13 +65,6 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
     otpControllers = List.generate(otpLength, (_) => TextEditingController());
     otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
     _existingUrls = List<String?>.filled(2, null, growable: false);
-
-    // ✅ initialize these
-    final isIndividual = widget.isIndividual ?? true;
-    final isService = widget.isService ?? false;
-
-    ownershipType = isIndividual ? 'INDIVIDUAL' : 'COMPANY';
-    businessTypeForApi = isService ? 'SERVICES' : 'SELLING_PRODUCTS';
   }
 
   @override
@@ -86,8 +74,7 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
     emergencyRelationShipController.dispose();
     mobileController.dispose();
     emailIdController.dispose();
-    dateOfBirthController.dispose();
-    genderController.dispose();
+
     emergencyMobileController.dispose();
     aadharController.dispose();
 
@@ -256,8 +243,7 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
 
   @override
   Widget build(BuildContext context) {
-    // final state = ref.watch(ownerInfoNotifierProvider);
-    final bool isIndividualFlow = widget.isIndividual ?? true;
+    final state = ref.watch(addEmployeeNotifier);
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -533,9 +519,13 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                       CommonContainer.button(
                         buttonColor: AppColor.darkBlue,
                         imagePath: AppImages.rightStickArrow,
-                        text: Text('Save & Continue'),
+
+                        text:
+                            state.isLoading
+                                ? ThreeDotsLoader()
+                                : Text('Save & Continue'),
                         onTap: () async {
-                          setState(() => _isSubmitted = true);
+
 
                           // if (!_formKey.currentState!.validate()) {
                           //   return;
@@ -560,47 +550,36 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                           //   return;
                           // }
 
-                          final gender = genderController.text.trim();
 
-                          AppLogger.log.i(
-                            'ownershipType: $ownershipType, businessType: $businessTypeForApi',
-                          );
 
-                          // await ref
-                          //     .read(ownerInfoNotifierProvider.notifier)
-                          //     .submitOwnerInfo(
-                          //       ownershipType:
-                          //           ownershipType, // ✅ "INDIVIDUAL" / "COMPANY"
-                          //       businessType:
-                          //           businessTypeForApi, // ✅ "PRODUCT" / "SERVICE" (adjust if backend uses different strings)
-                          //       ownerNameTamil: tamilName,
-                          //       identityDocumentUrl: '',
-                          //       govtRegisteredName: englishName,
-                          //       gender: gender,
-                          //       fullName: englishName,
-                          //       dateOfBirth: dobForApi,
-                          //       email: email,
-                          //       preferredLanguage: '',
-                          //     );
-                          //
-                          // final newState = ref.read(ownerInfoNotifierProvider);
-                          //
-                          // if (newState.error != null) {
-                          //   AppSnackBar.error(context, newState.error!);
-                          // } else if (newState.ownerResponse != null) {
-                          //   AppSnackBar.success(
-                          //     context,
-                          //     "Owner information saved successfully",
-                          //   );
-                          context.push(
-                            AppRoutes.employeeApprovalPendingPath,
+                          await ref
+                              .read(addEmployeeNotifier.notifier)
+                              .addEmployeeVendor(
+                                phoneNumber: mobileController.text,
+                                fullName: englishNameController.text.trim(),
+                                email: emailIdController.text.trim(),
+                                emergencyContactName:
+                                    emergencyNameController.text.trim(),
+                                emergencyContactRelationship:
+                                    emergencyRelationShipController.text.trim(),
+                                emergencyContactPhone:
+                                    emergencyMobileController.text.trim(),
+                                aadhaarNumber: aadharController.text.trim(),
+                                aadhaarFile: _pickedImages[0]!,
+                                ownerImageFile: _pickedImages[1]!,
+                              );
 
-                          );
-                          //
-                          //   AppLogger.log.i(
-                          //     "Owner Info Saved  ${newState.ownerResponse?.toJson()}",
-                          //   );
-                          // }
+                          final newState = ref.read(addEmployeeNotifier);
+
+                          if (newState.error != null) {
+                            AppSnackBar.error(context, newState.error!);
+                          } else if (newState.addEmployeeResponse != null) {
+                            AppSnackBar.success(
+                              context,
+                              "Owner information saved successfully",
+                            );
+                            context.push(AppRoutes.employeeApprovalPendingPath);
+                          }
                         },
                       ),
                     ],

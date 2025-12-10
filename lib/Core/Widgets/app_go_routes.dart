@@ -40,7 +40,7 @@ class AppRoutes {
   static const String heaterHomeScreen = 'HeaterHomeScreen';
   static const String employeeApprovalPending = 'EmployeeApprovalPending';
   static const String employeeApprovalRejected = 'EmployeeApprovalRejected';
-  static const String heaterAddEmployee = 'HeaterAddEmployee';
+  static const String heaterAddEmployee = 'heaterAddEmployee';
 
   static const String splashScreenPath = '/splashScreen';
   static const String loginPath = '/login';
@@ -59,7 +59,8 @@ class AppRoutes {
   static const String vendorCompanyPhotoPath = '/VendorCompanyPhoto';
   static const String heaterHomeScreenPath = '/HeaterHomeScreen';
   static const String employeeApprovalPendingPath = '/EmployeeApprovalPending';
-  static const String heaterAddEmployeePath = '/HeaterAddEmployee';
+  static const String heaterAddEmployeePath = '/heaterAddEmployeePath';
+
   static const String employeeApprovalRejectedPath =
       '/EmployeeApprovalRejected';
 }
@@ -213,7 +214,11 @@ final goRouter = GoRouter(
         return VendorCompanyPhoto(pages: pageName);
       },
     ),
-
+    GoRoute(
+      path: AppRoutes.heaterAddEmployeePath,
+      name: AppRoutes.heaterAddEmployee,
+      builder: (context, state) => HeaterAddEmployee(),
+    ),
     GoRoute(
       path: AppRoutes.heaterHomeScreenPath,
       name: AppRoutes.heaterHomeScreen,
