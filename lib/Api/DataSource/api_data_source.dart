@@ -17,6 +17,8 @@ import '../Repository/api_url.dart';
 import '../Repository/failure.dart';
 import '../Repository/request.dart';
 
+enum VendorRegisterScreen { screen1, screen2, screen3, screen4 }
+
 abstract class BaseApiDataSource {
   Future<Either<Failure, LoginResponse>> mobileNumberLogin(
     String mobileNumber,
@@ -192,73 +194,92 @@ class ApiDataSource {
   }
 
   Future<Either<Failure, VendorResponse>> heaterRegister({
+    required VendorRegisterScreen screen,
+
     // 1st screen
-    required String vendorName,
-    required String vendorNameTamil,
-    required String phoneNumber,
-    required String email,
-    required String dateOfBirth, // format: YYYY-MM-DD
-    required String gender,
-    required String aadharNumber,
-    required String aadharDocumentUrl,
+    String? vendorName,
+    String? vendorNameTamil,
+    String? phoneNumber,
+    String? email,
+    String? dateOfBirth, // format: YYYY-MM-DD
+    String? gender,
+    String? aadharNumber,
+    String? aadharDocumentUrl,
 
     // 2nd screen
-    required String bankAccountNumber,
-    required String bankAccountName,
-    required String bankBranch,
-    required String bankIfsc,
+    String? bankAccountNumber,
+    String? bankAccountName,
+    String? bankBranch,
+    String? bankIfsc,
 
     // 3rd screen
-    required String companyName,
-    required String companyAddress,
-    required String gpsLatitude,
-    required String gpsLongitude,
-    required String primaryCity,
-    required String primaryState,
-    required String companyContactNumber,
-    required String alternatePhone,
-    required String companyEmail,
-    required String gstNumber,
+    String? companyName,
+    String? companyAddress,
+    String? gpsLatitude,
+    String? gpsLongitude,
+    String? primaryCity,
+    String? primaryState,
+    String? companyContactNumber,
+    String? alternatePhone,
+    String? companyEmail,
+    String? gstNumber,
 
     // 4th screen
-    required String avatarUrl,
+    String? avatarUrl,
   }) async {
     try {
       final url = ApiUrl.vendorRegister;
 
-      //  Correct, full payload mapped to your VendorData & VendorUser model
-      final payload = {
-        //  Screen 1 – owner basic info
-        "displayName": vendorName, // maps to VendorData.displayName
-        "ownerNameTamil": vendorNameTamil, // maps to VendorData.ownerNameTamil
-        "phoneNumber": phoneNumber, // VendorUser.phoneNumber
-        "email": email, // VendorUser.email
-        "gender": gender.toUpperCase(), // VendorData.gender
-        "dateOfBirth": dateOfBirth, // "YYYY-MM-DD" string
-        "aadharNumber": aadharNumber, // VendorData.aadharNumber
-        "aadharDocumentUrl": aadharDocumentUrl, // VendorData.aadharDocumentUrl
-        //  Screen 2 – bank details
-        "bankAccountNumber": bankAccountNumber,
-        "bankAccountName": bankAccountName,
-        "bankBranch": bankBranch,
-        "bankIfsc": bankIfsc,
+      final Map<String, dynamic> payload = {};
 
-        //  Screen 3 – company & location
-        "companyName": companyName,
-        "addressLine1": companyAddress, // maps to VendorData.addressLine1
-        "gpsLatitude": gpsLatitude,
-        "gpsLongitude": gpsLongitude,
-        "primaryCity": primaryCity,
-        "primaryState": primaryState,
+      // helper → only add if not null/empty
+      void addIfNotEmpty(String key, String? value) {
+        if (value != null && value.trim().isNotEmpty) {
+          payload[key] = value;
+        }
+      }
 
-        "companyContactNumber": companyContactNumber,
-        "alternatePhone": alternatePhone,
-        "companyEmail": companyEmail,
-        "gstNumber": gstNumber,
+      /// ---- Build payload only for the current screen ----
+      switch (screen) {
+        case VendorRegisterScreen.screen1:
+          // Screen 1 – owner basic info
+          addIfNotEmpty("displayName", vendorName);
+          addIfNotEmpty("ownerNameTamil", vendorNameTamil);
+          addIfNotEmpty("phoneNumber", phoneNumber);
+          addIfNotEmpty("email", email);
+          addIfNotEmpty("gender", gender?.toUpperCase());
+          addIfNotEmpty("dateOfBirth", dateOfBirth);
+          addIfNotEmpty("aadharNumber", aadharNumber);
+          addIfNotEmpty("aadharDocumentUrl", aadharDocumentUrl);
+          break;
 
-        //  Screen 4 – avatar
-        "avatarUrl": avatarUrl,
-      };
+        case VendorRegisterScreen.screen2:
+          // Screen 2 – bank details only
+          addIfNotEmpty("bankAccountNumber", bankAccountNumber);
+          addIfNotEmpty("bankAccountName", bankAccountName);
+          addIfNotEmpty("bankBranch", bankBranch);
+          addIfNotEmpty("bankIfsc", bankIfsc);
+          break;
+
+        case VendorRegisterScreen.screen3:
+          // Screen 3 – company & location only
+          addIfNotEmpty("companyName", companyName);
+          addIfNotEmpty("addressLine1", companyAddress);
+          addIfNotEmpty("gpsLatitude", gpsLatitude);
+          addIfNotEmpty("gpsLongitude", gpsLongitude);
+          addIfNotEmpty("primaryCity", primaryCity);
+          addIfNotEmpty("primaryState", primaryState);
+          addIfNotEmpty("companyContactNumber", companyContactNumber);
+          addIfNotEmpty("alternatePhone", alternatePhone);
+          addIfNotEmpty("companyEmail", companyEmail);
+          addIfNotEmpty("gstNumber", gstNumber);
+          break;
+
+        case VendorRegisterScreen.screen4:
+          // Screen 4 – avatar only
+          addIfNotEmpty("avatarUrl", avatarUrl);
+          break;
+      }
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
 
@@ -282,6 +303,7 @@ class ApiDataSource {
       }
       return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
     } catch (e) {
+      AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
     }
   }

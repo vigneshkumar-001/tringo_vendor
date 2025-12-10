@@ -225,6 +225,11 @@ final goRouter = GoRouter(
       builder: (context, state) => HeaterBottomNavigationBar(initialIndex: 0),
     ),
     GoRoute(
+      path: AppRoutes.heaterAddEmployeePath,
+      name: AppRoutes.heaterAddEmployee,
+      builder: (context, state) => HeaterAddEmployee(),
+    ),
+    GoRoute(
       path: AppRoutes.employeeApprovalPendingPath,
       name: AppRoutes.employeeApprovalPending,
       builder: (context, state) => EmployeeApprovalPending(),
