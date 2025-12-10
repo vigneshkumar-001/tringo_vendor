@@ -183,6 +183,7 @@ class Request {
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
+    final String? sessionToken = prefs.getString('sessionToken');
     String? userId = prefs.getString('userId');
 
     Dio dio = Dio();
@@ -219,16 +220,18 @@ class Request {
     );
 
     try {
+
+      final headers = <String, dynamic>{
+        "Content-Type": "application/json",
+        if (token != null && isTokenRequired) "Authorization": "Bearer $token",
+        if (sessionToken != null && isTokenRequired)
+          "x-session-token": sessionToken,
+      };
       Response response = await dio.get(
         url,
         queryParameters: queryParams,
         options: Options(
-          headers: {
-            "Authorization":
-                token != null
-                    ? "Bearer $token"
-                    : "", // Only the token in the header
-          },
+          headers: headers,
           validateStatus: (status) {
             return status != null && status < 500;
           },

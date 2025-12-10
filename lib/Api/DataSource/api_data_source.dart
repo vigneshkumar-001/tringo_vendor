@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/add_employee_response.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
 
+import '../../Presentation/Heater/Add Vendor Employee/Model/user_image_response.dart';
 import '../../Presentation/Heater/Heater Register/Model/vendorResponse.dart';
 import '../../Presentation/Login Screen/Model/login_response.dart';
 import '../../Presentation/Login Screen/Model/otp_response.dart';
@@ -279,4 +285,131 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  Future<Either<Failure, AddEmployeeResponse>> addEmployee({
+    // 1st screen
+    required String phoneNumber,
+    required String fullName,
+    required String email,
+    required String emergencyContactName,
+    required String emergencyContactRelationship,
+    required String emergencyContactPhone,
+    required String aadhaarNumber,
+    required String aadhaarDocumentUrl,
+    required String avatarUrl,
+  }) async {
+    try {
+      final url = ApiUrl.addEmployees;
+
+      final payload = {
+        "phoneNumber": phoneNumber,
+        "fullName": fullName,
+        "email": email,
+        "emergencyContactName": emergencyContactName,
+        "emergencyContactRelationship": emergencyContactRelationship,
+        "emergencyContactPhone": emergencyContactPhone,
+        "aadharNumber": aadhaarNumber,
+        "aadharDocumentUrl": aadhaarDocumentUrl,
+        "avatarUrl": avatarUrl,
+      };
+
+      final response = await Request.sendRequest(url, payload, 'Post', true);
+
+      AppLogger.log.i(response);
+
+      final data = response.data;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (data['status'] == true) {
+          return Right(AddEmployeeResponse.fromJson(data));
+        } else {
+          return Left(ServerFailure(data['message'] ?? "Login failed"));
+        }
+      } else {
+        return Left(ServerFailure(data['message'] ?? "Something went wrong"));
+      }
+    } on DioException catch (dioError) {
+      final errorData = dioError.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, UserImageResponse>> userProfileUpload({
+    required File imageFile,
+  }) async {
+    try {
+      if (!await imageFile.exists()) {
+        return Left(ServerFailure('Image file does not exist.'));
+      }
+
+      String url = ApiUrl.imageUrl;
+      FormData formData = FormData.fromMap({
+        'images': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+      });
+
+      final response = await Request.formData(url, formData, 'POST', true);
+      Map<String, dynamic> responseData =
+          jsonDecode(response.data) as Map<String, dynamic>;
+      if (response.statusCode == 200) {
+        if (responseData['status'] == true) {
+          return Right(UserImageResponse.fromJson(responseData));
+        } else {
+          return Left(ServerFailure(responseData['message']));
+        }
+      } else if (response is Response && response.statusCode == 409) {
+        return Left(ServerFailure(responseData['message']));
+      } else if (response is Response) {
+        return Left(ServerFailure(responseData['message'] ?? "Unknown error"));
+      } else {
+        return Left(ServerFailure("Unexpected error"));
+      }
+    } catch (e) {
+      // CommonLogger.log.e(e);
+      print(e);
+      return Left(ServerFailure('Something went wrong'));
+    }
+  }
+
+
+
+
+  Future<Either<Failure, EmployeeListResponse>> getEmployeeList() async {
+    try {
+      final url = ApiUrl. employeeOverview  ;
+
+      final response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      AppLogger.log.i(response);
+
+      final data = response?.data;
+
+      if (response?.statusCode == 200 || response?.statusCode == 201) {
+        if (data['status'] == true) {
+          return Right(EmployeeListResponse.fromJson(data));
+        } else {
+          return Left(ServerFailure(data['message'] ?? "Login failed"));
+        }
+      } else {
+        return Left(ServerFailure(data['message'] ?? "Something went wrong"));
+      }
+    } on DioException catch (dioError) {
+      final errorData = dioError.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
 }

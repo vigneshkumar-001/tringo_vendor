@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 
@@ -25,22 +26,24 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> checkNavigation() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final bool isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
-    final bool isProfileCompleted =
-        prefs.getBool("isProfileCompleted") ?? false;
+    final String token = prefs.getString("token")?? '';
+    final String sessionToken = prefs.getString("sessionToken")?? '';
 
-    // Hold splash for 5 seconds
+    AppLogger.log.i('sessionToken : $sessionToken \n token : $token');
+
+
     await Future.delayed(const Duration(seconds: 5));
 
     if (!mounted) return;
 
-    if (!isLoggedIn) {
+    if (token.isEmpty) {
       context.go(AppRoutes.loginPath);
     }
 
-    // else {
-    //   context.go(AppRoutes.homePath);
-    // }
+     else {
+        context.go(AppRoutes. employeeApprovalPendingPath);
+      // context.go(AppRoutes.loginPath);
+     }
   }
 
   // Future<void> checkNavigation() async {
