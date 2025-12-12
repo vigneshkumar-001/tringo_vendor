@@ -8,11 +8,13 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
 
 import '../../Presentation/Heater/Add Vendor Employee/Model/user_image_response.dart';
+import '../../Presentation/Heater/Heater Home Screen/Model/heater_home_response.dart';
 import '../../Presentation/Heater/Heater Register/Model/vendorResponse.dart';
 import '../../Presentation/Login Screen/Model/login_response.dart';
 import '../../Presentation/Login Screen/Model/otp_response.dart';
 import '../../Presentation/Login Screen/Model/resend_otp_response.dart';
 import '../../Presentation/Login Screen/Model/whatsapp_response.dart';
+import '../../Presentation/Mobile Nomber Verify/Model/sim_verify_response.dart';
 import '../Repository/api_url.dart';
 import '../Repository/failure.dart';
 import '../Repository/request.dart';
@@ -29,47 +31,38 @@ abstract class BaseApiDataSource {
 class ApiDataSource {
   Future<Either<Failure, LoginResponse>> mobileNumberLogin(
     String phone,
-    String page,
-  ) async {
-    try {
-      String url = ApiUrl.register;
-      // String url = page == "resendOtp" ? ApiUrl.resendOtp : ApiUrl.register;
-      AppLogger.log.i(url);
+    String simToken, {
+    String page = "",
+  }) async {
+    String url = page == "resendOtp" ? ApiUrl.resendOtp : ApiUrl.register;
 
-      dynamic response = await Request.sendRequest(
-        url,
-        {"contact": "+91$phone", "purpose": "vendor"},
-        'Post',
-        false,
-      );
+    final response = await Request.sendRequest(
+      url,
+      {"contact": "+91$phone", "purpose": "vendor"},
+      'Post',
+      false,
+    );
 
-      AppLogger.log.i(response);
-
-      if (response is! DioException) {
-        // If status code is success
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          if (response.data['status'] == true) {
-            return Right(LoginResponse.fromJson(response.data));
-          } else {
-            return Left(
-              ServerFailure(response.data['message'] ?? "Login failed"),
-            );
-          }
+    if (response is! DioException) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['status'] == true) {
+          return Right(LoginResponse.fromJson(response.data));
         } else {
-          // ❗ API returned non-success code but has JSON error message
           return Left(
-            ServerFailure(response.data['message'] ?? "Something went wrong"),
+            ServerFailure(response.data['message'] ?? "Login failed"),
           );
         }
       } else {
-        final errorData = response.response?.data;
-        if (errorData is Map && errorData.containsKey('message')) {
-          return Left(ServerFailure(errorData['message']));
-        }
-        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+        return Left(
+          ServerFailure(response.data['message'] ?? "Something went wrong"),
+        );
       }
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+    } else {
+      final errorData = response.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(response.message ?? "Unknown Dio error"));
     }
   }
 
@@ -112,6 +105,53 @@ class ApiDataSource {
       }
     } catch (e) {
       AppLogger.log.e(e.toString());
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, SimVerifyResponse>> mobileVerify({
+    required String contact,
+    required String simToken,
+    required String purpose,
+  }) async {
+    try {
+      final url = ApiUrl.mobileVerify;
+
+      final payload = {
+        'contact': "+91$contact",
+        'simToken': simToken,
+        'purpose': 'vendor',
+      };
+
+      // Use your normal POST helper
+      dynamic response = await Request.sendRequest(url, payload, 'Post', true);
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            // ✅ API returns the same JSON you showed
+            return Right(SimVerifyResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -204,7 +244,7 @@ class ApiDataSource {
     String? dateOfBirth, // format: YYYY-MM-DD
     String? gender,
     String? aadharNumber,
-    String? aadharDocumentUrl,
+    String? aadhaarDocumentUrl,
 
     // 2nd screen
     String? bankAccountNumber,
@@ -250,7 +290,7 @@ class ApiDataSource {
           addIfNotEmpty("gender", gender?.toUpperCase());
           addIfNotEmpty("dateOfBirth", dateOfBirth);
           addIfNotEmpty("aadharNumber", aadharNumber);
-          addIfNotEmpty("aadharDocumentUrl", aadharDocumentUrl);
+          addIfNotEmpty("aadharDocumentUrl", aadhaarDocumentUrl);
           break;
 
         case VendorRegisterScreen.screen2:
@@ -321,10 +361,11 @@ class ApiDataSource {
     required String avatarUrl,
   }) async {
     try {
+
       final url = ApiUrl.addEmployees;
 
       final payload = {
-        "phoneNumber": phoneNumber,
+        "phoneNumber": '+91${phoneNumber}',
         "fullName": fullName,
         "email": email,
         "emergencyContactName": emergencyContactName,
@@ -401,12 +442,9 @@ class ApiDataSource {
     }
   }
 
-
-
-
   Future<Either<Failure, EmployeeListResponse>> getEmployeeList() async {
     try {
-      final url = ApiUrl. employeeOverview  ;
+      final url = ApiUrl.employeeOverview;
 
       final response = await Request.sendGetRequest(url, {}, 'GET', true);
 
@@ -434,4 +472,40 @@ class ApiDataSource {
     }
   }
 
+  Future<Either<Failure, VendorDashboardResponse>> heaterHome() async {
+    try {
+      final url = ApiUrl.heaterHome;
+
+      dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        // If status code is success
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(VendorDashboardResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          // ❗ API returned non-success code but has JSON error message
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

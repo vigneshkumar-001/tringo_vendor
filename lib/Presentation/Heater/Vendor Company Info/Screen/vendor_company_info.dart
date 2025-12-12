@@ -670,6 +670,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
+
                                 screen: VendorRegisterScreen.screen3,
                                 vendorName: '',
                                 vendorNameTamil: '',

@@ -542,48 +542,45 @@ class CommonContainer {
           }
 
           // Range Picker
-          if (datePickMode == DatePickMode.range) {
+          if (datePickMode == DatePickMode.single) {
             if (context == null) return;
-            final picked = await showDateRangePicker(
+
+            final now = DateTime.now();
+            final lastAllowedDob = DateTime(now.year - 18, now.month, now.day);
+
+            final picked = await showDatePicker(
               context: context!,
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-              initialDateRange: DateTimeRange(
-                start: DateTime.now(),
-                end: DateTime.now().add(const Duration(days: 7)),
-              ),
-              builder:
-                  (ctx, child) => Theme(
-                    data: Theme.of(ctx).copyWith(
-                      dialogBackgroundColor: AppColor.white,
-                      colorScheme: ColorScheme.light(
-                        primary: AppColor.blue,
-                        onPrimary: Colors.white,
-                        onSurface: AppColor.black,
-                      ),
-                      textButtonTheme: TextButtonThemeData(
-                        style: TextButton.styleFrom(
-                          textStyle: AppTextStyles.mulish(
-                            fontWeight: FontWeight.w700,
-                          ),
-                          foregroundColor: AppColor.lightSkyBlue,
-                        ),
-                      ),
-                    ),
-                    child: child!,
+              initialDate: lastAllowedDob,
+              firstDate: DateTime(1900),
+              lastDate: lastAllowedDob, // ✅ user must be 18+
+              builder: (ctx, child) => Theme(
+                data: Theme.of(ctx).copyWith(
+                  dialogBackgroundColor: AppColor.white,
+                  colorScheme: ColorScheme.light(
+                    primary: AppColor.blue,
+                    onPrimary: Colors.white,
+                    onSurface: AppColor.black,
                   ),
+                  textButtonTheme: TextButtonThemeData(
+                    style: TextButton.styleFrom(
+                      textStyle: AppTextStyles.mulish(),
+                      foregroundColor: AppColor.blue,
+                    ),
+                  ),
+                ),
+                child: child!,
+              ),
             );
+
             if (picked != null) {
               controller?.text =
-                  '${picked.start.day.toString().padLeft(2, '0')}-'
-                  '${picked.start.month.toString().padLeft(2, '0')}-${picked.start.year}'
-                  '  to  '
-                  '${picked.end.day.toString().padLeft(2, '0')}-'
-                  '${picked.end.month.toString().padLeft(2, '0')}-${picked.end.year}';
+              '${picked.day.toString().padLeft(2, '0')}-'
+                  '${picked.month.toString().padLeft(2, '0')}-${picked.year}';
               state.didChange(controller?.text);
             }
             return;
           }
+
 
           // Dropdown
           if (isDropdown && dropdownItems?.isNotEmpty == true) {
@@ -973,7 +970,7 @@ class CommonContainer {
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: const Color(0xFFF5F5F5),
+                    color:   Color(0xFFF5F5F5),
                     border: Border.all(
                       color: hasError ? Colors.red : Colors.transparent,
                       width: 1.5,
@@ -1002,7 +999,7 @@ class CommonContainer {
                                   FilteringTextInputFormatter.digitsOnly,
                                   LengthLimitingTextInputFormatter(10),
                                 ],
-                                decoration: const InputDecoration(
+                                decoration:   InputDecoration(
                                   counterText: '',
                                   hintText: ' ',
                                   border: InputBorder.none,

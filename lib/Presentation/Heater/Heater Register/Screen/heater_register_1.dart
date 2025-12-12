@@ -417,11 +417,11 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                         verticalDivider: true,
                         controller: englishNameController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.trim().isEmpty
-                        //             ? 'Enter English name'
-                        //             : null,
+                      validator:
+                          (v) =>
+                              v == null || v.trim().isEmpty
+                                  ? 'Enter English name'
+                                  : null,
                       ),
 
                       const SizedBox(height: 10),
@@ -442,11 +442,11 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                         verticalDivider: true,
                         controller: tamilNameController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.trim().isEmpty
-                        //             ? 'Enter Tamil name'
-                        //             : null,
+                   validator:
+                       (v) =>
+                           v == null || v.trim().isEmpty
+                               ? 'Enter Tamil name'
+                               : null,
                       ),
 
                       if (isTamilNameLoading)
@@ -520,17 +520,17 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                         verticalDivider: true,
                         controller: emailIdController,
                         context: context,
-                        // validator: (v) {
-                        //   if (v == null || v.isEmpty) {
-                        //     return 'Email required';
-                        //   }
-                        //   if (!RegExp(
-                        //     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                        //   ).hasMatch(v)) {
-                        //     return 'Enter valid email';
-                        //   }
-                        //   return null;
-                        // },
+                       validator: (v) {
+                         if (v == null || v.isEmpty) {
+                           return 'Email required';
+                         }
+                         if (!RegExp(
+                           r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                         ).hasMatch(v)) {
+                           return 'Enter valid email';
+                         }
+                         return null;
+                       },
                       ),
 
                       SizedBox(height: 30),
@@ -540,7 +540,7 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                         'Date of Birth',
                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
                       ),
-                      const SizedBox(height: 10),
+                        SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
                         isDOB: true,
@@ -552,12 +552,12 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                         textFontWeight: FontWeight.w700,
                         context: context,
                         datePickMode: DatePickMode.single,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.isEmpty ? 'DOB required' : null,
+                       validator:
+                           (v) =>
+                               v == null || v.isEmpty ? 'DOB required' : null,
                       ),
 
-                      const SizedBox(height: 30),
+                        SizedBox(height: 30),
 
                       /// GENDER
                       Text(
@@ -575,9 +575,9 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                         imageColor: AppColor.gray84,
                         controller: genderController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.isEmpty ? 'Select gender' : null,
+                         validator:
+                             (v) =>
+                                 v == null || v.isEmpty ? 'Select gender' : null,
                       ),
 
                       SizedBox(height: 30),
@@ -595,9 +595,9 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                         verticalDivider: true,
                         controller: aadharController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.isEmpty ? 'Aadhar No' : null,
+                       validator:
+                           (v) =>
+                               v == null || v.isEmpty ? 'Aadhar No' : null,
                       ),
 
                       SizedBox(height: 30),
@@ -682,6 +682,7 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
+                                aadhaarFile: _pickedImages[0]!,
                                 screen: VendorRegisterScreen.screen1,
                                 vendorName: englishName,
                                 vendorNameTamil: tamilName,

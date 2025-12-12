@@ -6,14 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
-import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Controller/add_employee_notifier.dart';
-import '../../../../Core/Const/app_color.dart';
-import '../../../../Core/Const/app_images.dart';
-import '../../../../Core/Utility/app_loader.dart';
-import '../../../../Core/Utility/app_snackbar.dart';
-import '../../../../Core/Utility/app_textstyles.dart';
-import '../../../../Core/Utility/thanglish_to_tamil.dart';
+
+import 'package:tringo_vendor_new/Core/Const/app_color.dart';
+import 'package:tringo_vendor_new/Core/Const/app_images.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_loader.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_snackbar.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Add Vendor Employee/Controller/add_employee_notifier.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 
@@ -38,34 +37,11 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
   final TextEditingController emergencyMobileController =
       TextEditingController();
 
-  bool showOtpCard = false;
-  int resendSeconds = 30;
-  List<String> tamilNameSuggestion = [];
-  bool isTamilNameLoading = false;
-
-  // OTP
-  final int otpLength = 4;
-  late List<TextEditingController> otpControllers;
-  late List<FocusNode> otpFocusNodes;
-
-  late final String ownershipType;
-  late final String businessTypeForApi;
-
-  // 🔹 Images (0 = Aadhar, 1 = Profile)
-  List<File?> _pickedImages = List<File?>.filled(2, null, growable: false);
-  List<bool> _hasError = List<bool>.filled(2, false, growable: false);
-  late List<String?> _existingUrls;
-  bool _insidePhotoError = false;
   final ImagePicker _picker = ImagePicker();
 
-  @override
-  void initState() {
-    super.initState();
-
-    otpControllers = List.generate(otpLength, (_) => TextEditingController());
-    otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
-    _existingUrls = List<String?>.filled(2, null, growable: false);
-  }
+  List<File?> _pickedImages = List<File?>.filled(2, null, growable: false);
+  List<bool> _hasError = List<bool>.filled(2, false, growable: false);
+  List<String?> _existingUrls = List<String?>.filled(2, null, growable: false);
 
   @override
   void dispose() {
@@ -74,39 +50,10 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
     emergencyRelationShipController.dispose();
     mobileController.dispose();
     emailIdController.dispose();
-
     emergencyMobileController.dispose();
     aadharController.dispose();
-
-    for (final c in otpControllers) {
-      c.dispose();
-    }
-    for (final f in otpFocusNodes) {
-      f.dispose();
-    }
     super.dispose();
   }
-
-  void _onSubmitOtp() {
-    final otp = otpControllers.map((c) => c.text).join();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("OTP Entered: $otp")));
-  }
-
-  void _startResendTimer() {
-    resendSeconds = 30;
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (resendSeconds == 0) {
-        timer.cancel();
-      } else {
-        setState(() => resendSeconds--);
-      }
-    });
-  }
-
-  bool get isOtpComplete =>
-      otpControllers.every((controller) => controller.text.isNotEmpty);
 
   Future<void> _pickImage(int index) async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -115,22 +62,31 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
       setState(() {
         _pickedImages[index] = File(pickedFile.path);
         _existingUrls[index] = null;
-
-        if (index == 0 || index == 1) {
-          _hasError[index] = false;
-        }
+        _hasError[index] = false;
       });
     }
   }
 
-  Widget _addImageContainer({
-    required int index,
-    bool checkIndividualError = false,
-  }) {
+  bool _validateImages() {
+    bool hasError = false;
+
+    for (int i = 0; i < 2; i++) {
+      if (_pickedImages[i] == null) {
+        _hasError[i] = true;
+        hasError = true;
+      } else {
+        _hasError[i] = false;
+      }
+    }
+
+    setState(() {});
+    return !hasError;
+  }
+
+  Widget _imageBox({required int index}) {
     final file = _pickedImages[index];
-    final url = _existingUrls[index];
-    final hasImage = file != null || (url != null && url.isNotEmpty);
-    final hasError = checkIndividualError ? _hasError[index] : false;
+    final hasError = _hasError[index];
+    final hasImage = file != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,7 +118,7 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Image.asset(AppImages.addImage, height: 20),
-                              const SizedBox(width: 10),
+                              SizedBox(width: 10),
                               Text(
                                 'Upload Image',
                                 style: AppTextStyles.mulish(
@@ -174,20 +130,12 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                         )
                         : ClipRRect(
                           borderRadius: BorderRadius.circular(16),
-                          child:
-                              file != null
-                                  ? Image.file(
-                                    file,
-                                    fit: BoxFit.cover,
-                                    height: 150,
-                                    width: double.infinity,
-                                  )
-                                  : Image.network(
-                                    url!,
-                                    fit: BoxFit.cover,
-                                    height: 150,
-                                    width: double.infinity,
-                                  ),
+                          child: Image.file(
+                            file!,
+                            fit: BoxFit.cover,
+                            height: 150,
+                            width: double.infinity,
+                          ),
                         ),
               ),
             ),
@@ -210,7 +158,7 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                         height: 28,
                         color: AppColor.white,
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         'Clear',
                         style: AppTextStyles.mulish(
@@ -244,350 +192,319 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(addEmployeeNotifier);
+
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            autovalidateMode:
-                _isSubmitted
-                    ? AutovalidateMode.onUserInteraction
-                    : AutovalidateMode.disabled,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// HEADER BAR
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 16,
-                  ),
-                  child: Row(
-                    children: [
-                      CommonContainer.topLeftArrow(
-                        onTap: () {
-                          if (showOtpCard) {
-                            setState(() => showOtpCard = false);
-                          } else {
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                      SizedBox(width: 50),
-                      Text(
-                        'Register Vendor',
-                        style: AppTextStyles.mulish(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: AppColor.mildBlack,
-                        ),
-                      ),
-                      SizedBox(width: 5),
-                      // Text(
-                      //   '-',
-                      //   style: AppTextStyles.mulish(
-                      //     fontSize: 16,
-                      //     fontWeight: FontWeight.w400,
-                      //     color: AppColor.mildBlack,
-                      //   ),
-                      // ),
-                      // SizedBox(width: 5),
-                      Text(
-                        // isIndividualFlow ? 'Individual' :
-                        'Employee',
-                        style: AppTextStyles.mulish(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColor.mildBlack,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: 35),
-
-                Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(AppImages.registerBCImage),
-                      fit: BoxFit.cover,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await ref.read(addEmployeeNotifier.notifier);
+            await ref.read(addEmployeeNotifier.notifier);
+          },
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              autovalidateMode:
+                  _isSubmitted
+                      ? AutovalidateMode.onUserInteraction
+                      : AutovalidateMode.disabled,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 16,
                     ),
-                    gradient: LinearGradient(
-                      colors: [AppColor.white, AppColor.lavenderMist],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      bottomRight: Radius.circular(30),
-                      bottomLeft: Radius.circular(30),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
+                    child: Row(
                       children: [
-                        Image.asset(AppImages.vendorEmployee, height: 85),
-                        SizedBox(height: 15),
+                        CommonContainer.topLeftArrow(
+                          onTap: () => Navigator.pop(context),
+                        ),
+                        SizedBox(width: 50),
                         Text(
-                          'Add Vendor Employee',
+                          'Register Vendor',
                           style: AppTextStyles.mulish(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                             color: AppColor.mildBlack,
                           ),
                         ),
-                        SizedBox(height: 30),
-                        LinearProgressIndicator(
-                          minHeight: 12,
-                          value: 0.3,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColor.green,
+                        SizedBox(width: 5),
+                        Text(
+                          'Employee',
+                          style: AppTextStyles.mulish(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColor.mildBlack,
                           ),
-                          backgroundColor: AppColor.white,
-                          borderRadius: BorderRadius.circular(16),
                         ),
-                        SizedBox(height: 25),
                       ],
                     ),
                   ),
-                ),
 
-                SizedBox(height: 30),
+                  SizedBox(height: 35),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Name',
-                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                  Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(AppImages.registerBCImage),
+                        fit: BoxFit.cover,
                       ),
-
-                      SizedBox(height: 10),
-
-                      CommonContainer.fillingContainer(
-                        text: '',
-                        verticalDivider: false,
-                        controller: englishNameController,
-                        context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.trim().isEmpty
-                        //             ? 'Name'
-                        //             : null,
+                      gradient: LinearGradient(
+                        colors: [AppColor.white, AppColor.lavenderMist],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
-
-                      SizedBox(height: 30),
-
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 400),
-                        transitionBuilder:
-                            (child, animation) => FadeTransition(
-                              opacity: animation,
-                              child: child,
+                      borderRadius: const BorderRadius.only(
+                        bottomRight: Radius.circular(30),
+                        bottomLeft: Radius.circular(30),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          Image.asset(AppImages.vendorEmployee, height: 85),
+                          SizedBox(height: 15),
+                          Text(
+                            'Add Vendor Employee',
+                            style: AppTextStyles.mulish(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.mildBlack,
                             ),
-                        child: CommonContainer.mobileNumberField(
-                          controller: mobileController,
-                          // validator: (value) {
-                          //   if (value == null || value.isEmpty) {
-                          //     return 'Mobile number required';
-                          //   }
-                          //   if (value.length != 10) {
-                          //     return 'Enter valid 10-digit number';
-                          //   }
-                          //   return null;
-                          // },
+                          ),
+                          SizedBox(height: 30),
+                          LinearProgressIndicator(
+                            minHeight: 12,
+                            value: 0.3,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColor.green,
+                            ),
+                            backgroundColor: AppColor.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          SizedBox(height: 25),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 30),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Name',
+                          style: AppTextStyles.mulish(
+                            color: AppColor.mildBlack,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 30),
+                        SizedBox(height: 10),
+                        CommonContainer.fillingContainer(
+                          controller: englishNameController,
+                          context: context,
+                          validator:
+                              (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Name required'
+                                      : null,
+                        ),
+                        SizedBox(height: 30),
 
-                      Text(
-                        'Email Id',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: CommonContainer.mobileNumberField(
+                            controller: mobileController,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Mobile number required';
+                              }
+                              if (value.length != 10) {
+                                return 'Enter valid 10-digit number';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 30),
 
-                      CommonContainer.fillingContainer(
-                        keyboardType: TextInputType.emailAddress,
-                        text: '',
-                        verticalDivider: false,
-                        controller: emailIdController,
-                        context: context,
-                        // validator: (v) {
-                        //   if (v == null || v.isEmpty) {
-                        //     return 'Email required';
-                        //   }
-                        //   if (!RegExp(
-                        //     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                        //   ).hasMatch(v)) {
-                        //     return 'Enter valid email';
-                        //   }
-                        //   return null;
-                        // },
-                      ),
+                        Text(
+                          'Email Id',
+                          style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                        ),
+                        SizedBox(height: 10),
+                        CommonContainer.fillingContainer(
+                          controller: emailIdController,
+                          keyboardType: TextInputType.emailAddress,
+                          context: context,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Email required';
+                            if (!RegExp(
+                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                            ).hasMatch(v)) {
+                              return 'Enter valid email';
+                            }
+                            return null;
+                          },
+                        ),
 
-                      SizedBox(height: 30),
+                        SizedBox(height: 30),
 
-                      Text(
-                        'Emergency Contact Details',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
+                        Text(
+                          'Emergency Contact Details',
+                          style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                        ),
+                        SizedBox(height: 10),
 
-                      CommonContainer.fillingContainer(
-                        text: 'Name',
-                        verticalDivider: true,
-                        controller: emergencyNameController,
-                        context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.trim().isEmpty
-                        //             ? 'Name'
-                        //             : null,
-                      ),
-                      SizedBox(height: 10),
+                        CommonContainer.fillingContainer(
+                          text: 'Name',
+                          verticalDivider: true,
+                          controller: emergencyNameController,
+                          context: context,
+                          validator:
+                              (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Name required'
+                                      : null,
+                        ),
+                        SizedBox(height: 10),
 
-                      CommonContainer.fillingContainer(
-                        text: 'Relationship',
-                        verticalDivider: true,
-                        controller: emergencyRelationShipController,
-                        context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.trim().isEmpty
-                        //             ? 'Name'
-                        //             : null,
-                      ),
-                      SizedBox(height: 10),
-                      CommonContainer.fillingContainer(
-                        controller: emergencyMobileController,
-                        verticalDivider: true,
-                        isMobile: true, // mobile behavior +91 etc
-                        text: 'Mobile Number',
-                        keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter Mobile Number';
-                          }
-                          return null;
-                        },
-                      ),
+                        CommonContainer.fillingContainer(
+                          text: 'Relationship',
+                          verticalDivider: true,
+                          controller: emergencyRelationShipController,
+                          context: context,
+                          validator:
+                              (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Relationship required'
+                                      : null,
+                        ),
+                        SizedBox(height: 10),
 
-                      SizedBox(height: 30),
+                        CommonContainer.fillingContainer(
+                          text: 'Mobile Number',
+                          isMobile: true,
+                          controller: emergencyMobileController,
+                          context: context,
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Please enter mobile number'
+                                      : null,
+                        ),
 
-                      Text(
-                        'Aadhar No',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
+                        SizedBox(height: 30),
 
-                      CommonContainer.fillingContainer(
-                        keyboardType: TextInputType.number,
-                        isAadhaar: true,
-                        text: 'Aadhar No',
-                        verticalDivider: true,
-                        controller: aadharController,
-                        context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.isEmpty ? 'Aadhar No' : null,
-                      ),
-                      SizedBox(height: 30),
-                      CommonContainer.containerTitle(
-                        context: context,
-                        title: 'Aadhar Photo',
-                        image: AppImages.iImage,
-                        infoMessage:
-                            'Please upload a clear photo of your Aadhar.',
-                      ),
-                      SizedBox(height: 10),
-                      _addImageContainer(index: 0, checkIndividualError: true),
-                      SizedBox(height: 30),
-                      CommonContainer.containerTitle(
-                        context: context,
-                        title: 'Profile Picture',
-                        image: AppImages.iImage,
-                        infoMessage:
-                            'Please upload a clear photo of Profile Picture.',
-                      ),
-                      SizedBox(height: 10),
-                      _addImageContainer(index: 1, checkIndividualError: true),
-                      SizedBox(height: 30),
+                        Text(
+                          'Aadhar No',
+                          style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                        ),
+                        SizedBox(height: 10),
 
-                      CommonContainer.button(
-                        buttonColor: AppColor.darkBlue,
-                        imagePath: AppImages.rightStickArrow,
+                        CommonContainer.fillingContainer(
+                          verticalDivider: false,
+                          controller: aadharController,
+                          context: context,
+                          keyboardType: TextInputType.number,
+                          isAadhaar: true,
+                          validator:
+                              (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Aadhar required'
+                                      : null,
+                        ),
 
-                        text:
-                            state.isLoading
-                                ? ThreeDotsLoader()
-                                : Text('Save & Continue'),
-                        onTap: () async {
+                        SizedBox(height: 30),
+                        CommonContainer.containerTitle(
+                          context: context,
+                          title: 'Aadhar Photo',
+                          image: AppImages.iImage,
+                          infoMessage:
+                              'Please upload a clear photo of your Aadhar.',
+                        ),
+                        SizedBox(height: 10),
+                        _imageBox(index: 0),
 
+                        SizedBox(height: 30),
 
-                          // if (!_formKey.currentState!.validate()) {
-                          //   return;
-                          // }
+                        CommonContainer.containerTitle(
+                          context: context,
+                          title: 'Profile Picture',
+                          image: AppImages.iImage,
+                          infoMessage: 'Please upload a clear profile picture.',
+                        ),
+                        SizedBox(height: 10),
+                        _imageBox(index: 1),
 
-                          // final englishName = englishNameController.text.trim();
-                          // final tamilName = tamilNameController.text.trim();
-                          // final mobile = mobileController.text.trim();
-                          // final email = emailIdController.text.trim();
-                          // final input = dateOfBirthController.text.trim();
-                          //
-                          // String dobForApi = '';
-                          // try {
-                          //   final parsedDate = DateFormat(
-                          //     'dd-MM-yyyy',
-                          //   ).parseStrict(input);
-                          //   dobForApi = DateFormat(
-                          //     'yyyy-MM-dd',
-                          //   ).format(parsedDate);
-                          // } catch (e) {
-                          //   AppSnackBar.error(context, "Invalid DOB");
-                          //   return;
-                          // }
+                        SizedBox(height: 30),
 
+                        CommonContainer.button(
+                          buttonColor: AppColor.darkBlue,
+                          imagePath:
+                              state.isLoading
+                                  ? null
+                                  : AppImages.rightStickArrow,
+                          text:
+                              state.isLoading
+                                  ? ThreeDotsLoader()
+                                  : Text('Save & Continue'),
+                          onTap: () async {
+                            setState(() => _isSubmitted = true);
 
+                            if (!_formKey.currentState!.validate()) return;
 
-                          await ref
-                              .read(addEmployeeNotifier.notifier)
-                              .addEmployeeVendor(
-                                phoneNumber: mobileController.text,
-                                fullName: englishNameController.text.trim(),
-                                email: emailIdController.text.trim(),
-                                emergencyContactName:
-                                    emergencyNameController.text.trim(),
-                                emergencyContactRelationship:
-                                    emergencyRelationShipController.text.trim(),
-                                emergencyContactPhone:
-                                    emergencyMobileController.text.trim(),
-                                aadhaarNumber: aadharController.text.trim(),
-                                aadhaarFile: _pickedImages[0]!,
-                                ownerImageFile: _pickedImages[1]!,
+                            if (!_validateImages()) {
+                              AppSnackBar.error(
+                                context,
+                                "Please upload required images",
                               );
+                              return;
+                            }
 
-                          final newState = ref.read(addEmployeeNotifier);
+                            await ref
+                                .read(addEmployeeNotifier.notifier)
+                                .addEmployeeVendor(
+                                  phoneNumber: mobileController.text,
+                                  fullName: englishNameController.text.trim(),
+                                  email: emailIdController.text.trim(),
+                                  emergencyContactName:
+                                      emergencyNameController.text.trim(),
+                                  emergencyContactRelationship:
+                                      emergencyRelationShipController.text
+                                          .trim(),
+                                  emergencyContactPhone:
+                                      emergencyMobileController.text.trim(),
+                                  aadhaarNumber: aadharController.text.trim(),
+                                  aadhaarFile: _pickedImages[0]!,
+                                  ownerImageFile: _pickedImages[1]!,
+                                );
 
-                          if (newState.error != null) {
-                            AppSnackBar.error(context, newState.error!);
-                          } else if (newState.addEmployeeResponse != null) {
+                            final newState = ref.read(addEmployeeNotifier);
+
+                            if (newState.error != null) {
+                              AppSnackBar.error(context, newState.error!);
+                              return;
+                            }
+
                             AppSnackBar.success(
                               context,
-                              "Owner information saved successfully",
+                              "Employee added successfully",
                             );
                             context.push(AppRoutes.employeeApprovalPendingPath);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                          },
+                        ),
 
-                SizedBox(height: 30),
-              ],
+                        SizedBox(height: 30),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -595,3 +512,598 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
     );
   }
 }
+
+// import 'dart:async';
+// import 'dart:io';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import 'package:go_router/go_router.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:image_picker/image_picker.dart';
+// import 'package:intl/intl.dart';
+// import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+// import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Controller/add_employee_notifier.dart';
+// import '../../../../Core/Const/app_color.dart';
+// import '../../../../Core/Const/app_images.dart';
+// import '../../../../Core/Utility/app_loader.dart';
+// import '../../../../Core/Utility/app_snackbar.dart';
+// import '../../../../Core/Utility/app_textstyles.dart';
+// import '../../../../Core/Utility/thanglish_to_tamil.dart';
+// import '../../../../Core/Widgets/app_go_routes.dart';
+// import '../../../../Core/Widgets/common_container.dart';
+//
+// class HeaterAddEmployee extends ConsumerStatefulWidget {
+//   const HeaterAddEmployee({super.key});
+//
+//   @override
+//   ConsumerState<HeaterAddEmployee> createState() => _HeaterAddEmployeeState();
+// }
+//
+// class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
+//   final _formKey = GlobalKey<FormState>();
+//   bool _isSubmitted = false;
+//
+//   final TextEditingController englishNameController = TextEditingController();
+//   final TextEditingController emergencyNameController = TextEditingController();
+//   final TextEditingController emergencyRelationShipController =
+//       TextEditingController();
+//   final TextEditingController emailIdController = TextEditingController();
+//   final TextEditingController mobileController = TextEditingController();
+//   final TextEditingController aadharController = TextEditingController();
+//   final TextEditingController emergencyMobileController =
+//       TextEditingController();
+//
+//   bool showOtpCard = false;
+//   int resendSeconds = 30;
+//   List<String> tamilNameSuggestion = [];
+//   bool isTamilNameLoading = false;
+//
+//   // OTP
+//   final int otpLength = 4;
+//   late List<TextEditingController> otpControllers;
+//   late List<FocusNode> otpFocusNodes;
+//
+//   late final String ownershipType;
+//   late final String businessTypeForApi;
+//
+//   // 🔹 Images (0 = Aadhar, 1 = Profile)
+//   List<File?> _pickedImages = List<File?>.filled(2, null, growable: false);
+//   List<bool> _hasError = List<bool>.filled(2, false, growable: false);
+//   late List<String?> _existingUrls;
+//   bool _insidePhotoError = false;
+//   final ImagePicker _picker = ImagePicker();
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//
+//     otpControllers = List.generate(otpLength, (_) => TextEditingController());
+//     otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
+//     _existingUrls = List<String?>.filled(2, null, growable: false);
+//   }
+//
+//   @override
+//   void dispose() {
+//     englishNameController.dispose();
+//     emergencyNameController.dispose();
+//     emergencyRelationShipController.dispose();
+//     mobileController.dispose();
+//     emailIdController.dispose();
+//
+//     emergencyMobileController.dispose();
+//     aadharController.dispose();
+//
+//     for (final c in otpControllers) {
+//       c.dispose();
+//     }
+//     for (final f in otpFocusNodes) {
+//       f.dispose();
+//     }
+//     super.dispose();
+//   }
+//
+//   void _onSubmitOtp() {
+//     final otp = otpControllers.map((c) => c.text).join();
+//     ScaffoldMessenger.of(
+//       context,
+//     ).showSnackBar(SnackBar(content: Text("OTP Entered: $otp")));
+//   }
+//
+//   void _startResendTimer() {
+//     resendSeconds = 30;
+//     Timer.periodic(const Duration(seconds: 1), (timer) {
+//       if (resendSeconds == 0) {
+//         timer.cancel();
+//       } else {
+//         setState(() => resendSeconds--);
+//       }
+//     });
+//   }
+//
+//   bool get isOtpComplete =>
+//       otpControllers.every((controller) => controller.text.isNotEmpty);
+//
+//   Future<void> _pickImage(int index) async {
+//     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+//
+//     if (pickedFile != null) {
+//       setState(() {
+//         _pickedImages[index] = File(pickedFile.path);
+//         _existingUrls[index] = null;
+//
+//         if (index == 0 || index == 1) {
+//           _hasError[index] = false;
+//         }
+//       });
+//     }
+//   }
+//
+//   Widget _addImageContainer({
+//     required int index,
+//     bool checkIndividualError = false,
+//   }) {
+//     final file = _pickedImages[index];
+//     final url = _existingUrls[index];
+//     final hasImage = file != null || (url != null && url.isNotEmpty);
+//     final hasError = checkIndividualError ? _hasError[index] : false;
+//
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Stack(
+//           children: [
+//             GestureDetector(
+//               onTap: () => _pickImage(index),
+//               child: Container(
+//                 width: double.infinity,
+//                 decoration: BoxDecoration(
+//                   color: AppColor.lowGery1,
+//                   borderRadius: BorderRadius.circular(16),
+//                   border: Border.all(
+//                     color:
+//                         hasError
+//                             ? Colors.red
+//                             : hasImage
+//                             ? AppColor.lightSkyBlue
+//                             : Colors.transparent,
+//                     width: 1.5,
+//                   ),
+//                 ),
+//                 child:
+//                     !hasImage
+//                         ? Padding(
+//                           padding: const EdgeInsets.symmetric(vertical: 22.5),
+//                           child: Row(
+//                             mainAxisAlignment: MainAxisAlignment.center,
+//                             children: [
+//                               Image.asset(AppImages.addImage, height: 20),
+//                               const SizedBox(width: 10),
+//                               Text(
+//                                 'Upload Image',
+//                                 style: AppTextStyles.mulish(
+//                                   color: AppColor.darkGrey,
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         )
+//                         : ClipRRect(
+//                           borderRadius: BorderRadius.circular(16),
+//                           child:
+//                               file != null
+//                                   ? Image.file(
+//                                     file,
+//                                     fit: BoxFit.cover,
+//                                     height: 150,
+//                                     width: double.infinity,
+//                                   )
+//                                   : Image.network(
+//                                     url!,
+//                                     fit: BoxFit.cover,
+//                                     height: 150,
+//                                     width: double.infinity,
+//                                   ),
+//                         ),
+//               ),
+//             ),
+//             if (hasImage)
+//               Positioned(
+//                 top: 15,
+//                 right: 16,
+//                 child: InkWell(
+//                   onTap: () {
+//                     setState(() {
+//                       _pickedImages[index] = null;
+//                       _existingUrls[index] = null;
+//                       _hasError[index] = false;
+//                     });
+//                   },
+//                   child: Column(
+//                     children: [
+//                       Image.asset(
+//                         AppImages.closeImage,
+//                         height: 28,
+//                         color: AppColor.white,
+//                       ),
+//                       const SizedBox(height: 2),
+//                       Text(
+//                         'Clear',
+//                         style: AppTextStyles.mulish(
+//                           color: AppColor.white,
+//                           fontWeight: FontWeight.w500,
+//                           fontSize: 12,
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//           ],
+//         ),
+//         if (hasError)
+//           Padding(
+//             padding: const EdgeInsets.only(top: 6, left: 5),
+//             child: Text(
+//               'Please add this image',
+//               style: AppTextStyles.mulish(
+//                 color: Colors.red,
+//                 fontWeight: FontWeight.w600,
+//                 fontSize: 13,
+//               ),
+//             ),
+//           ),
+//       ],
+//     );
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final state = ref.watch(addEmployeeNotifier);
+//     return Scaffold(
+//       body: SafeArea(
+//         child: SingleChildScrollView(
+//           child: Form(
+//             key: _formKey,
+//             autovalidateMode:
+//                 _isSubmitted
+//                     ? AutovalidateMode.onUserInteraction
+//                     : AutovalidateMode.disabled,
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 /// HEADER BAR
+//                 Padding(
+//                   padding: const EdgeInsets.symmetric(
+//                     horizontal: 15,
+//                     vertical: 16,
+//                   ),
+//                   child: Row(
+//                     children: [
+//                       CommonContainer.topLeftArrow(
+//                         onTap: () {
+//                           if (showOtpCard) {
+//                             setState(() => showOtpCard = false);
+//                           } else {
+//                             Navigator.pop(context);
+//                           }
+//                         },
+//                       ),
+//                       SizedBox(width: 50),
+//                       Text(
+//                         'Register Vendor',
+//                         style: AppTextStyles.mulish(
+//                           fontSize: 16,
+//                           fontWeight: FontWeight.w500,
+//                           color: AppColor.mildBlack,
+//                         ),
+//                       ),
+//                       SizedBox(width: 5),
+//                       // Text(
+//                       //   '-',
+//                       //   style: AppTextStyles.mulish(
+//                       //     fontSize: 16,
+//                       //     fontWeight: FontWeight.w400,
+//                       //     color: AppColor.mildBlack,
+//                       //   ),
+//                       // ),
+//                       // SizedBox(width: 5),
+//                       Text(
+//                         // isIndividualFlow ? 'Individual' :
+//                         'Employee',
+//                         style: AppTextStyles.mulish(
+//                           fontSize: 16,
+//                           fontWeight: FontWeight.w600,
+//                           color: AppColor.mildBlack,
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//
+//                 SizedBox(height: 35),
+//
+//                 Container(
+//                   decoration: BoxDecoration(
+//                     image: DecorationImage(
+//                       image: AssetImage(AppImages.registerBCImage),
+//                       fit: BoxFit.cover,
+//                     ),
+//                     gradient: LinearGradient(
+//                       colors: [AppColor.white, AppColor.lavenderMist],
+//                       begin: Alignment.topCenter,
+//                       end: Alignment.bottomCenter,
+//                     ),
+//                     borderRadius: const BorderRadius.only(
+//                       bottomRight: Radius.circular(30),
+//                       bottomLeft: Radius.circular(30),
+//                     ),
+//                   ),
+//                   child: Padding(
+//                     padding: const EdgeInsets.symmetric(horizontal: 20),
+//                     child: Column(
+//                       children: [
+//                         Image.asset(AppImages.vendorEmployee, height: 85),
+//                         SizedBox(height: 15),
+//                         Text(
+//                           'Add Vendor Employee',
+//                           style: AppTextStyles.mulish(
+//                             fontSize: 28,
+//                             fontWeight: FontWeight.w700,
+//                             color: AppColor.mildBlack,
+//                           ),
+//                         ),
+//                         SizedBox(height: 30),
+//                         LinearProgressIndicator(
+//                           minHeight: 12,
+//                           value: 0.3,
+//                           valueColor: AlwaysStoppedAnimation<Color>(
+//                             AppColor.green,
+//                           ),
+//                           backgroundColor: AppColor.white,
+//                           borderRadius: BorderRadius.circular(16),
+//                         ),
+//                         SizedBox(height: 25),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//
+//                 SizedBox(height: 30),
+//
+//                 Padding(
+//                   padding: const EdgeInsets.symmetric(horizontal: 15),
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Text(
+//                         'Name',
+//                         style: AppTextStyles.mulish(color: AppColor.mildBlack),
+//                       ),
+//
+//                       SizedBox(height: 10),
+//
+//                       CommonContainer.fillingContainer(
+//                         text: '',
+//                         verticalDivider: false,
+//                         controller: englishNameController,
+//                         context: context,
+//                         // validator:
+//                         //     (v) =>
+//                         //         v == null || v.trim().isEmpty
+//                         //             ? 'Name'
+//                         //             : null,
+//                       ),
+//
+//                       SizedBox(height: 30),
+//
+//                       AnimatedSwitcher(
+//                         duration: const Duration(milliseconds: 400),
+//                         transitionBuilder:
+//                             (child, animation) => FadeTransition(
+//                               opacity: animation,
+//                               child: child,
+//                             ),
+//                         child: CommonContainer.mobileNumberField(
+//                           controller: mobileController,
+//                           // validator: (value) {
+//                           //   if (value == null || value.isEmpty) {
+//                           //     return 'Mobile number required';
+//                           //   }
+//                           //   if (value.length != 10) {
+//                           //     return 'Enter valid 10-digit number';
+//                           //   }
+//                           //   return null;
+//                           // },
+//                         ),
+//                       ),
+//                       SizedBox(height: 30),
+//
+//                       Text(
+//                         'Email Id',
+//                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
+//                       ),
+//                       SizedBox(height: 10),
+//
+//                       CommonContainer.fillingContainer(
+//                         keyboardType: TextInputType.emailAddress,
+//                         text: '',
+//                         verticalDivider: false,
+//                         controller: emailIdController,
+//                         context: context,
+//                         // validator: (v) {
+//                         //   if (v == null || v.isEmpty) {
+//                         //     return 'Email required';
+//                         //   }
+//                         //   if (!RegExp(
+//                         //     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+//                         //   ).hasMatch(v)) {
+//                         //     return 'Enter valid email';
+//                         //   }
+//                         //   return null;
+//                         // },
+//                       ),
+//
+//                       SizedBox(height: 30),
+//
+//                       Text(
+//                         'Emergency Contact Details',
+//                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
+//                       ),
+//                       SizedBox(height: 10),
+//
+//                       CommonContainer.fillingContainer(
+//                         text: 'Name',
+//                         verticalDivider: true,
+//                         controller: emergencyNameController,
+//                         context: context,
+//                         // validator:
+//                         //     (v) =>
+//                         //         v == null || v.trim().isEmpty
+//                         //             ? 'Name'
+//                         //             : null,
+//                       ),
+//                       SizedBox(height: 10),
+//
+//                       CommonContainer.fillingContainer(
+//                         text: 'Relationship',
+//                         verticalDivider: true,
+//                         controller: emergencyRelationShipController,
+//                         context: context,
+//                         // validator:
+//                         //     (v) =>
+//                         //         v == null || v.trim().isEmpty
+//                         //             ? 'Name'
+//                         //             : null,
+//                       ),
+//                       SizedBox(height: 10),
+//                       CommonContainer.fillingContainer(
+//                         controller: emergencyMobileController,
+//                         verticalDivider: true,
+//                         isMobile: true, // mobile behavior +91 etc
+//                         text: 'Mobile Number',
+//                         keyboardType: TextInputType.phone,
+//                         validator: (value) {
+//                           if (value == null || value.isEmpty) {
+//                             return 'Please Enter Mobile Number';
+//                           }
+//                           return null;
+//                         },
+//                       ),
+//
+//                       SizedBox(height: 30),
+//
+//                       Text(
+//                         'Aadhar No',
+//                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
+//                       ),
+//                       SizedBox(height: 10),
+//
+//                       CommonContainer.fillingContainer(
+//                         keyboardType: TextInputType.number,
+//                         isAadhaar: true,
+//                         text: 'Aadhar No',
+//                         verticalDivider: true,
+//                         controller: aadharController,
+//                         context: context,
+//                         // validator:
+//                         //     (v) =>
+//                         //         v == null || v.isEmpty ? 'Aadhar No' : null,
+//                       ),
+//                       SizedBox(height: 30),
+//                       CommonContainer.containerTitle(
+//                         context: context,
+//                         title: 'Aadhar Photo',
+//                         image: AppImages.iImage,
+//                         infoMessage:
+//                             'Please upload a clear photo of your Aadhar.',
+//                       ),
+//                       SizedBox(height: 10),
+//                       _addImageContainer(index: 0, checkIndividualError: true),
+//                       SizedBox(height: 30),
+//                       CommonContainer.containerTitle(
+//                         context: context,
+//                         title: 'Profile Picture',
+//                         image: AppImages.iImage,
+//                         infoMessage:
+//                             'Please upload a clear photo of Profile Picture.',
+//                       ),
+//                       SizedBox(height: 10),
+//                       _addImageContainer(index: 1, checkIndividualError: true),
+//                       SizedBox(height: 30),
+//
+//                       CommonContainer.button(
+//                         buttonColor: AppColor.darkBlue,
+//                         imagePath:
+//                             state.isLoading ? null : AppImages.rightStickArrow,
+//
+//                         text:
+//                             state.isLoading
+//                                 ? ThreeDotsLoader()
+//                                 : Text('Save & Continue'),
+//                         onTap: () async {
+//                           // if (!_formKey.currentState!.validate()) {
+//                           //   return;
+//                           // }
+//
+//                           // final englishName = englishNameController.text.trim();
+//                           // final tamilName = tamilNameController.text.trim();
+//                           // final mobile = mobileController.text.trim();
+//                           // final email = emailIdController.text.trim();
+//                           // final input = dateOfBirthController.text.trim();
+//                           //
+//                           // String dobForApi = '';
+//                           // try {
+//                           //   final parsedDate = DateFormat(
+//                           //     'dd-MM-yyyy',
+//                           //   ).parseStrict(input);
+//                           //   dobForApi = DateFormat(
+//                           //     'yyyy-MM-dd',
+//                           //   ).format(parsedDate);
+//                           // } catch (e) {
+//                           //   AppSnackBar.error(context, "Invalid DOB");
+//                           //   return;
+//                           // }
+//
+//                           await ref
+//                               .read(addEmployeeNotifier.notifier)
+//                               .addEmployeeVendor(
+//                                 phoneNumber: mobileController.text,
+//                                 fullName: englishNameController.text.trim(),
+//                                 email: emailIdController.text.trim(),
+//                                 emergencyContactName:
+//                                     emergencyNameController.text.trim(),
+//                                 emergencyContactRelationship:
+//                                     emergencyRelationShipController.text.trim(),
+//                                 emergencyContactPhone:
+//                                     emergencyMobileController.text.trim(),
+//                                 aadhaarNumber: aadharController.text.trim(),
+//                                 aadhaarFile: _pickedImages[0]!,
+//                                 ownerImageFile: _pickedImages[1]!,
+//                               );
+//
+//                           final newState = ref.read(addEmployeeNotifier);
+//
+//                           if (newState.error != null) {
+//                             AppSnackBar.error(context, newState.error!);
+//                           } else if (newState.addEmployeeResponse != null) {
+//                             AppSnackBar.success(
+//                               context,
+//                               "Owner information saved successfully",
+//                             );
+//                             context.push(AppRoutes.employeeApprovalPendingPath);
+//                           }
+//                         },
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//
+//                 SizedBox(height: 30),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

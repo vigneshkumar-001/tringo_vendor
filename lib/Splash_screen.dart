@@ -8,6 +8,7 @@ import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import 'Core/Const/app_color.dart';
 import 'Core/Const/app_images.dart';
 import 'Core/Widgets/app_go_routes.dart';
+import 'Presentation/Login Screen/Controllre/login_notifier.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,24 +27,24 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> checkNavigation() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final String token = prefs.getString("token")?? '';
-    final String sessionToken = prefs.getString("sessionToken")?? '';
+    final String token = prefs.getString("token") ?? '';
+    final String sessionToken = prefs.getString("sessionToken") ?? '';
+
+
 
     AppLogger.log.i('sessionToken : $sessionToken \n token : $token');
-
 
     await Future.delayed(const Duration(seconds: 5));
 
     if (!mounted) return;
 
-    if (token.isEmpty) {
+    if (token.isNotEmpty) {
+      context.go(AppRoutes.heaterHomeScreenPath);
+    } else {
+      // context.go(AppRoutes.employeeApprovalPendingPath);
       context.go(AppRoutes.loginPath);
-    }
-
-     else {
-        context.go(AppRoutes. employeeApprovalPendingPath);
       // context.go(AppRoutes.loginPath);
-     }
+    }
   }
 
   // Future<void> checkNavigation() async {

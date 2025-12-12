@@ -66,25 +66,24 @@ class LoginNotifier extends Notifier<LoginState> {
     state = LoginState.initial();
   }
 
-  Future<void> loginUser({required String phoneNumber, String? page}) async {
-    // 🔐 HARD GUARD: block duplicate calls
-    if (_isRequestingOtp) {
-      AppLogger.log.w('loginUser blocked: already requesting OTP');
-      return;
-    }
-
-    _isRequestingOtp = true;
+  Future<void> loginUser({
+    required String phoneNumber,
+    String? simToken,
+    String? page,
+  }) async {
     state = const LoginState(isLoading: true);
 
-    final result = await api.mobileNumberLogin(phoneNumber, page ?? '');
+    final result = await api.mobileNumberLogin(
+      phoneNumber,
+      simToken!,
+      page: page ?? '',
+    );
 
     result.fold(
-      (Failure failure) {
-        _isRequestingOtp = false; // ✅ release lock
+      (failure) {
         state = LoginState(isLoading: false, error: failure.message);
       },
-      (LoginResponse response) {
-        _isRequestingOtp = false; // ✅ release lock
+      (response) {
         state = LoginState(isLoading: false, loginResponse: response);
       },
     );
