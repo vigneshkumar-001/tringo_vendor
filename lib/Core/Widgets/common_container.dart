@@ -10,13 +10,12 @@ import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
 
-
 class AadhaarInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue,
-      TextEditingValue newValue,
-      ) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
     final trimmed = digits.length > 12 ? digits.substring(0, 12) : digits;
 
@@ -33,7 +32,6 @@ class AadhaarInputFormatter extends TextInputFormatter {
     );
   }
 }
-
 
 enum DatePickMode { none, single, range }
 
@@ -542,25 +540,26 @@ class CommonContainer {
 
             final picked = await showDatePicker(
               context: context!,
-              initialDate: maxDob,     // default = 18 years age
+              initialDate: maxDob, // default = 18 years age
               firstDate: DateTime(1900),
-              lastDate: maxDob,        // ❌ below 18 not allowed
-              builder: (ctx, child) => Theme(
-                data: Theme.of(ctx).copyWith(
-                  dialogBackgroundColor: AppColor.white,
-                  colorScheme: ColorScheme.light(
-                    primary: AppColor.blue,
-                    onPrimary: Colors.white,
-                    onSurface: AppColor.black,
+              lastDate: maxDob, // ❌ below 18 not allowed
+              builder:
+                  (ctx, child) => Theme(
+                    data: Theme.of(ctx).copyWith(
+                      dialogBackgroundColor: AppColor.white,
+                      colorScheme: ColorScheme.light(
+                        primary: AppColor.blue,
+                        onPrimary: Colors.white,
+                        onSurface: AppColor.black,
+                      ),
+                    ),
+                    child: child!,
                   ),
-                ),
-                child: child!,
-              ),
             );
 
             if (picked != null) {
               controller?.text =
-              '${picked.day.toString().padLeft(2, '0')}-'
+                  '${picked.day.toString().padLeft(2, '0')}-'
                   '${picked.month.toString().padLeft(2, '0')}-${picked.year}';
               state.didChange(controller?.text);
             }
@@ -669,22 +668,19 @@ class CommonContainer {
         }
 
         final effectiveInputFormatters =
-        isAadhaar
-            ? <TextInputFormatter>[
-          AadhaarInputFormatter(),
-        ]
-            : isMobile
-            ? <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(10),
-        ]
-            : isPincode
-            ? <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(6),
-        ]
-            : (inputFormatters ?? const []);
-
+            isAadhaar
+                ? <TextInputFormatter>[AadhaarInputFormatter()]
+                : isMobile
+                ? <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ]
+                : isPincode
+                ? <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ]
+                : (inputFormatters ?? const []);
 
         // final effectiveInputFormatters =
         //     isMobile || isAadhaar || isPincode
@@ -2058,6 +2054,168 @@ class CommonContainer {
                 ),
 
         borderRadius: BorderRadius.circular(1),
+      ),
+    );
+  }
+
+  static Widget sortbyPopup({
+    required String text1,
+    String? text2, // optional
+    String connector = ' to ', // e.g. use ' in ' for suggestions
+    String? image, // optional trailing image
+    VoidCallback? onTap, // optional
+    bool horizontalDivider = false,
+    Color? iconColor,
+  }) {
+    final hasSecond = (text2 != null && text2!.trim().isNotEmpty);
+    final hasTrailing = (image != null || onTap != null);
+
+    Widget? trailing;
+    if (hasTrailing) {
+      trailing = ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+        child: InkWell(
+          onTap: onTap, // null = no ripple
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColor.textWhite,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 10),
+            child:
+                image != null
+                    ? Image.asset(
+                      image,
+                      height: 3,
+                      width: 12,
+                      color: iconColor ?? AppColor.blue,
+                    )
+                    : Image.asset(AppImages.rightArrow, height: 12),
+          ),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: text1,
+                        style: AppTextStyles.mulish(
+                          fontSize: 16,
+                          color: AppColor.darkBlue,
+                        ),
+                      ),
+                      if (hasSecond)
+                        TextSpan(
+                          text: connector,
+                          style: AppTextStyles.mulish(
+                            fontSize: 16,
+                            color: AppColor.lightGray2,
+                          ),
+                        ),
+                      if (hasSecond)
+                        TextSpan(
+                          text: text2,
+                          style: AppTextStyles.mulish(
+                            fontSize: 16,
+                            color: AppColor.darkBlue,
+                          ),
+                        ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (trailing != null) const SizedBox(width: 12),
+              if (trailing != null) trailing,
+            ],
+          ),
+          const SizedBox(height: 19),
+          if (horizontalDivider)
+            Container(
+              width: double.infinity,
+              height: 2,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerRight,
+                  end: Alignment.centerLeft,
+                  colors: [
+                    AppColor.white.withOpacity(0.5),
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white.withOpacity(0.5),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static Widget profileList({
+    required String label,
+    required String iconPath,
+    double iconHeight = 25,
+    double iconWidth = 19,
+    double circleSize = 50,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: circleSize,
+                height: circleSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColor.brightGray,
+                ),
+                child: Center(
+                  child: Image.asset(
+                    iconPath,
+                    height: iconHeight,
+                    width: iconWidth,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: AppTextStyles.mulish(
+                  fontSize: 16,
+                  color: AppColor.darkBlue,
+                ),
+              ),
+            ],
+          ),
+          Image.asset(
+            AppImages.rightArrow,
+            height: 14,
+            color: AppColor.lightGray2,
+          ),
+        ],
       ),
     );
   }
