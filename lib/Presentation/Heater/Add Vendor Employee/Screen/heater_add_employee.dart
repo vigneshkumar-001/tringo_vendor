@@ -16,7 +16,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add Vendor Employee/Contro
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 
-class HeaterAddEmployee extends ConsumerStatefulWidget {
+  class HeaterAddEmployee extends ConsumerStatefulWidget {
   const HeaterAddEmployee({super.key});
 
   @override
@@ -412,11 +412,13 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                           context: context,
                           keyboardType: TextInputType.number,
                           isAadhaar: true,
-                          validator:
-                              (v) =>
-                                  v == null || v.trim().isEmpty
-                                      ? 'Aadhar required'
-                                      : null,
+                          validator: (v) {
+                            final digits = (v ?? '').replaceAll(' ', '');
+                            if (digits.length != 12) {
+                              return 'Enter valid 12 digit Aadhar No';
+                            }
+                            return null;
+                          },
                         ),
 
                         SizedBox(height: 30),

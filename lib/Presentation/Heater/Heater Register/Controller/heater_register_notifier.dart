@@ -75,9 +75,11 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     required String companyEmail,
     required String gstNumber,
 
-    File? aadhaarFile, // the new file to upload (nullable)
-    // Screen 4
-    required String avatarUrl,
+    File? aadhaarFile,
+
+    File? avatarFile,
+    String? avatarUrl,
+
   }) async {
     try {
       state = state.copyWith(isLoading: true, clearError: true);
@@ -93,6 +95,18 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
           (url) => url.message, // <- don't use url.message, return the URL
         );
       }
+
+      String finalAvatarUrl = avatarUrl ?? '';
+
+      if (avatarFile != null) {
+        final uploadAvatar = await api.userProfileUpload(imageFile: avatarFile);
+
+        finalAvatarUrl = uploadAvatar.fold(
+              (failure) => throw Exception(failure.message),
+              (res) => res.message, // URL returned by API
+        );
+      }
+
 
       // STEP 2: Now call register API ONCE
       final result = await api.heaterRegister(
@@ -120,7 +134,7 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
         alternatePhone: alternatePhone,
         companyEmail: companyEmail,
         gstNumber: gstNumber,
-        avatarUrl: avatarUrl,
+        avatarUrl: finalAvatarUrl,
       );
 
       result.fold(

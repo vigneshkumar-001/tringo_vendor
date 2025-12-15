@@ -27,52 +27,66 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> checkNavigation() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final String token = prefs.getString("token") ?? '';
-    final String sessionToken = prefs.getString("sessionToken") ?? '';
+    final token = prefs.getString('token') ?? '';
+    final role = (prefs.getString('role') ?? '').toUpperCase();
+    final vendorStatus =
+        (prefs.getString('vendorStatus') ?? 'PENDING').toUpperCase();
 
+    AppLogger.log.i('token=$token role=$role vendorStatus=$vendorStatus');
 
-
-    AppLogger.log.i('sessionToken : $sessionToken \n token : $token');
-
-    await Future.delayed(const Duration(seconds: 5));
-
+    await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
 
-    if (token.isNotEmpty) {
-      context.go(AppRoutes.heaterHomeScreenPath);
-    } else {
-      // context.go(AppRoutes.employeeApprovalPendingPath);
+    // ❌ Not logged in
+    if (token.isEmpty) {
       context.go(AppRoutes.loginPath);
-      // context.go(AppRoutes.loginPath);
+      return;
     }
+
+    //  EMPLOYEE → always home
+    if (role == 'EMPLOYEE') {
+      context.goNamed(AppRoutes.home);
+      return;
+    }
+
+    // VENDOR flow
+    if (role == 'VENDOR') {
+      if (vendorStatus == 'ACTIVE') {
+        context.go(AppRoutes.heaterHomeScreenPath);
+      } else {
+        // PENDING / REJECTED
+        context.go(AppRoutes.employeeApprovalPendingPath);
+      }
+      return;
+    }
+
+    // fallback
+    context.go(AppRoutes.loginPath);
   }
 
   // Future<void> checkNavigation() async {
   //   final prefs = await SharedPreferences.getInstance();
   //
-  //   bool isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
-  //   bool isProfileCompleted = prefs.getBool("isProfileCompleted") ?? false;
+  //   final String token = prefs.getString("token") ?? '';
+  //   final String sessionToken = prefs.getString("sessionToken") ?? '';
   //
-  //   // Hold splash for 5 seconds
+  //
+  //
+  //   AppLogger.log.i('sessionToken : $sessionToken \n token : $token');
+  //
   //   await Future.delayed(const Duration(seconds: 5));
   //
-  //   if (!isLoggedIn) {
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(builder: (_) => LoginMobileNumber()),
-  //     );
-  //   } else if (!isProfileCompleted) {
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(builder: (_) => FillProfile()),
-  //     );
+  //   if (!mounted) return;
+  //
+  //   if (token.isNotEmpty) {
+  //     context.go(AppRoutes.heaterHomeScreenPath);
   //   } else {
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(builder: (_) => HomeScreen()),
-  //     );
+  //     // context.go(AppRoutes.employeeApprovalPendingPath);
+  //     context.go(AppRoutes.loginPath);
+  //     // context.go(AppRoutes.loginPath);
   //   }
   // }
+  //
 
   @override
   Widget build(BuildContext context) {
