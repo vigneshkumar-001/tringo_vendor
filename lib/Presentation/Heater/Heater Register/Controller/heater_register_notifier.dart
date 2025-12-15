@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../Api/DataSource/api_data_source.dart';
@@ -46,7 +48,7 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
 
   Future<void> registerVendor({
     required VendorRegisterScreen screen,
-    // 1️⃣ Screen 1
+    // Screen 1
     required String vendorName,
     required String vendorNameTamil,
     required String phoneNumber,
@@ -54,15 +56,14 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     required String dateOfBirth,
     required String gender,
     required String aadharNumber,
-    required String aadharDocumentUrl,
-
-    // 2️⃣ Screen 2
+    required String aadharDocumentUrl, // original URL if already exists
+    // Screen 2
     required String bankAccountNumber,
     required String bankAccountName,
     required String bankBranch,
     required String bankIfsc,
 
-    // 3️⃣ Screen 3
+    // Screen 3
     required String companyName,
     required String companyAddress,
     required String gpsLatitude,
@@ -74,13 +75,40 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     required String companyEmail,
     required String gstNumber,
 
-    //  Screen 4
-    required String avatarUrl,
+    File? aadhaarFile,
+
+    File? avatarFile,
+    String? avatarUrl,
+
   }) async {
     try {
-      //  Start loading
       state = state.copyWith(isLoading: true, clearError: true);
 
+      // STEP 1: Upload Aadhaar ONLY if file is provided
+      String finalAadhaarUrl = aadharDocumentUrl;
+
+      if (aadhaarFile != null) {
+        final upload = await api.userProfileUpload(imageFile: aadhaarFile);
+
+        finalAadhaarUrl = upload.fold(
+          (failure) => throw Exception(failure.message),
+          (url) => url.message, // <- don't use url.message, return the URL
+        );
+      }
+
+      String finalAvatarUrl = avatarUrl ?? '';
+
+      if (avatarFile != null) {
+        final uploadAvatar = await api.userProfileUpload(imageFile: avatarFile);
+
+        finalAvatarUrl = uploadAvatar.fold(
+              (failure) => throw Exception(failure.message),
+              (res) => res.message, // URL returned by API
+        );
+      }
+
+
+      // STEP 2: Now call register API ONCE
       final result = await api.heaterRegister(
         screen: screen,
         vendorName: vendorName,
@@ -90,7 +118,8 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
         dateOfBirth: dateOfBirth,
         gender: gender,
         aadharNumber: aadharNumber,
-        aadharDocumentUrl: aadharDocumentUrl,
+        aadhaarDocumentUrl: finalAadhaarUrl,
+        // <-- correct parameter name
         bankAccountNumber: bankAccountNumber,
         bankAccountName: bankAccountName,
         bankBranch: bankBranch,
@@ -105,19 +134,17 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
         alternatePhone: alternatePhone,
         companyEmail: companyEmail,
         gstNumber: gstNumber,
-        avatarUrl: avatarUrl,
+        avatarUrl: finalAvatarUrl,
       );
 
       result.fold(
         (failure) {
-          // ❌ Error from backend
           state = state.copyWith(
             isLoading: false,
             error: failure.message ?? 'Something went wrong',
           );
         },
         (vendor) {
-          // ✅ Success
           state = state.copyWith(
             isLoading: false,
             vendorResponse: vendor,

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Screen/heater_add_employee.dart';
 import '../../Presentation/Heater/Heater Home Screen/Screen/heater_home_screen.dart';
 import '../../Presentation/Home Screen/home_screen.dart';
+import '../../Presentation/No Data Screen/Screen/no_data_screen.dart';
 import '../../Presentation/Register Screen/Screen/register_screen.dart';
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
@@ -45,8 +46,6 @@ class HeaterBottomNavigationBarState extends State<HeaterBottomNavigationBar>
     _updateSlideAnimation();
   }
 
-  // 👉 Build the page on demand so it always sees latest businessType
-  ///new///
   Widget _pageForIndex(int index) {
     switch (index) {
       case 0:
@@ -54,11 +53,11 @@ class HeaterBottomNavigationBarState extends State<HeaterBottomNavigationBar>
       case 1:
         return HeaterAddEmployee();
       case 2:
-        // return HeaterAddEmployee();
+        return NoDataScreen(showTopBackArrow: false, showBottomButton: false);
       case 3:
-      // return AboutMeScreens(initialTab: widget.initialAboutMeTab ?? 0);
+        return NoDataScreen(showTopBackArrow: false, showBottomButton: false);
       case 4:
-      // return const MenuScreens(page: "bottomScreen");
+        return NoDataScreen(showTopBackArrow: false, showBottomButton: false);
       default:
         return const SizedBox.shrink();
     }

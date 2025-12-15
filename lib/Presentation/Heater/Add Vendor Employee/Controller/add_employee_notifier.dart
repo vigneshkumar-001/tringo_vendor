@@ -117,21 +117,52 @@ class AddEmployeeNotifier extends Notifier<AddEmployeeState> {
     }
   }
 
-  Future<void> getEmployeeList( ) async {
-    state = state.copyWith(isLoading: true, employeeListResponse: null);
+  Future<void> getEmployeeList({bool silent = false}) async {
+    if (!silent) {
+      state = state.copyWith(isLoading: true, clearError: true);
+    }
 
-    final result = await api.getEmployeeList( );
+    try {
+      final result = await api.getEmployeeList();
 
-    result.fold(
-          (failure) {
-        state = state.copyWith(isLoading: false, employeeListResponse: null);
-      },
-          (response) {
-        state = state.copyWith(isLoading: false, employeeListResponse: response);
-      },
-    );
+      result.fold(
+        (failure) {
+          if (!silent) {
+            state = state.copyWith(
+              isLoading: false,
+              error: failure.message ?? 'Something went wrong',
+            );
+          }
+        },
+        (response) {
+          state = state.copyWith(
+            isLoading: false,
+            employeeListResponse: response,
+            clearError: true,
+          );
+        },
+      );
+    } catch (e) {
+      if (!silent) {
+        state = state.copyWith(isLoading: false, error: e.toString());
+      }
+    }
   }
 
+  // Future<void> getEmployeeList( ) async {
+  //   state = state.copyWith(isLoading: true, employeeListResponse: null);
+  //
+  //   final result = await api.getEmployeeList( );
+  //
+  //   result.fold(
+  //         (failure) {
+  //       state = state.copyWith(isLoading: false, employeeListResponse: null);
+  //     },
+  //         (response) {
+  //       state = state.copyWith(isLoading: false, employeeListResponse: response);
+  //     },
+  //   );
+  // }
 
   void resetState() {
     state = AddEmployeeState.initial();

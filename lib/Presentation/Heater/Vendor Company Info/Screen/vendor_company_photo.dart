@@ -29,10 +29,8 @@ class VendorCompanyPhoto extends ConsumerStatefulWidget {
 class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
   final ImagePicker _picker = ImagePicker();
 
-  // Newly picked images
   List<File?> _pickedImages = List<File?>.filled(4, null);
 
-  // Existing URLs loaded from server / AboutMeScreens
   late List<String?> _existingUrls;
 
   // Errors
@@ -311,20 +309,17 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
                     SizedBox(height: 10),
                     _addImageContainer(index: 0, checkIndividualError: true),
                     SizedBox(height: 30),
-
                     CommonContainer.button(
                       buttonColor: AppColor.black,
                       onTap: () async {
-                        // 1) Validate logo image
                         final file = _pickedImages[0];
                         final url = _existingUrls[0];
+
                         final hasLogo =
                             file != null || (url != null && url.isNotEmpty);
 
                         if (!hasLogo) {
-                          setState(() {
-                            _hasError[0] = true;
-                          });
+                          setState(() => _hasError[0] = true);
                           AppSnackBar.error(
                             context,
                             'Please upload your company logo',
@@ -332,19 +327,11 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
                           return;
                         }
 
-                        String avatarUrl;
-                        if (file != null) {
-                          // TODO: upload `file` to server and get real URL
-                          // avatarUrl = await uploadLogoAndGetUrl(file);
-                          avatarUrl = file.path;
-                        } else {
-                          avatarUrl = url!; // existing URL
-                        }
-
                         await ref
                             .read(heaterRegisterNotifier.notifier)
                             .registerVendor(
                               screen: VendorRegisterScreen.screen4,
+
                               vendorName: '',
                               vendorNameTamil: '',
                               phoneNumber: '',
@@ -367,10 +354,15 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
                               alternatePhone: '',
                               companyEmail: '',
                               gstNumber: '',
-                              avatarUrl: avatarUrl,
+
+                              // 🔥 HERE IS THE REAL FIX
+                              avatarFile: file, // File from picker
+                              avatarUrl:
+                                  url, // existing URL from server (if any)
                             );
 
                         if (!mounted) return;
+
                         final newState = ref.read(heaterRegisterNotifier);
 
                         if (newState.error != null) {
@@ -380,8 +372,6 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
                             context,
                             "Company logo saved successfully",
                           );
-
-                          // 👇 Now move to next screen
                           context.push(AppRoutes.heaterAddEmployeePath);
                         }
                       },
@@ -400,6 +390,93 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
                       imgHeight: 20,
                     ),
 
+                    // CommonContainer.button(
+                    //   buttonColor: AppColor.black,
+                    //   onTap: () async {
+                    //     // 1) Validate logo image
+                    //     final file = _pickedImages[0];
+                    //     final url = _existingUrls[0];
+                    //     final hasLogo =
+                    //         file != null || (url != null && url.isNotEmpty);
+                    //
+                    //     if (!hasLogo) {
+                    //       setState(() {
+                    //         _hasError[0] = true;
+                    //       });
+                    //       AppSnackBar.error(
+                    //         context,
+                    //         'Please upload your company logo',
+                    //       );
+                    //       return;
+                    //     }
+                    //
+                    //     String avatarUrl;
+                    //     if (file != null) {
+                    //       // TODO: upload `file` to server and get real URL
+                    //       // avatarUrl = await uploadLogoAndGetUrl(file);
+                    //       avatarUrl = file.path;
+                    //     } else {
+                    //       avatarUrl = url!; // existing URL
+                    //     }
+                    //
+                    //     await ref
+                    //         .read(heaterRegisterNotifier.notifier)
+                    //         .registerVendor(
+                    //           screen: VendorRegisterScreen.screen4,
+                    //           vendorName: '',
+                    //           vendorNameTamil: '',
+                    //           phoneNumber: '',
+                    //           email: '',
+                    //           dateOfBirth: '',
+                    //           gender: '',
+                    //           aadharNumber: '',
+                    //           aadharDocumentUrl: '',
+                    //           bankAccountNumber: '',
+                    //           bankAccountName: '',
+                    //           bankBranch: '',
+                    //           bankIfsc: '',
+                    //           companyName: '',
+                    //           companyAddress: '',
+                    //           gpsLatitude: '',
+                    //           gpsLongitude: '',
+                    //           primaryCity: '',
+                    //           primaryState: '',
+                    //           companyContactNumber: '',
+                    //           alternatePhone: '',
+                    //           companyEmail: '',
+                    //           gstNumber: '',
+                    //           avatarUrl: file,
+                    //         );
+                    //
+                    //     if (!mounted) return;
+                    //     final newState = ref.read(heaterRegisterNotifier);
+                    //
+                    //     if (newState.error != null) {
+                    //       AppSnackBar.error(context, newState.error!);
+                    //     } else if (newState.vendorResponse != null) {
+                    //       AppSnackBar.success(
+                    //         context,
+                    //         "Company logo saved successfully",
+                    //       );
+                    //
+                    //       // 👇 Now move to next screen
+                    //       context.push(AppRoutes.heaterAddEmployeePath);
+                    //     }
+                    //   },
+                    //   text:
+                    //       state.isLoading
+                    //           ? ThreeDotsLoader()
+                    //           : Text(
+                    //             'Save & Continue',
+                    //             style: AppTextStyles.mulish(
+                    //               fontSize: 18,
+                    //               fontWeight: FontWeight.w700,
+                    //             ),
+                    //           ),
+                    //   imagePath:
+                    //       state.isLoading ? null : AppImages.rightStickArrow,
+                    //   imgHeight: 20,
+                    // ),
                     SizedBox(height: 36),
                   ],
                 ),

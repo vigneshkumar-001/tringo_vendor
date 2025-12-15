@@ -96,7 +96,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
         if (role == 'VENDOR') {
           if (isNewOwner) {
-            context.goNamed(AppRoutes.heaterRegister1);
+            context.goNamed(AppRoutes.privacyPolicy);
           } else {
             context.goNamed(AppRoutes.heaterHomeScreen);
           }

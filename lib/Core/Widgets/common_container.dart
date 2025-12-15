@@ -10,6 +10,31 @@ import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
 
+
+class AadhaarInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final trimmed = digits.length > 12 ? digits.substring(0, 12) : digits;
+
+    final buffer = StringBuffer();
+    for (int i = 0; i < trimmed.length; i++) {
+      if (i == 4 || i == 8) buffer.write(' ');
+      buffer.write(trimmed[i]);
+    }
+
+    final formatted = buffer.toString();
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+
 enum DatePickMode { none, single, range }
 
 class CommonContainer {
@@ -505,41 +530,78 @@ class CommonContainer {
         String fmt(DateTime d) => '${dd(d.day)}-${dd(d.month)}-${d.year}';
 
         void _handleTap() async {
-          // Single Date Picker
           if (datePickMode == DatePickMode.single) {
             if (context == null) return;
+
+            final now = DateTime.now();
+            final maxDob = DateTime(
+              now.year - 18,
+              now.month,
+              now.day,
+            ); // 18 years completed
+
             final picked = await showDatePicker(
               context: context!,
-              initialDate: DateTime.now(),
+              initialDate: maxDob,     // default = 18 years age
               firstDate: DateTime(1900),
-              lastDate: DateTime(2100),
-              builder:
-                  (ctx, child) => Theme(
-                    data: Theme.of(ctx).copyWith(
-                      dialogBackgroundColor: AppColor.white,
-                      colorScheme: ColorScheme.light(
-                        primary: AppColor.blue,
-                        onPrimary: Colors.white,
-                        onSurface: AppColor.black,
-                      ),
-                      textButtonTheme: TextButtonThemeData(
-                        style: TextButton.styleFrom(
-                          textStyle: AppTextStyles.mulish(),
-                          foregroundColor: AppColor.blue,
-                        ),
-                      ),
-                    ),
-                    child: child!,
+              lastDate: maxDob,        // ❌ below 18 not allowed
+              builder: (ctx, child) => Theme(
+                data: Theme.of(ctx).copyWith(
+                  dialogBackgroundColor: AppColor.white,
+                  colorScheme: ColorScheme.light(
+                    primary: AppColor.blue,
+                    onPrimary: Colors.white,
+                    onSurface: AppColor.black,
                   ),
+                ),
+                child: child!,
+              ),
             );
+
             if (picked != null) {
               controller?.text =
-                  '${picked.day.toString().padLeft(2, '0')}-'
+              '${picked.day.toString().padLeft(2, '0')}-'
                   '${picked.month.toString().padLeft(2, '0')}-${picked.year}';
               state.didChange(controller?.text);
             }
             return;
           }
+
+          // Single Date Picker
+          // if (datePickMode == DatePickMode.single) {
+          //   if (context == null) return;
+          //   final picked = await showDatePicker(
+          //     context: context!,
+          //     initialDate: DateTime.now(),
+          //     firstDate: DateTime(1900),
+          //     lastDate: DateTime(2100),
+          //     builder:
+          //         (ctx, child) => Theme(
+          //           data: Theme.of(ctx).copyWith(
+          //             dialogBackgroundColor: AppColor.white,
+          //             colorScheme: ColorScheme.light(
+          //               primary: AppColor.blue,
+          //               onPrimary: Colors.white,
+          //               onSurface: AppColor.black,
+          //             ),
+          //             textButtonTheme: TextButtonThemeData(
+          //               style: TextButton.styleFrom(
+          //                 textStyle: AppTextStyles.mulish(),
+          //                 foregroundColor: AppColor.blue,
+          //               ),
+          //             ),
+          //           ),
+          //           child: child!,
+          //         ),
+          //   );
+          //   if (picked != null) {
+          //     controller?.text =
+          //         '${picked.day.toString().padLeft(2, '0')}-'
+          //         '${picked.month.toString().padLeft(2, '0')}-${picked.year}';
+          //     state.didChange(controller?.text);
+          //   }
+          //   return;
+          // }
 
           // Range Picker
           if (datePickMode == DatePickMode.range) {
@@ -607,14 +669,32 @@ class CommonContainer {
         }
 
         final effectiveInputFormatters =
-            isMobile || isAadhaar || isPincode
-                ? <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(
-                    isMobile ? 10 : (isAadhaar ? 12 : 6),
-                  ),
-                ]
-                : (inputFormatters ?? const []);
+        isAadhaar
+            ? <TextInputFormatter>[
+          AadhaarInputFormatter(),
+        ]
+            : isMobile
+            ? <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(10),
+        ]
+            : isPincode
+            ? <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(6),
+        ]
+            : (inputFormatters ?? const []);
+
+
+        // final effectiveInputFormatters =
+        //     isMobile || isAadhaar || isPincode
+        //         ? <TextInputFormatter>[
+        //           FilteringTextInputFormatter.digitsOnly,
+        //           LengthLimitingTextInputFormatter(
+        //             isMobile ? 10 : (isAadhaar ? 12 : 6),
+        //           ),
+        //         ]
+        //         : (inputFormatters ?? const []);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -799,7 +879,7 @@ class CommonContainer {
                                         isMobile
                                             ? 10
                                             : (isAadhaar
-                                                ? 12
+                                                ? 14
                                                 : (isPincode ? 6 : null)),
                                     keyboardType:
                                         (isMobile || isAadhaar || isPincode)
@@ -973,7 +1053,7 @@ class CommonContainer {
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: const Color(0xFFF5F5F5),
+                    color: Color(0xFFF5F5F5),
                     border: Border.all(
                       color: hasError ? Colors.red : Colors.transparent,
                       width: 1.5,
@@ -1002,7 +1082,7 @@ class CommonContainer {
                                   FilteringTextInputFormatter.digitsOnly,
                                   LengthLimitingTextInputFormatter(10),
                                 ],
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   counterText: '',
                                   hintText: ' ',
                                   border: InputBorder.none,
@@ -1567,6 +1647,7 @@ class CommonContainer {
       ],
     );
   }
+
   static Widget gradientContainer({
     required String text,
     String? locationImage,
@@ -1616,6 +1697,7 @@ class CommonContainer {
       ),
     );
   }
+
   static doorDelivery({
     Color? containerColor = AppColor.iceBlue,
     Color? imageColor,
@@ -1695,7 +1777,7 @@ class CommonContainer {
               onTap: orderOnTap,
               child: Container(
                 padding:
-                callNowPadding ??
+                    callNowPadding ??
                     const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColor.blueGradient1,
@@ -1729,7 +1811,7 @@ class CommonContainer {
               onTap: callOnTap,
               child: Container(
                 padding:
-                callNowPadding ??
+                    callNowPadding ??
                     const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColor.skyBlue,
@@ -1777,7 +1859,7 @@ class CommonContainer {
                 ),
                 child: Padding(
                   padding:
-                  mapBoxPadding ??
+                      mapBoxPadding ??
                       const EdgeInsets.symmetric(horizontal: 17, vertical: 5),
                   child: Row(
                     children: [
@@ -1809,7 +1891,7 @@ class CommonContainer {
         if (messageContainer && (MessageIcon || whatsAppIcon || FireIcon))
           Container(
             padding:
-            iconContainerPadding ??
+                iconContainerPadding ??
                 const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
             decoration: BoxDecoration(
               color: AppColor.white2,
@@ -1946,33 +2028,34 @@ class CommonContainer {
       width: double.infinity,
       height: 2,
       decoration: BoxDecoration(
-        gradient: isSubscription
-            ? LinearGradient(
-          begin: Alignment.centerRight,
-          end: Alignment.centerLeft,
-          colors: [
-            Color(0xFFFFFFFF),
-            Color(0xFFE1E1E1),
-            Color(0xFFE1E1E1),
-            Color(0xFFE1E1E1),
-            Color(0xFFE1E1E1),
-            Color(0xFFFFFFFF),
-          ],
-        )
-            : LinearGradient(
-          begin: Alignment.centerRight,
-          end: Alignment.centerLeft,
-          colors: [
-            AppColor.white.withOpacity(0.5),
-            AppColor.white3,
-            AppColor.white3,
-            AppColor.white3,
-            AppColor.white3,
-            AppColor.white3,
-            AppColor.white3,
-            AppColor.white.withOpacity(0.5),
-          ],
-        ),
+        gradient:
+            isSubscription
+                ? LinearGradient(
+                  begin: Alignment.centerRight,
+                  end: Alignment.centerLeft,
+                  colors: [
+                    Color(0xFFFFFFFF),
+                    Color(0xFFE1E1E1),
+                    Color(0xFFE1E1E1),
+                    Color(0xFFE1E1E1),
+                    Color(0xFFE1E1E1),
+                    Color(0xFFFFFFFF),
+                  ],
+                )
+                : LinearGradient(
+                  begin: Alignment.centerRight,
+                  end: Alignment.centerLeft,
+                  colors: [
+                    AppColor.white.withOpacity(0.5),
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white3,
+                    AppColor.white.withOpacity(0.5),
+                  ],
+                ),
 
         borderRadius: BorderRadius.circular(1),
       ),

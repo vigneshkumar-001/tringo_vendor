@@ -1,0 +1,1 @@
+enum NavSource { vendorCompanyPhoto, bottomNav }

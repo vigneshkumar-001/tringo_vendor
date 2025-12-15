@@ -373,15 +373,15 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         verticalDivider: false,
                         controller: accountNumberController,
                         context: context,
-                        // validator: (v) {
-                        //   if (v == null || v.trim().isEmpty) {
-                        //     return 'Bank Account Number is required';
-                        //   }
-                        //   if (v.length < 8) {
-                        //     return 'Enter a valid account number';
-                        //   }
-                        //   return null;
-                        // },
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Bank Account Number is required';
+                          }
+                          if (v.length < 8) {
+                            return 'Enter a valid account number';
+                          }
+                          return null;
+                        },
                       ),
 
                       SizedBox(height: 30),
@@ -398,9 +398,11 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         verticalDivider: false,
                         controller: accountNameController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.isEmpty ? 'Bank Account Name' : null,
+                        validator:
+                            (v) =>
+                                v == null || v.isEmpty
+                                    ? 'Bank Account Name'
+                                    : null,
                       ),
 
                       SizedBox(height: 30),
@@ -417,9 +419,11 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         verticalDivider: false,
                         controller: accountBranchController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.isEmpty ? 'Bank Account Branch' : null,
+                        validator:
+                            (v) =>
+                                v == null || v.isEmpty
+                                    ? 'Bank Account Branch'
+                                    : null,
                       ),
 
                       SizedBox(height: 30),
@@ -436,9 +440,11 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         verticalDivider: false,
                         controller: accountIFSCCodeController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.isEmpty ? 'Bank Account Name' : null,
+                        validator:
+                            (v) =>
+                                v == null || v.isEmpty
+                                    ? 'Bank Account Name'
+                                    : null,
                       ),
 
                       SizedBox(height: 30),
@@ -469,7 +475,8 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
-                            screen: VendorRegisterScreen.screen2,
+                                aadhaarFile: _pickedImages[0],
+                                screen: VendorRegisterScreen.screen2,
                                 vendorName: '',
                                 vendorNameTamil: '',
                                 phoneNumber: '',

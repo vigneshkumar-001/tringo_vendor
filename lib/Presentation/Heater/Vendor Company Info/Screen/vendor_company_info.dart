@@ -621,12 +621,12 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                         isMobile: true,
                         text: '',
                         keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter GST Number';
-                          }
-                          return null;
-                        },
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please Enter GST Number';
+                        //   }
+                        //   return null;
+                        // },
                       ),
 
                       SizedBox(height: 30),
@@ -670,6 +670,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
+
                                 screen: VendorRegisterScreen.screen3,
                                 vendorName: '',
                                 vendorNameTamil: '',

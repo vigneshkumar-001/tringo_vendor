@@ -13,8 +13,10 @@ import '../../Presentation/Heater/Vendor Company Info/Screen/vendor_company_info
 import '../../Presentation/Heater/Vendor Company Info/Screen/vendor_company_photo.dart';
 import '../../Presentation/Home Screen/home_screen.dart';
 import '../../Presentation/Login Screen/Screens/login_mobile_number.dart';
+import '../../Presentation/Mobile Nomber Verify/Screen/mobile_number_verify.dart';
 import '../../Presentation/OTP Screen/Screens/otp_screen.dart';
 import '../../Presentation/Owner Screen/owner_info_screens.dart';
+import '../../Presentation/Privacy Policy/Screen/privacy_policy.dart';
 import '../../Presentation/ShopInfo/Screens/search_keyword.dart';
 import '../../Presentation/ShopInfo/Screens/shop_category_info.dart';
 import '../../Presentation/ShopInfo/Screens/shop_photo_info.dart';
@@ -41,6 +43,8 @@ class AppRoutes {
   static const String employeeApprovalPending = 'EmployeeApprovalPending';
   static const String employeeApprovalRejected = 'EmployeeApprovalRejected';
   static const String heaterAddEmployee = 'heaterAddEmployee';
+  static const String mobileNumberVerify = 'MobileNumberVerify';
+  static const String privacyPolicy = 'privacyPolicy';
 
   static const String splashScreenPath = '/splashScreen';
   static const String loginPath = '/login';
@@ -60,6 +64,8 @@ class AppRoutes {
   static const String heaterHomeScreenPath = '/HeaterHomeScreen';
   static const String employeeApprovalPendingPath = '/EmployeeApprovalPending';
   static const String heaterAddEmployeePath = '/heaterAddEmployeePath';
+  static const String mobileNumberVerifyPath = '/MobileNumberVerify';
+  static const String privacyPolicyPath = '/privacyPolicy';
 
   static const String employeeApprovalRejectedPath =
       '/EmployeeApprovalRejected';
@@ -86,6 +92,26 @@ final goRouter = GoRouter(
         final phone = state.extra as String?;
         return OtpScreen(phoneNumber: phone ?? '');
       },
+    ),
+
+    GoRoute(
+      path: AppRoutes.mobileNumberVerifyPath,
+      name: AppRoutes.mobileNumberVerify,
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+        final phone = args['phone'] as String? ?? '';
+        final simToken = args['simToken'] as String? ?? '';
+
+        return MobileNumberVerify(
+          loginNumber: phone,
+          simToken: simToken, // pass it to the screen
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.privacyPolicyPath,
+      name: AppRoutes.privacyPolicy,
+      builder: (context, state) => const PrivacyPolicy(),
     ),
 
     GoRoute(
@@ -224,11 +250,7 @@ final goRouter = GoRouter(
       name: AppRoutes.heaterHomeScreen,
       builder: (context, state) => HeaterBottomNavigationBar(initialIndex: 0),
     ),
-    GoRoute(
-      path: AppRoutes.heaterAddEmployeePath,
-      name: AppRoutes.heaterAddEmployee,
-      builder: (context, state) => HeaterAddEmployee(),
-    ),
+
     GoRoute(
       path: AppRoutes.employeeApprovalPendingPath,
       name: AppRoutes.employeeApprovalPending,

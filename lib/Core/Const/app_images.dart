@@ -56,4 +56,8 @@ class AppImages {
   static String vendorEmployee = 'Assets/Images/VendorEmployee.png';
   static String approvalPending = 'Assets/Images/ApprovalPending.png';
   static String approvalRejected = 'Assets/Images/ApprovalRejected.png';
+  static String leftStickArrow = 'Assets/Images/LeftStickArrow.png';
+  static String noDataGif = 'Assets/Images/NoDataImage.gif';
+  static String simBCImage = 'Assets/Images/SIM_Backround_Image.png';
+  static String simImage = 'Assets/Images/SIM_Image.png';
 }
