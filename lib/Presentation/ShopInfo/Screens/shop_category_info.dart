@@ -468,18 +468,75 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   XFile? _permanentImage;
   bool _hasExistingOwnerImage = false;
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+  List<File?> _pickedImages = List<File?>.filled(1, null);
+  List<bool> _hasError = List<bool>.filled(1, false);
+  final ImagePicker _picker = ImagePicker();
+  String? _existingUrl;
+  File? _pickedImage;
+  bool _imageInvalid = false;
 
-    if (pickedFile != null) {
-      setState(() {
-        _permanentImage = pickedFile;
-        _hasExistingOwnerImage = false;
-        _timetableInvalid = false;
-        _imageErrorText = null;
-      });
-    }
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (pickedFile == null) return;
+
+    setState(() {
+      _pickedImage = File(pickedFile.path);
+      _existingUrl = null; // clear server image
+      _imageInvalid = false;
+      _imageErrorText = null;
+    });
+  }
+
+  Future<void> _showImageSourcePicker() async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImageFromSource(int index, ImageSource source) async {
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (pickedFile == null) return;
+
+    setState(() {
+      _pickedImages[index] = File(pickedFile.path);
+      _hasError[index] = false;
+    });
   }
 
   TimeOfDay? _openTod;
@@ -1592,7 +1649,8 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           verticalDivider: false,
                           controller: _doorDeliveryController,
                           isDropdown: true,
-                          dropdownItems: doorDelivery,imageColor: AppColor.gray84,
+                          dropdownItems: doorDelivery,
+                          imageColor: AppColor.gray84,
                           context: context,
                           validator:
                               (value) =>
@@ -1610,7 +1668,8 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         ),
                         SizedBox(height: 10),
                         GestureDetector(
-                          onTap: _pickImage,
+                          // onTap: _pickImage,
+                          onTap: _showImageSourcePicker,
                           child: DottedBorder(
                             borderType: BorderType.RRect,
                             radius: const Radius.circular(20),

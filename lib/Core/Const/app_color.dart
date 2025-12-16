@@ -23,6 +23,7 @@ class AppColor {
   static const lightGray2 = Color(0xffA1A1A1);
   static const lightGray3 = Color(0xff6D6D6D);
   static const brightGray = Color(0xffEDF1F4);
+  static const silverGray = Color(0xffC8C8C8);
   static const mediumGray = Color(0xff777777);
   static const mediumLightGray = Color(0xffACACAC);
   static const mistGray = Color(0xffD0D9DF);
@@ -32,6 +33,7 @@ class AppColor {
   static const green = Color(0xff31CC64);
   static const deepGreen = Color(0xff197759);
   static const springGreen = Color(0xff75CD7D);
+  static const mintCream = Color(0xffE8FBE7);
   static const lightMintGreen = Color(0xff759F1B);
   static const oliveGreen = Color(0xffECF8ED);
   static const yellow = Color(0xffEF8C23);
@@ -71,4 +73,5 @@ class AppColor {
   static const brightBlue = Color(0xff1C71FD);
   static const steelBlueGray = Color(0xff646882);
   static const softRose = Color(0xffF9E6E6);
+  static const electricBlue = Color(0xff41CEFF);
 }

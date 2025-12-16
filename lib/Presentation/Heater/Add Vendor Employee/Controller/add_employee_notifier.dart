@@ -10,12 +10,14 @@ import '../../../Login Screen/Controllre/login_notifier.dart';
 class AddEmployeeState {
   final bool isLoading;
   final String? error;
+  final bool isSuccess;
   final AddEmployeeResponse? addEmployeeResponse;
   final EmployeeListResponse? employeeListResponse;
 
   const AddEmployeeState({
     this.isLoading = false,
     this.error,
+    this.isSuccess = false,
     this.addEmployeeResponse,
     this.employeeListResponse,
   });

@@ -60,4 +60,24 @@ class AppImages {
   static String noDataGif = 'Assets/Images/NoDataImage.gif';
   static String simBCImage = 'Assets/Images/SIM_Backround_Image.png';
   static String simImage = 'Assets/Images/SIM_Image.png';
+  static String searchImage = 'Assets/Images/SearchImage.png';
+  static String editImage = 'Assets/Images/EditImage.png';
+  static String personOff = 'Assets/Images/PresonOff.png';
+  static String downloadImage = 'Assets/Images/DownloadImage.png';
+  static String downloadImage01 = 'Assets/Images/DownloadImage01.png';
+  static String earningDark = 'Assets/Images/EarningDark.png';
+  static String employeeDark = 'Assets/Images/EmployeeDark.png';
+  static String historyDark = 'Assets/Images/HistoryDark.png';
+  static String homeDark = 'Assets/Images/HomeDark.png';
+  static String settingImage = 'Assets/Images/SettingImage.png';
+  static String settingDark = 'Assets/Images/SettingDark.png';
+  static String editBank = 'Assets/Images/BankImage.png';
+  static String editCompany = 'Assets/Images/EditCompanyImage.png';
+  static String support = 'Assets/Images/Support.png';
+  static String deleteAccount = 'Assets/Images/DeleteAccount.png';
+  static String privacyPolicy = 'Assets/Images/PrivacyPolicy.png';
+  static String settingBCImage = 'Assets/Images/SettingBCImage.png';
+  static String settingAvatar = 'Assets/Images/SettingAvatar.png';
+  static String crown = 'Assets/Images/crown.png';
+  static String downLoad = 'Assets/Images/downLoad.png';
 }
