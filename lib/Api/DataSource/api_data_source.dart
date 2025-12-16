@@ -10,6 +10,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import '../../Presentation/Heater/Add Vendor Employee/Model/user_image_response.dart';
 import '../../Presentation/Heater/Heater Home Screen/Model/heater_home_response.dart';
 import '../../Presentation/Heater/Heater Register/Model/vendorResponse.dart';
+import '../../Presentation/Home Screen/Model/employee_home_response.dart';
 import '../../Presentation/Login Screen/Model/login_response.dart';
 import '../../Presentation/Login Screen/Model/otp_response.dart';
 import '../../Presentation/Login Screen/Model/resend_otp_response.dart';
@@ -361,7 +362,6 @@ class ApiDataSource {
     required String avatarUrl,
   }) async {
     try {
-
       final url = ApiUrl.addEmployees;
 
       final payload = {
@@ -485,6 +485,43 @@ class ApiDataSource {
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (response.data['status'] == true) {
             return Right(VendorDashboardResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          // ❗ API returned non-success code but has JSON error message
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, EmployeeHomeResponse>> employeeHome() async {
+    try {
+      final url = ApiUrl.employeeHome;
+
+      dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        // If status code is success
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(EmployeeHomeResponse.fromJson(response.data));
           } else {
             return Left(
               ServerFailure(response.data['message'] ?? "Login failed"),

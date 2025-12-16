@@ -66,6 +66,71 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
     }
   }
 
+  Future<void> _showImageSourcePicker(int index) async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromSource(index, ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromSource(index, ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImageFromSource(int index, ImageSource source) async {
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _pickedImages[index] = File(pickedFile.path);
+
+        // Clear existing server image
+        _existingUrls[index] = null;
+
+        // Clear errors
+        if (index == 0 || index == 1) {
+          _hasError[index] = false;
+        }
+
+        final hasInside =
+            _pickedImages[2] != null ||
+                _pickedImages[3] != null ||
+                (_existingUrls[2] != null && _existingUrls[2]!.isNotEmpty) ||
+                (_existingUrls[3] != null && _existingUrls[3]!.isNotEmpty);
+
+        if (hasInside) {
+          _insidePhotoError = false;
+        }
+      });
+    }
+  }
+
   Future<void> _pickImage(int index) async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
@@ -110,7 +175,8 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
         Stack(
           children: [
             GestureDetector(
-              onTap: () => _pickImage(index),
+              // onTap: () => _pickImage(index),
+              onTap: () => _showImageSourcePicker(index),
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(

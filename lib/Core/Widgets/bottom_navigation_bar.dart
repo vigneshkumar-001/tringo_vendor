@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../Presentation/Home Screen/home_screen.dart';
+import '../../Presentation/Menu/Screen/menu_screen.dart';
+import '../../Presentation/No Data Screen/Screen/no_data_screen.dart';
 import '../../Presentation/Register Screen/Screen/register_screen.dart';
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
@@ -42,20 +44,26 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
     _updateSlideAnimation();
   }
 
-  // 👉 Build the page on demand so it always sees latest businessType
+  //  Build the page on demand so it always sees latest businessType
   ///new///
   Widget _pageForIndex(int index) {
     switch (index) {
       case 0:
         return const HomeScreen();
       case 1:
-      // return const EnquiryScreens();
+        return const NoDataScreen(
+          showBottomButton: false,
+          showTopBackArrow: false,
+        );
       case 2:
         return RegisterScreen();
       case 3:
-      // return AboutMeScreens(initialTab: widget.initialAboutMeTab ?? 0);
+        return const NoDataScreen(
+          showBottomButton: false,
+          showTopBackArrow: false,
+        );
       case 4:
-      // return const MenuScreens(page: "bottomScreen");
+        return MenuScreen();
       default:
         return const SizedBox.shrink();
     }

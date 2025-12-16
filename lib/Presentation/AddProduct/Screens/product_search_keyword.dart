@@ -351,90 +351,90 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                       onTap: () async {
                         FocusScope.of(context).unfocus();
 
-                        // 🔹 Basic validation
-                        // if (_keywords.isEmpty) {
-                        //   AppSnackBar.error(
-                        //     context,
-                        //     'Please add at least one keyword',
-                        //   );
-                        //   return;
-                        // }
-                        //
-                        // // final session = RegistrationProductSeivice.instance;
-                        // // final isService = session.isServiceBusiness;
-                        //
-                        // bool success = false;
-                        //
-                        // // 🔹 Call correct API (service / product)
-                        // if (isService) {
-                        //   success = await ref
-                        //       .read(serviceInfoNotifierProvider.notifier)
-                        //       .serviceSearchWords(keywords: _keywords);
-                        // } else {
-                        //   success = await ref
-                        //       .read(productNotifierProvider.notifier)
-                        //       .updateProductSearchWords(keywords: _keywords);
-                        // }
-                        //
-                        // final productState = ref.read(productNotifierProvider);
-                        // final serviceState = ref.read(
-                        //   serviceInfoNotifierProvider,
-                        // );
-                        //
-                        // // ❌ Handle errors
-                        // if (!success) {
-                        //   if (!isService && productState.error != null) {
-                        //     AppSnackBar.error(context, productState.error!);
-                        //   } else if (isService && serviceState.error != null) {
-                        //     AppSnackBar.error(context, serviceState.error!);
-                        //   }
-                        //   return;
-                        // }
-                        //
-                        // // ================================
-                        // //        SUCCESS FLOW
-                        // // ================================
-                        // final productSession =
-                        //     RegistrationProductSeivice.instance;
-                        // final regSession = RegistrationSession.instance;
 
-                        // Company + Non-premium → Subscription Screen
-                        // if (regSession.isCompanyBusiness &&
-                        //     productSession.isNonPremium) {
-                        //   context.goNamed(
-                        //     AppRoutes.subscriptionScreen,
-                        //     extra: true,
-                        //   );
-                        //   return;
-                        // }
+                    if (_keywords.isEmpty) {
+                      AppSnackBar.error(
+                        context,
+                        'Please add at least one keyword',
+                      );
+                      return;
+                    }
+
+                    // final session = RegistrationProductSeivice.instance;
+                    // final isService = session.isServiceBusiness;
+
+                    bool success = false;
+
+
+                    // if (isService) {
+                    //   success = await ref
+                    //       .read(serviceInfoNotifierProvider.notifier)
+                    //       .serviceSearchWords(keywords: _keywords);
+                    // } else {
+                    //   success = await ref
+                    //       .read(productNotifierProvider.notifier)
+                    //       .updateProductSearchWords(keywords: _keywords);
+                    // }
+
+                    // final productState = ref.read(productNotifierProvider);
+                    // final serviceState = ref.read(
+                    //   serviceInfoNotifierProvider,
+                    // );
+                    //
+                    // ❌ Handle errors
+                    // if (!success) {
+                    //   if (!isService && productState.error != null) {
+                    //     AppSnackBar.error(context, productState.error!);
+                    //   } else if (isService && serviceState.error != null) {
+                    //     AppSnackBar.error(context, serviceState.error!);
+                    //   }
+                    //   return;
+                    // }
+
+                    // ================================
+                    //        SUCCESS FLOW
+                    // ================================
+                    final productSession =
+                        RegistrationProductSeivice.instance;
+                    final regSession = RegistrationSession.instance;
+
+
+                    if (regSession.isCompanyBusiness &&
+                        productSession.isNonPremium) {
+                      context.goNamed(
+                        AppRoutes.subscriptionScreen,
+                        extra: true,
+                      );
+                      return;
+                    }
 
                         // // ================================
                         // //      SEPARATE NAVIGATION
                         // // ================================
-                        // if (isService) {
-                        //   AppLogger.log.i(
-                        //     'App Servikces Passing ${serviceState.serviceInfoResponse?.data.shopId}',
-                        //   );
-                        //   context.goNamed(
-                        //     AppRoutes.shopsDetails,
-                        //     extra: {
-                        //       'backDisabled': true,
-                        //       'fromSubscriptionSkip': false,
-                        //       'shopId':
-                        //       serviceState.serviceInfoResponse?.data.shopId,
-                        //     },
-                        //   );
-                        // } else {
-                        //   context.goNamed(
-                        //     AppRoutes.shopsDetails,
-                        //     extra: {
-                        //       'backDisabled': true,
-                        //       'fromSubscriptionSkip': false,
-                        //       'shopId':
-                        //       productState.productResponse?.data.shopId,
-                        //     },
-                        //   );
-                        // }
+                      if (isService) {
+                        // AppLogger.log.i(
+                        //   'App Servikces Passing ${serviceState.serviceInfoResponse?.data.shopId}',
+                        // );
+                        context.goNamed(
+                          AppRoutes.shopsDetails,
+                          extra: {
+                            'backDisabled': true,
+                            'fromSubscriptionSkip': false,
+                           //  'shopId':
+                           // serviceState.serviceInfoResponse?.data.shopId,
+                          },
+                        );
+                      } else {
+                        context.goNamed(
+                          AppRoutes.shopsDetails,
+                          extra: {
+                            'backDisabled': true,
+                            'fromSubscriptionSkip': false,
+                            // 'shopId':
+                            // productState.productResponse?.data.shopId,
+                          },
+                        );
+                      }
                       },
                       text:
                       // isLoading

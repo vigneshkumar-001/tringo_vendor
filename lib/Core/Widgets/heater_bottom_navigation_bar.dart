@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../Presentation/Heater/Add Vendor Employee/Screen/heater_add_employee.dart';
+import '../../Presentation/Heater/Employees/Screen/heater_employees_list.dart';
+import '../../Presentation/Heater/Heater Earnings/Screen/heater_earnings.dart';
 import '../../Presentation/Heater/Heater Home Screen/Screen/heater_home_screen.dart';
+import '../../Presentation/Heater/History/Screen/heater_history.dart';
+import '../../Presentation/Heater/Setting/Screen/heater_setting.dart';
 import '../../Presentation/Home Screen/home_screen.dart';
 import '../../Presentation/No Data Screen/Screen/no_data_screen.dart';
 import '../../Presentation/Register Screen/Screen/register_screen.dart';
@@ -51,13 +55,13 @@ class HeaterBottomNavigationBarState extends State<HeaterBottomNavigationBar>
       case 0:
         return const HeaterHomeScreen();
       case 1:
-        return HeaterAddEmployee();
+        return HeaterEmployeesList();
       case 2:
-        return NoDataScreen(showTopBackArrow: false, showBottomButton: false);
+        return HeaterHistory();
       case 3:
-        return NoDataScreen(showTopBackArrow: false, showBottomButton: false);
+        return HeaterEarnings();
       case 4:
-        return NoDataScreen(showTopBackArrow: false, showBottomButton: false);
+        return HeaterSetting();
       default:
         return const SizedBox.shrink();
     }
@@ -176,32 +180,32 @@ class HeaterBottomNavigationBarState extends State<HeaterBottomNavigationBar>
               items: [
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.homeImage, height: 26),
-                  // activeIcon: Image.asset(AppImages.homeFill, height: 30),
+                  activeIcon: Image.asset(AppImages.homeDark, height: 30),
                   label: 'Home',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.employeesImage, height: 26),
-                  // activeIcon: Image.asset(AppImages.enquiryFill, height: 30),
+                  activeIcon: Image.asset(AppImages.employeeDark, height: 30),
                   label: 'Employees',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.registerImage, height: 26),
-                  // activeIcon: Image.asset(AppImages.offerFill, height: 30),
-                  label: 'Register',
+                  activeIcon: Image.asset(AppImages.historyDark, height: 30),
+                  label: 'History',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.earningsImage, height: 26),
-                  // activeIcon: Image.asset(AppImages.aboutMeFill, height: 30),
+                  activeIcon: Image.asset(AppImages.earningDark, height: 30),
                   label: 'Earnings',
                 ),
                 BottomNavigationBarItem(
-                  icon: Image.asset(AppImages.menuImage, height: 26),
-                  // activeIcon: Image.asset(
-                  //   AppImages.menu,
-                  //   height: 30,
-                  //   color: AppColor.black,
-                  // ),
-                  label: 'Menu',
+                  icon: Image.asset(AppImages.settingImage, height: 26),
+                  activeIcon: Image.asset(
+                    AppImages.settingDark,
+                    height: 30,
+                    color: AppColor.black,
+                  ),
+                  label: 'Settings',
                 ),
               ],
             ),

@@ -47,7 +47,7 @@ dependencies:
   country_picker: ^2.0.25
   image_picker: ^1.2.1
   geolocator: ^10.1.0
-  skeletonizer: ^1.4.3
+  skeletonizer: ^2.0.0
   cached_network_image: ^3.4.1
   sim_card_info: ^1.0.2
   mobile_number: ^3.0.0
