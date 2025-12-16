@@ -78,4 +78,6 @@ class AppImages {
   static String privacyPolicy = 'Assets/Images/PrivacyPolicy.png';
   static String settingBCImage = 'Assets/Images/SettingBCImage.png';
   static String settingAvatar = 'Assets/Images/SettingAvatar.png';
+  static String crown = 'Assets/Images/crown.png';
+  static String downLoad = 'Assets/Images/downLoad.png';
 }

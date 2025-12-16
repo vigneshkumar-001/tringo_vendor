@@ -14,7 +14,6 @@ import '../../../Core/Utility/app_snackbar.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/common_container.dart';
 
-
 class AddProductList extends ConsumerStatefulWidget {
   final bool? isService;
   const AddProductList({super.key, this.isService});
@@ -49,6 +48,54 @@ class _AddProductListState extends ConsumerState<AddProductList> {
     }
   }
 
+  void _showImageSourcePicker(int index) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromSource(index, ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromSource(index, ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImageFromSource(int index, ImageSource source) async {
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (pickedFile == null) return;
+
+    setState(() {
+      _pickedImages[index] = File(pickedFile.path);
+      _hasError[index] = false;
+    });
+  }
+
   void _addFeatureList() {
     setState(() {
       _featureControllers.add({
@@ -81,45 +128,50 @@ class _AddProductListState extends ConsumerState<AddProductList> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
-          onTap: () => _pickImage(index),
+          // onTap: () => _pickImage(index),
+          onTap: () => _showImageSourcePicker(index),
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
               color: AppColor.lowGery1,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: hasError
-                    ? Colors.red
-                    : (file != null
-                    ? AppColor.lightSkyBlue
-                    : Colors.transparent),
+                color:
+                    hasError
+                        ? Colors.red
+                        : (file != null
+                            ? AppColor.lightSkyBlue
+                            : Colors.transparent),
                 width: 1.5,
               ),
             ),
-            child: file == null
-                ? Padding(
-              padding: const EdgeInsets.symmetric(vertical: 22.5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(AppImages.addImage, height: 20),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Add Image',
-                    style: AppTextStyles.mulish(color: AppColor.darkGrey),
-                  ),
-                ],
-              ),
-            )
-                : ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.file(
-                file,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: 150,
-              ),
-            ),
+            child:
+                file == null
+                    ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 22.5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(AppImages.addImage, height: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Add Image',
+                            style: AppTextStyles.mulish(
+                              color: AppColor.darkGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    : ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.file(
+                        file,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 150,
+                      ),
+                    ),
           ),
         ),
         if (hasError)
@@ -168,9 +220,11 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                 child: CommonContainer.fillingContainer(
                   verticalDivider: false,
                   controller: headingController,
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Please enter Feature Heading'
-                      : null,
+                  validator:
+                      (value) =>
+                          value == null || value.isEmpty
+                              ? 'Please enter Feature Heading'
+                              : null,
                 ),
               ),
               SizedBox(width: 15),
@@ -187,9 +241,11 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                 child: CommonContainer.fillingContainer(
                   verticalDivider: false,
                   controller: answerController,
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Please enter Feature Answer'
-                      : null,
+                  validator:
+                      (value) =>
+                          value == null || value.isEmpty
+                              ? 'Please enter Feature Answer'
+                              : null,
                 ),
               ),
               SizedBox(width: 15),
@@ -206,13 +262,12 @@ class _AddProductListState extends ConsumerState<AddProductList> {
 
   @override
   Widget build(BuildContext context) {
-
     final regService = RegistrationProductSeivice.instance.isServiceBusiness;
     AppLogger.log.i('regService - $regService');
     // Final values with priority
     final bool isService =
         widget.isService ??
-            RegistrationProductSeivice.instance.isServiceBusiness;
+        RegistrationProductSeivice.instance.isServiceBusiness;
 
     final isProduct = !isService;
 
@@ -226,7 +281,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
 
     final isCompany =
         RegistrationProductSeivice.instance.businessType ==
-            BusinessType.company;
+        BusinessType.company;
 
     // // watch both states
     // final productState = ref.watch(productNotifierProvider);
@@ -312,7 +367,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                       Column(
                         children: List.generate(
                           _featureControllers.length,
-                              (index) => _buildFeatureItem(index),
+                          (index) => _buildFeatureItem(index),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -352,7 +407,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                         // isLoading
                         //     ? null
                         //     :
-                            () async {
+                        () async {
                           if (_pickedImages[0] == null) {
                             setState(() => _hasError[0] = true);
                             return;
@@ -426,9 +481,11 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ProductSearchKeyword(isService: isService,
-                                isCompany: isCompany,
-                              ),
+                              builder:
+                                  (context) => ProductSearchKeyword(
+                                    isService: isService,
+                                    isCompany: isCompany,
+                                  ),
                             ),
                           );
                         },

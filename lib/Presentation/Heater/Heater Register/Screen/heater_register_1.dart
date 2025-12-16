@@ -148,6 +148,55 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
     }
   }
 
+  void _showImageSourcePicker(int index) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromSource(index, ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromSource(index, ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImageFromSource(int index, ImageSource source) async {
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+
+    if (pickedFile == null) return;
+
+    setState(() {
+      _pickedImages[index] = File(pickedFile.path);
+      _hasError[index] = false;
+    });
+  }
+
+
   Widget _addImageContainer({
     required int index,
     bool checkIndividualError = false,
@@ -163,7 +212,8 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
         Stack(
           children: [
             GestureDetector(
-              onTap: () => _pickImage(index),
+              // onTap: () => _pickImage(index),
+              onTap: () => _showImageSourcePicker(index),
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(

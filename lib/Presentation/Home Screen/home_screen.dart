@@ -3,22 +3,177 @@ import 'dart:math' as math;
 import 'package:dotted_border/dotted_border.dart';
 import 'package:dotted_border/dotted_border.dart' as dotted;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Core/Const/app_color.dart';
 import 'package:tringo_vendor_new/Core/Const/app_images.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
+import 'package:tringo_vendor_new/Presentation/Home%20Screen/Contoller/employee_home_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/Home%20Screen/Model/employee_home_response.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../Core/Utility/app_loader.dart';
 import '../../Core/Widgets/bottom_navigation_bar.dart';
 import '../../Core/Widgets/common_container.dart';
+import '../No Data Screen/Screen/no_data_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+enum DateFilterType { today, yesterday, custom }
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   int selectedIndex = 0;
+  DateFilterType _selectedFilter = DateFilterType.today;
+  DateTime? _customDate;
+
+  int getTotalEntryForSelectedDate(EmployeeData dashboard) {
+    if (dashboard.recentActivity.isEmpty) return 0;
+
+    DateTime filterDate;
+    switch (_selectedFilter) {
+      case DateFilterType.today:
+        filterDate = DateTime.now();
+        break;
+      case DateFilterType.yesterday:
+        filterDate = DateTime.now().subtract(const Duration(days: 1));
+        break;
+      case DateFilterType.custom:
+        if (_customDate != null) {
+          filterDate = _customDate!;
+        } else {
+          return 0;
+        }
+        break;
+    }
+
+    // Sum entryCount for matching date
+    return dashboard.recentActivity
+        .where((activity) => DateUtils.isSameDay(activity.date, filterDate))
+        .fold(0, (sum, activity) => sum + activity.entryCount);
+  }
+
+  String get _filterLabel {
+    switch (_selectedFilter) {
+      case DateFilterType.today:
+        return 'Today';
+      case DateFilterType.yesterday:
+        return 'Yesterday';
+      case DateFilterType.custom:
+        if (_customDate == null) return 'Select Date';
+        return DateFormat('dd MMM yyyy').format(_customDate!);
+    }
+  }
+
+  void _showDateFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildFilterTile(
+              title: 'Today',
+              onTap: () {
+                setState(() {
+                  _selectedFilter = DateFilterType.today;
+                  _customDate = null;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            _buildFilterTile(
+              title: 'Yesterday',
+              onTap: () {
+                setState(() {
+                  _selectedFilter = DateFilterType.yesterday;
+                  _customDate = null;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            _buildFilterTile(
+              title: 'Custom Date',
+              onTap: () async {
+                Navigator.pop(context);
+                _pickCustomDate();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterTile({
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(title: Text(title), onTap: onTap);
+  }
+
+  Future<void> _pickCustomDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _customDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (DateUtils.isSameDay(picked, DateTime.now())) {
+          _selectedFilter = DateFilterType.today;
+          _customDate = null;
+        } else {
+          _selectedFilter = DateFilterType.custom;
+          _customDate = picked;
+        }
+      });
+    }
+  }
+
+  // Future<void> _pickCustomDate() async {
+  //   final picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2020),
+  //     lastDate: DateTime.now(),
+  //   );
+  //
+  //   if (picked != null) {
+  //     setState(() {
+  //       _selectedFilter = DateFilterType.custom;
+  //       _customDate = picked;
+  //     });
+  //   }
+  // }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ref.read(employeeHomeNotifier.notifier).employeeHome();
+    });
+  }
+
+  Future<void> _launchDialer(String phoneNumber) async {
+    final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      // handle error or show a snackbar
+      debugPrint('Could not launch dialer for $phoneNumber');
+    }
+  }
 
   final List<Map<String, dynamic>> categoryTabs = [
     {"label": "22 Pro Premium User", "image": AppImages.premiumImage},
@@ -28,6 +183,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(employeeHomeNotifier);
+
+    if (state.isLoading) {
+      return Scaffold(
+        body: Center(child: ThreeDotsLoader(dotColor: AppColor.darkBlue)),
+      );
+    }
+
+    if (state.error != null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(state.error!),
+              SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  ref.read(employeeHomeNotifier.notifier).employeeHome();
+                },
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final EmployeeHomeResponse? response = state.employeeHomeResponse;
+    final EmployeeData? dashboard = response?.data;
+
+    if (dashboard == null) {
+      return const Scaffold(
+        body: NoDataScreen(showTopBackArrow: false, showBottomButton: false),
+      );
+    }
+
+    final employee = dashboard.employee;
+    final metrics = dashboard.metrics;
+    final recentActivity = dashboard.recentActivity;
+    // final todayActivity = dashboard.todayActivity;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -38,6 +235,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage(AppImages.homeScreenTopBCImage),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      AppColor.richNavy.withOpacity(0.4),
+                      BlendMode.srcATop,
+                    ),
                   ),
                   gradient: LinearGradient(
                     colors: [AppColor.richNavy, AppColor.richBlack],
@@ -59,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Siva',
+                                employee?.name ?? '-',
                                 style: AppTextStyles.mulish(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 20,
@@ -67,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Text(
-                                'TGV69040V49',
+                                employee?.employeeCode ?? '',
                                 style: AppTextStyles.mulish(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 12,
@@ -95,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   SizedBox(width: 3),
                                   Text(
-                                    'Johndue',
+                                    employee?.vendorName ?? '',
                                     style: AppTextStyles.mulish(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 10,
@@ -122,54 +324,127 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           SizedBox(width: 15),
+
                           ClipOval(
-                            child: Image.asset(
-                              AppImages.profileImage,
-                              height: 52,
-                              width: 52,
-                              fit: BoxFit.cover,
-                            ),
+                            child:
+                                employee!.avatarUrl.isNotEmpty
+                                    ? Image.network(
+                                      employee.avatarUrl,
+                                      height: 52,
+                                      width: 52,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (_, __, ___) => Icon(
+                                            Icons.person,
+                                            size: 40,
+                                            color: AppColor.white,
+                                          ),
+                                    )
+                                    : Image.asset(
+                                      AppImages.profileImage,
+                                      height: 52,
+                                      width: 52,
+                                      fit: BoxFit.cover,
+                                    ),
                           ),
+
+                          // ClipOval(
+                          //   child: Image.asset(
+                          //     AppImages.profileImage,
+                          //     height: 52,
+                          //     width: 52,
+                          //     fit: BoxFit.cover,
+                          //   ),
+                          // ),
                         ],
                       ),
                       SizedBox(height: 40),
-                      _TotalEntryDonut(value: 26, label: 'Total Entry'),
+
+                      // _TotalEntryDonut(value: 26, label: 'Total Entry'),
+                      _TotalEntryDonut(
+                        value: getTotalEntryForSelectedDate(dashboard),
+                        label: 'Total Entry',
+                      ),
+
+                      // _TotalEntryDonut(
+                      //   value: metrics?.totalEntry ?? 0,
+                      //   label: 'Total Entry',
+                      // ),
                       SizedBox(height: 25),
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 120,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         child: InkWell(
-                          onTap: () {},
-                          child: DottedBorder(
-                            color: AppColor.lightBlueBorder,
-                            dashPattern: [4.0, 5.0],
-                            borderType: dotted.BorderType.RRect,
-                            padding: EdgeInsets.all(10),
-                            radius: Radius.circular(18),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Today',
-                                  style: AppTextStyles.mulish(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 12,
-                                    color: AppColor.white,
+                          onTap: _showDateFilterSheet,
+                          child: IntrinsicWidth(
+                            // THIS IS THE KEY
+                            child: DottedBorder(
+                              color: AppColor.lightBlueBorder,
+                              dashPattern: const [4, 5],
+                              borderType: BorderType.RRect,
+                              radius: const Radius.circular(18),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min, //  IMPORTANT
+                                children: [
+                                  Text(
+                                    _filterLabel, // Today / Yesterday / 12 Sep 2025
+                                    style: AppTextStyles.mulish(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12,
+                                      color: AppColor.white,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 7),
-                                Image.asset(
-                                  AppImages.drapDownImage,
-                                  height: 14,
-                                  width: 10,
-                                ),
-                              ],
+                                  const SizedBox(width: 7),
+                                  Image.asset(
+                                    AppImages.drapDownImage,
+                                    height: 14,
+                                    width: 10,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
+
+                      // Padding(
+                      //   padding: const EdgeInsets.symmetric(
+                      //     vertical: 8,
+                      //     horizontal: 120,
+                      //   ),
+                      //   child: InkWell(
+                      //     onTap: () {},
+                      //     child: DottedBorder(
+                      //       color: AppColor.lightBlueBorder,
+                      //       dashPattern: [4.0, 5.0],
+                      //       borderType: dotted.BorderType.RRect,
+                      //       padding: EdgeInsets.all(10),
+                      //       radius: Radius.circular(18),
+                      //       child: Row(
+                      //         mainAxisAlignment: MainAxisAlignment.center,
+                      //         children: [
+                      //           Text(
+                      //             'Today',
+                      //             style: AppTextStyles.mulish(
+                      //               fontWeight: FontWeight.w900,
+                      //               fontSize: 12,
+                      //               color: AppColor.white,
+                      //             ),
+                      //           ),
+                      //           SizedBox(width: 7),
+                      //           Image.asset(
+                      //             AppImages.drapDownImage,
+                      //             height: 14,
+                      //             width: 10,
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                       SizedBox(height: 15),
                     ],
                   ),
@@ -716,6 +991,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+double _intensityFromValue(int value) {
+  if (value <= 0) return 0.2;
+
+  // scale: 0 → 0.2 , 50+ → 1.0
+  final normalized = (value / 50).clamp(0.2, 1.0);
+  return normalized;
+}
+
 class _TotalEntryDonut extends StatelessWidget {
   final int value;
   final String label;
@@ -726,6 +1009,7 @@ class _TotalEntryDonut extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const double size = 220;
+    final intensity = _intensityFromValue(value);
 
     return Center(
       child: SizedBox(
@@ -734,18 +1018,19 @@ class _TotalEntryDonut extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            /// 🎨 Figma-style ring
+            /// Ring
             CustomPaint(
               size: const Size(size, size),
               painter: _FigmaRingPainter(
-                backgroundColor: AppColor.steelNavy,
-                startColor: AppColor.blueGradient3, // bright blue
-                endColor:
-                    AppColor.blueGradient2, // another blue (no dark shadow)
+                backgroundColor: AppColor.steelNavy.withOpacity(
+                  0.3 + intensity * 0.3,
+                ),
+                startColor: AppColor.blueGradient3.withOpacity(intensity),
+                endColor: AppColor.blueGradient3.withOpacity(intensity),
               ),
             ),
 
-            /// ⬛ Inner rounded square
+            /// Inner box
             Container(
               height: 140,
               width: 140,
@@ -783,12 +1068,6 @@ class _TotalEntryDonut extends StatelessWidget {
   }
 }
 
-/// ===================  PAINTER  ===================
-
-/// Draws:
-/// 1. Outer rounded-square blue ring
-/// 2. Dark top-left quarter
-/// 3. Inner rounded-square cutout (donut hole)
 class _FigmaRingPainter extends CustomPainter {
   final Color backgroundColor;
   final Color startColor;
@@ -861,3 +1140,70 @@ class _FigmaRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+// class _TotalEntryDonut extends StatelessWidget {
+//   final int value;
+//   final String label;
+//
+//   const _TotalEntryDonut({Key? key, required this.value, required this.label})
+//     : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     const double size = 220;
+//
+//     return Center(
+//       child: SizedBox(
+//         height: size,
+//         width: size,
+//         child: Stack(
+//           alignment: Alignment.center,
+//           children: [
+//             ///  Figma-style ring
+//             CustomPaint(
+//               size: const Size(size, size),
+//               painter: _FigmaRingPainter(
+//                 backgroundColor: AppColor.steelNavy,
+//                 startColor: AppColor.blueGradient3, // bright blue
+//                 endColor:
+//                     AppColor.blueGradient2, // another blue (no dark shadow)
+//               ),
+//             ),
+//
+//             /// ⬛ Inner rounded square
+//             Container(
+//               height: 140,
+//               width: 140,
+//               decoration: BoxDecoration(
+//                 color: AppColor.midnightBlue,
+//                 borderRadius: BorderRadius.circular(50),
+//               ),
+//               child: Column(
+//                 mainAxisAlignment: MainAxisAlignment.center,
+//                 children: [
+//                   Text(
+//                     value.toString(),
+//                     style: AppTextStyles.mulish(
+//                       fontWeight: FontWeight.w800,
+//                       fontSize: 26,
+//                       color: AppColor.white,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 4),
+//                   Text(
+//                     label,
+//                     style: AppTextStyles.mulish(
+//                       fontWeight: FontWeight.w600,
+//                       fontSize: 12,
+//                       color: AppColor.white4,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

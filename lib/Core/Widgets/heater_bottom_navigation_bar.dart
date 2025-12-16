@@ -205,7 +205,7 @@ class HeaterBottomNavigationBarState extends State<HeaterBottomNavigationBar>
                     height: 30,
                     color: AppColor.black,
                   ),
-                  label: 'Menu',
+                  label: 'Settings',
                 ),
               ],
             ),

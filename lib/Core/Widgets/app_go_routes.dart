@@ -22,6 +22,8 @@ import '../../Presentation/Privacy Policy/Screen/privacy_policy.dart';
 import '../../Presentation/ShopInfo/Screens/search_keyword.dart';
 import '../../Presentation/ShopInfo/Screens/shop_category_info.dart';
 import '../../Presentation/ShopInfo/Screens/shop_photo_info.dart';
+import '../../Presentation/Shops Details/Screen/shops_details.dart';
+import '../../Presentation/subscription/Screen/subscription_screen.dart';
 import '../../Splash_screen.dart';
 import 'heater_bottom_navigation_bar.dart';
 
@@ -49,6 +51,7 @@ class AppRoutes {
   static const String privacyPolicy = 'privacyPolicy';
   static const String heaterEmployeeDetails = 'HeaterEmployeeDetails';
   static const String heaterEmployeeDetailsEdit = 'HeaterEmployeeDetailsEdit';
+  static const String subscriptionScreen = 'SubscriptionScreen';
 
   static const String splashScreenPath = '/splashScreen';
   static const String loginPath = '/login';
@@ -71,6 +74,7 @@ class AppRoutes {
   static const String mobileNumberVerifyPath = '/MobileNumberVerify';
   static const String privacyPolicyPath = '/privacyPolicy';
   static const String heaterEmployeeDetailsPath = '/HeaterEmployeeDetails';
+  static const String subscriptionScreenPath = '/SubscriptionScreen';
   static const String heaterEmployeeDetailsEditPath =
       '/HeaterEmployeeDetailsEdit';
 
@@ -189,31 +193,31 @@ final goRouter = GoRouter(
       },
     ),
 
-    // GoRoute(
-    //   path: AppRoutes.shopsDetailsPath,
-    //   name: AppRoutes.shopsDetails,
-    //   builder: (context, state) {
-    //     final extra = state.extra;
-    //
-    //     bool backDisabled = false;
-    //     bool fromSubscription = false;
-    //     String? shopId;
-    //
-    //     if (extra is Map<String, dynamic>) {
-    //       backDisabled = extra['backDisabled'] as bool? ?? false;
-    //       fromSubscription = extra['fromSubscriptionSkip'] as bool? ?? false;
-    //       shopId = extra['shopId'] as String?;
-    //     } else if (extra is bool) {
-    //       fromSubscription = extra;
-    //     }
-    //
-    //     return ShopsDetails(
-    //       backDisabled: backDisabled,
-    //       fromSubscriptionSkip: fromSubscription,
-    //       shopId: shopId,
-    //     );
-    //   },
-    // ),
+    GoRoute(
+      path: AppRoutes.shopsDetailsPath,
+      name: AppRoutes.shopsDetails,
+      builder: (context, state) {
+        final extra = state.extra;
+
+        bool backDisabled = false;
+        bool fromSubscription = false;
+        String? shopId;
+
+        if (extra is Map<String, dynamic>) {
+          backDisabled = extra['backDisabled'] as bool? ?? false;
+          fromSubscription = extra['fromSubscriptionSkip'] as bool? ?? false;
+          shopId = extra['shopId'] as String?;
+        } else if (extra is bool) {
+          fromSubscription = extra;
+        }
+
+        return ShopsDetails(
+          backDisabled: backDisabled,
+          fromSubscriptionSkip: fromSubscription,
+          shopId: shopId,
+        );
+      },
+    ),
     GoRoute(
       path: AppRoutes.heaterRegister1Path,
       name: AppRoutes.heaterRegister1,
@@ -277,6 +281,23 @@ final goRouter = GoRouter(
       path: AppRoutes.heaterEmployeeDetailsEditPath,
       name: AppRoutes.heaterEmployeeDetailsEdit,
       builder: (context, state) => HeaterEmployeeDetailsEdit(),
+    ),
+
+    GoRoute(
+      path: AppRoutes.subscriptionScreenPath,
+      name: AppRoutes.subscriptionScreen,
+      builder: (context, state) {
+        final extra = state.extra;
+
+        bool showSkip = false;
+        if (extra is bool) {
+          showSkip = extra;
+        } else if (extra is Map<String, dynamic>) {
+          showSkip = extra['showSkip'] as bool? ?? false;
+        }
+
+        return SubscriptionScreen(showSkip: showSkip);
+      },
     ),
   ],
 );

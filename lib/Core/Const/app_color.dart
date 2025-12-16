@@ -23,6 +23,7 @@ class AppColor {
   static const lightGray2 = Color(0xffA1A1A1);
   static const lightGray3 = Color(0xff6D6D6D);
   static const brightGray = Color(0xffEDF1F4);
+  static const silverGray = Color(0xffC8C8C8);
   static const mediumGray = Color(0xff777777);
   static const mediumLightGray = Color(0xffACACAC);
   static const mistGray = Color(0xffD0D9DF);
