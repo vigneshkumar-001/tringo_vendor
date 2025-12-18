@@ -87,7 +87,7 @@ class AppRoutes {
 }
 
 final goRouter = GoRouter(
-  initialLocation: AppRoutes.addProductListPath,
+  initialLocation: AppRoutes.splashScreenPath,
   routes: [
     GoRoute(
       path: AppRoutes.splashScreenPath,

@@ -752,7 +752,7 @@ class ApiDataSource {
           final body = response.data;
 
           if (body is Map && body['status'] == true) {
-            // ✅ pass full response JSON here
+            //  pass full response JSON here
             final shopResponse = OwnerRegisterResponse.fromJson(
               body as Map<String, dynamic>,
             );
@@ -1105,18 +1105,18 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
   Future<Either<Failure, ShopDetailsResponse>> getShopDetails({
     String? apiShopId,
   }) async {
     try {
-
       final savedShopId = await AppPrefs.getSopId();
 
-
       // Priority: apiShopId > savedShopId > ""
-      final shopId = (apiShopId != null && apiShopId.trim().isNotEmpty)
-          ? apiShopId
-          : (savedShopId ?? '');
+      final shopId =
+          (apiShopId != null && apiShopId.trim().isNotEmpty)
+              ? apiShopId
+              : (savedShopId ?? '');
 
       final url = ApiUrl.shopDetails(shopId: shopId);
 
@@ -1285,5 +1285,4 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
-
 }
