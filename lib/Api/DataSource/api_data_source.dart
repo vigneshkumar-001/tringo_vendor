@@ -9,6 +9,7 @@ import 'package:tringo_vendor_new/Presentation/AddProduct/Model/product_response
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/add_employee_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Employee%20details-edit/Model/heater_employee_edit_res.dart';
+import 'package:tringo_vendor_new/Presentation/Shops%20Details/Model/shop_details_response.dart';
 
 import '../../Presentation/Employee History/Model/employee_history_response.dart';
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Model/owner_otp_response.dart';
@@ -1104,115 +1105,30 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
-  Future<Either<Failure, EmployeeDetailsResponse>> heaterEmployeeDetails({
-    required String employeeId,
+  Future<Either<Failure, ShopDetailsResponse>> getShopDetails({
+    String? apiShopId,
   }) async {
     try {
-      final url = ApiUrl.heaterEmployeeDetails(employeeId: employeeId);
 
-      dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
+      final savedShopId = await AppPrefs.getSopId();
 
-      AppLogger.log.i(response);
 
-      if (response is! DioException) {
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          if (response.data['status'] == true) {
-            return Right(EmployeeDetailsResponse.fromJson(response.data));
-          } else {
-            return Left(
-              ServerFailure(response.data['message'] ?? "Login failed"),
-            );
-          }
-        } else {
-          // ❗ API returned non-success code but has JSON error message
-          return Left(
-            ServerFailure(response.data['message'] ?? "Something went wrong"),
-          );
-        }
-      } else {
-        final errorData = response.response?.data;
-        if (errorData is Map && errorData.containsKey('message')) {
-          return Left(ServerFailure(errorData['message']));
-        }
-        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
-      }
-    } catch (e) {
-      AppLogger.log.e(e);
-      return Left(ServerFailure(e.toString()));
-    }
-  }
+      // Priority: apiShopId > savedShopId > ""
+      final shopId = (apiShopId != null && apiShopId.trim().isNotEmpty)
+          ? apiShopId
+          : (savedShopId ?? '');
 
-  Future<Either<Failure, HeaterEmployeeResponse>> heaterEmployee() async {
-    try {
-      final url = ApiUrl.heaterEmployee;
+      final url = ApiUrl.shopDetails(shopId: shopId);
 
-      dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
+      dynamic response = await Request.sendGetRequest(url, {}, 'Post', true);
 
       AppLogger.log.i(response);
 
       if (response is! DioException) {
+        // If status code is success
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (response.data['status'] == true) {
-            return Right(HeaterEmployeeResponse.fromJson(response.data));
-          } else {
-            return Left(
-              ServerFailure(response.data['message'] ?? "Login failed"),
-            );
-          }
-        } else {
-          // ❗ API returned non-success code but has JSON error message
-          return Left(
-            ServerFailure(response.data['message'] ?? "Something went wrong"),
-          );
-        }
-      } else {
-        final errorData = response.response?.data;
-        if (errorData is Map && errorData.containsKey('message')) {
-          return Left(ServerFailure(errorData['message']));
-        }
-        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
-      }
-    } catch (e) {
-      AppLogger.log.e(e);
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  Future<Either<Failure, EmployeeUpdateResponse>> heaterEmployeeEdit({
-    required String employeeId,
-    required String phoneNumber,
-    required String fullName,
-    required String email,
-    required String emergencyContactName,
-    required String emergencyContactRelationship,
-    required String emergencyContactPhone,
-    required String aadhaarNumber,
-    required String aadhaarDocumentUrl,
-    required String avatarUrl,
-  }) async {
-    try {
-      final url = ApiUrl.heaterEmployeeEdit(employeeId: employeeId);
-
-      final payload = {
-        "phoneNumber": '+91${phoneNumber}',
-        "fullName": fullName,
-        "email": email,
-        "emergencyContactName": emergencyContactName,
-        "emergencyContactRelationship": emergencyContactRelationship,
-        "emergencyContactPhone": emergencyContactPhone,
-        "aadharNumber": aadhaarNumber,
-        "aadharDocumentUrl": aadhaarDocumentUrl,
-        "avatarUrl": avatarUrl,
-      };
-
-      final response = await Request.sendRequest(url, payload, 'Post', true);
-
-      AppLogger.log.i(response);
-
-      if (response is! DioException) {
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          if (response.data['status'] == true) {
-            return Right(EmployeeUpdateResponse.fromJson(response.data));
+            return Right(ShopDetailsResponse.fromJson(response.data));
           } else {
             return Left(
               ServerFailure(response.data['message'] ?? "Login failed"),

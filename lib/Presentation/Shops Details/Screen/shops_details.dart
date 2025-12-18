@@ -22,6 +22,7 @@ import '../../AddProduct/Screens/product_search_keyword.dart';
 
 import '../../No Data Screen/Screen/no_data_screen.dart';
 import '../../ShopInfo/Screens/shop_category_info.dart';
+import '../Controller/shop_details_notifier.dart';
 
 
 class ShopsDetails extends ConsumerStatefulWidget {
