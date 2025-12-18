@@ -755,7 +755,7 @@ class ApiDataSource {
           final body = response.data;
 
           if (body is Map && body['status'] == true) {
-            // ✅ pass full response JSON here
+            //  pass full response JSON here
             final shopResponse = OwnerRegisterResponse.fromJson(
               body as Map<String, dynamic>,
             );
@@ -1558,5 +1558,4 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
-
 }
