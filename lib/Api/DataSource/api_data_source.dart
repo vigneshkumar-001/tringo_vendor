@@ -1148,7 +1148,7 @@ class ApiDataSource {
         return Left(ServerFailure(response.message ?? "Unknown Dio error"));
       }
     } catch (e) {
-      print(e);
+      AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
     }
   }

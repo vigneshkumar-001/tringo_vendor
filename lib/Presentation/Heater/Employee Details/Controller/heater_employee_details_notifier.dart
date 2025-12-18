@@ -7,6 +7,8 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import '../../../../Api/DataSource/api_data_source.dart';
 
 import '../../../Mobile Nomber Verify/Controller/mobile_verify_notifier.dart';
+import '../../../Login Screen/Controller/login_notifier.dart';
+
 import '../Model/employeeDetailsResponse.dart';
 
 class heaterEmployeeDetailsState {
