@@ -1,0 +1,56 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AppPrefs {
+  AppPrefs._(); // no instance
+
+  static const String _kVerificationToken = 'verificationToken';
+  static const String _shopId = 'shop_id';
+  static const String _productId = 'product_id';
+
+  /// Save
+  static Future<void> setVerificationToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kVerificationToken, token);
+  }
+
+  static Future<void> setShopId(String shopId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_shopId, shopId);
+  }
+
+  static Future<void> setProductId(String productId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_productId, productId);
+  }
+
+  /// Read
+  static Future<String?> getVerificationToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kVerificationToken);
+  }
+
+  static Future<String?> getSopId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_shopId);
+  }
+
+  static Future<String?> getProductId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_productId);
+  }
+  // /// Optional: sync-like getter (only after init)
+  // static String? _cachedVerificationToken;
+  //
+  // static Future<void> initCache() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   _cachedVerificationToken = prefs.getString(_kVerificationToken);
+  // }
+  //
+  // static String? get verificationTokenCached => _cachedVerificationToken;
+
+  static Future<void> clearVerificationToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kVerificationToken);
+    // _cachedVerificationToken = null;
+  }
+}

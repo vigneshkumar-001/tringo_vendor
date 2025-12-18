@@ -65,9 +65,9 @@ class _MenuScreenState extends State<MenuScreen> {
                 //   (route) => false,
                 // );
                 final prefs = await SharedPreferences.getInstance();
-                // prefs.remove('token');
-                // prefs.remove('isProfileCompleted');
-                // prefs.remove('isNewOwner');
+                  prefs.remove('token');
+                  prefs.remove('isProfileCompleted');
+                  prefs.remove('isNewOwner');
                 await prefs.clear();
 
                 // Then navigate

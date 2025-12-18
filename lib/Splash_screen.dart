@@ -8,7 +8,7 @@ import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import 'Core/Const/app_color.dart';
 import 'Core/Const/app_images.dart';
 import 'Core/Widgets/app_go_routes.dart';
-import 'Presentation/Login Screen/Controllre/login_notifier.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

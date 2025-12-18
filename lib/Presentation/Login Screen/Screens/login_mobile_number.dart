@@ -13,7 +13,7 @@ import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Utility/sim_token.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/common_container.dart';
-import '../Controllre/login_notifier.dart';
+import '../Controller/login_notifier.dart';
 
 class LoginMobileNumber extends ConsumerStatefulWidget {
   const LoginMobileNumber({super.key});
@@ -550,7 +550,7 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber> {
 // import '../../../Core/Utility/app_snackbar.dart';
 // import '../../../Core/Widgets/app_go_routes.dart';
 // import '../../../Core/Widgets/common_container.dart';
-// import '../Controllre/login_notifier.dart';
+// import '../Controller/login_notifier.dart';
 //
 // class LoginMobileNumber extends ConsumerStatefulWidget {
 //   const LoginMobileNumber({super.key});
