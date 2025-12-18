@@ -9,14 +9,14 @@ import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 
-class HeaterSetting extends StatefulWidget {
-  const HeaterSetting({super.key});
+class EmployeeAboutMe extends StatefulWidget {
+  const EmployeeAboutMe({super.key});
 
   @override
-  State<HeaterSetting> createState() => _HeaterSettingState();
+  State<EmployeeAboutMe> createState() => _EmployeeAboutMeState();
 }
 
-class _HeaterSettingState extends State<HeaterSetting> {
+class _EmployeeAboutMeState extends State<EmployeeAboutMe> {
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -208,33 +208,33 @@ class _HeaterSettingState extends State<HeaterSetting> {
                   ],
                 ),
                 SizedBox(height: 40),
-                CommonContainer.profileList(
-                  onTap: () {},
-                  label: 'Edit My Personal Details',
-                  iconPath: AppImages.settingDark,
-                  iconHeight: 25,
-                  iconWidth: 19,
-                ),
-                SizedBox(height: 15),
-                CommonContainer.profileList(
-                  onTap: () {},
-                  label: 'Edit My Bank Account Details',
-                  iconPath: AppImages.editBank,
-                  iconHeight: 25,
-                  iconWidth: 19,
-                ),
-                SizedBox(height: 15),
-                CommonContainer.profileList(
-                  onTap: () {},
-                  label: 'Edit Company Details',
-                  iconPath: AppImages.editCompany,
-                  iconHeight: 25,
-                  iconWidth: 19,
-                ),
-
-                SizedBox(height: 20),
-                CommonContainer.horizonalDivider(),
-                SizedBox(height: 20),
+                // CommonContainer.profileList(
+                //   onTap: () {},
+                //   label: 'Edit My Personal Details',
+                //   iconPath: AppImages.settingDark,
+                //   iconHeight: 25,
+                //   iconWidth: 19,
+                // ),
+                // SizedBox(height: 15),
+                // CommonContainer.profileList(
+                //   onTap: () {},
+                //   label: 'Edit My Bank Account Details',
+                //   iconPath: AppImages.editBank,
+                //   iconHeight: 25,
+                //   iconWidth: 19,
+                // ),
+                // SizedBox(height: 15),
+                // CommonContainer.profileList(
+                //   onTap: () {},
+                //   label: 'Edit Company Details',
+                //   iconPath: AppImages.editCompany,
+                //   iconHeight: 25,
+                //   iconWidth: 19,
+                // ),
+                //
+                // SizedBox(height: 20),
+                // CommonContainer.horizonalDivider(),
+                // SizedBox(height: 20),
                 CommonContainer.profileList(
                   onTap: () {},
                   label: 'Support',
@@ -259,8 +259,8 @@ class _HeaterSettingState extends State<HeaterSetting> {
                   iconWidth: 19,
                 ),
                 SizedBox(height: 20),
-                CommonContainer.horizonalDivider(),
 
+                // CommonContainer.horizonalDivider(),
                 SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,

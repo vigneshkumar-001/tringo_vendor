@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../Presentation/About Me/Screen/employee_about_me.dart';
+import '../../Presentation/Employee History/Screen/employee_history.dart';
 import '../../Presentation/Home Screen/home_screen.dart';
 import '../../Presentation/Menu/Screen/menu_screen.dart';
 import '../../Presentation/No Data Screen/Screen/no_data_screen.dart';
@@ -51,19 +53,17 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
       case 0:
         return const HomeScreen();
       case 1:
-        return const NoDataScreen(
-          showBottomButton: false,
-          showTopBackArrow: false,
-        );
+        return EmployeeHistory();
       case 2:
         return RegisterScreen();
       case 3:
+        return EmployeeAboutMe();
+
+      case 4:
         return const NoDataScreen(
           showBottomButton: false,
           showTopBackArrow: false,
         );
-      case 4:
-        return MenuScreen();
       default:
         return const SizedBox.shrink();
     }
@@ -182,22 +182,22 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
               items: [
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.homeImage, height: 26),
-                  // activeIcon: Image.asset(AppImages.homeFill, height: 30),
+                   activeIcon: Image.asset(AppImages.homeDark, height: 30),
                   label: 'Home',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.historyImage, height: 26),
-                  // activeIcon: Image.asset(AppImages.enquiryFill, height: 30),
+                  activeIcon: Image.asset(AppImages.employeeHistoryDark, height: 30),
                   label: 'History',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.registerImage, height: 26),
-                  // activeIcon: Image.asset(AppImages.offerFill, height: 30),
+                   activeIcon: Image.asset(AppImages.historyDark, height: 30),
                   label: 'Register',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.aboutMeImage, height: 26),
-                  // activeIcon: Image.asset(AppImages.aboutMeFill, height: 30),
+                   activeIcon: Image.asset(AppImages.settingDark, height: 30),
                   label: 'About Me',
                 ),
                 BottomNavigationBarItem(

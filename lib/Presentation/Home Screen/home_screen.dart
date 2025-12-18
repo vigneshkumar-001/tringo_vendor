@@ -4,10 +4,12 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:dotted_border/dotted_border.dart' as dotted;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Core/Const/app_color.dart';
 import 'package:tringo_vendor_new/Core/Const/app_images.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
+import 'package:tringo_vendor_new/Core/Widgets/app_go_routes.dart';
 import 'package:tringo_vendor_new/Presentation/Home%20Screen/Contoller/employee_home_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/Home%20Screen/Model/employee_home_response.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -709,13 +711,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 Spacer(),
                                 GestureDetector(
                                   onTap: () {
-                                    // Navigator.push(
-                                    //   context,
-                                    //   MaterialPageRoute(
-                                    //     builder: (context) =>
-                                    //         CommonBottomNavigation(initialIndex: 1),
-                                    //   ),
-                                    // );
+                           context.push(AppRoutes.shopDetailsEditPath);
                                   },
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
@@ -914,13 +910,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 // SizedBox(width: 10),
                                 GestureDetector(
                                   onTap: () {
-                                    // Navigator.push(
-                                    //   context,
-                                    //   MaterialPageRoute(
-                                    //     builder: (context) =>
-                                    //         CommonBottomNavigation(initialIndex: 1),
-                                    //   ),
-                                    // );
+                                    context.push(AppRoutes.shopDetailsEditPath);
                                   },
                                   child: Container(
                                     padding: EdgeInsets.symmetric(

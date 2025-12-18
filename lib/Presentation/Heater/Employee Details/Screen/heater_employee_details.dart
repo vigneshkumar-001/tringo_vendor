@@ -1,22 +1,30 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:dotted_border/dotted_border.dart' as dotted;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_loader.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
+import '../../Employee details-edit/Screen/heater_employee_details_edit.dart';
+import '../Controller/heater_employee_details_notifier.dart';
 
-class HeaterEmployeeDetails extends StatefulWidget {
-  const HeaterEmployeeDetails({super.key});
+class HeaterEmployeeDetails extends ConsumerStatefulWidget {
+  final String employeeId;
+
+  const HeaterEmployeeDetails({super.key, required this.employeeId});
 
   @override
-  State<HeaterEmployeeDetails> createState() => _HeaterEmployeeDetailsState();
+  ConsumerState<HeaterEmployeeDetails> createState() =>
+      _HeaterEmployeeDetailsState();
 }
 
-class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
+class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
   int selectedIndex = 0;
 
   final List<Map<String, dynamic>> categoryTabs = [
@@ -26,7 +34,47 @@ class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref
+          .read(heaterEmployeeDetailsNotifier.notifier)
+          .heaterEmployee(employeeId: widget.employeeId);
+    });
+  }
+
+  Future<void> _launchDialer(String phoneNumber) async {
+    final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      debugPrint('Could not launch dialer for $phoneNumber');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = ref.watch(heaterEmployeeDetailsNotifier);
+
+    if (state.isLoading) {
+      return const Scaffold(
+        body: Center(child: ThreeDotsLoader(dotColor: AppColor.darkBlue)),
+      );
+    }
+
+    if (state.error != null) {
+      return Scaffold(body: Center(child: Text(state.error!)));
+    }
+
+    final data = state.employeeDetailsResponse?.data;
+    if (data == null) {
+      return const Scaffold(body: Center(child: Text("No data available")));
+    }
+
+    final employee = data.employee;
+    final summary = data.summary;
+    final shops = data.shopsAndServices.items;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -76,32 +124,26 @@ class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
                         child: SizedBox(
                           height: 115,
                           width: 92,
-                          child: Image.asset(
-                            AppImages.humanImage1,
-                            width: 92,
-                            height: 115,
-                          ),
-                          // Image.network(
-                          //    data.avatarUrl ?? "",
-                          //   fit: BoxFit.cover,
-                          //   errorBuilder: (_, __, ___) {
-                          //     return const Center(
-                          //       child: Icon(
-                          //         Icons.broken_image,
-                          //         size: 40,
-                          //       ),
-                          //     );
-                          //   },
-                          // ),
+                          child:
+                              employee.avatarUrl != null
+                                  ? Image.network(
+                                    employee.avatarUrl ?? '',
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (_, __, ___) =>
+                                            Icon(Icons.person, size: 40),
+                                  )
+                                  : Icon(Icons.person, size: 40),
                         ),
                       ),
+
                       SizedBox(width: 20),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Siva',
+                            employee.name,
                             // data.name,
                             style: AppTextStyles.mulish(
                               fontWeight: FontWeight.w700,
@@ -111,7 +153,7 @@ class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
                           ),
                           SizedBox(height: 3),
                           Text(
-                            'THU29849H',
+                            employee.employeeCode,
                             // data.employeeCode,
                             style: AppTextStyles.mulish(
                               fontSize: 11,
@@ -127,8 +169,7 @@ class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
                             ),
                           ),
                           Text(
-                            // 'Rs.${data.todayAmount}',
-                            'Rs. 49,098',
+                            'Rs. ${summary.totalAmount}',
                             style: AppTextStyles.mulish(
                               fontWeight: FontWeight.w700,
                               fontSize: 18,
@@ -142,9 +183,9 @@ class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
                         children: [
                           InkWell(
                             onTap: () {
-                              // if (data.phoneNumber.isNotEmpty) {
-                              //   _launchDialer(data.phoneNumber);
-                              // }
+                              if (employee.phoneNumber.isNotEmpty) {
+                                _launchDialer(employee.phoneNumber);
+                              }
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -168,8 +209,21 @@ class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
                             onTap: () {
                               context.push(
                                 AppRoutes.heaterEmployeeDetailsEditPath,
+                                extra: {
+                                  'employeeId': employee.id,
+                                  'name': employee.name,
+                                  'employeeCode': employee.employeeCode,
+                                  'phoneNumber': employee.phoneNumber,
+                                  'avatarUrl': employee.avatarUrl,
+                                  'totalAmount': summary.totalAmount.toString(),
+                                },
                               );
                             },
+
+                            // onTap: () {
+                            //   final id = employee.id;
+                            //   context.push('${AppRoutes.heaterEmployeeDetailsEditPath}/$id');
+                            // },
                             child: Container(
                               decoration: BoxDecoration(
                                 border: Border.all(
@@ -255,415 +309,233 @@ class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
                 ),
               ),
               SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Column(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColor.ivoryGreen,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColor.black.withOpacity(0.054),
-                                    AppColor.black.withOpacity(0.0),
-                                  ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 15,
-                                  vertical: 10,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      'Product',
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColor.darkBlue,
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Image.asset(
-                                      AppImages.rightArrow,
-                                      height: 10,
-                                      color: AppColor.darkGrey,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Textiles',
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColor.darkBlue,
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Image.asset(
-                                      AppImages.rightArrow,
-                                      height: 10,
-                                      color: AppColor.darkGrey,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Mens Wear',
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColor.darkBlue,
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Image.asset(
-                                      AppImages.rightArrow,
-                                      height: 10,
-                                      color: AppColor.darkGrey,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(15),
-                              child: AspectRatio(
-                                aspectRatio:
-                                    328 / 143, // your original image ratio
-                                child: Image.asset(
-                                  AppImages.homeImage1,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: shops.length,
+                itemBuilder: (context, index) {
+                  final shop = shops[index];
 
-                            SizedBox(height: 20),
-                            Text(
-                              'Kandhasamy Mobiles',
-                              style: AppTextStyles.mulish(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 18,
-                                color: AppColor.darkBlue,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                              '77, Nehru St, Sathyamoorthy Nagar, State Bank Supervisors Colony, Madurai, Tamil Nadu 625016',
-                              style: AppTextStyles.mulish(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 12,
-                                color: AppColor.lightGray3,
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                            Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColor.white,
-                                    borderRadius: BorderRadius.circular(50),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Image.asset(
-                                      AppImages.premiumImage,
-                                      height: 16,
-                                      width: 17,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                DottedBorder(
-                                  color: AppColor.black.withOpacity(0.2),
-                                  dashPattern: [3.0, 2.0],
-                                  borderType: dotted.BorderType.RRect,
-                                  padding: EdgeInsets.all(10),
-                                  radius: Radius.circular(18),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 5,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '2Months Pro Premium',
-                                          style: AppTextStyles.mulish(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 12,
-                                            color: AppColor.darkBlue,
-                                          ),
-                                        ),
-                                        SizedBox(width: 10),
-                                        Text(
-                                          '10.40Pm',
-                                          style: AppTextStyles.mulish(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 12,
-                                            color: AppColor.lightGray3,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Spacer(),
-                                GestureDetector(
-                                  onTap: () {
-                                    // Navigator.push(
-                                    //   context,
-                                    //   MaterialPageRoute(
-                                    //     builder: (context) =>
-                                    //         CommonBottomNavigation(initialIndex: 1),
-                                    //   ),
-                                    // );
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 13,
-                                      vertical: 7.5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColor.black,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Image.asset(
-                                      AppImages.rightStickArrow,
-                                      height: 19,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 25),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Column(
-                  children: [
-                    Container(
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Container(
                       decoration: BoxDecoration(
                         color: AppColor.iceGray,
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColor.black.withOpacity(0.054),
-                                    AppColor.black.withOpacity(0.0),
-                                  ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                                borderRadius: BorderRadius.circular(16),
+                                color: AppColor.ivoryGreen,
+                                borderRadius: BorderRadius.circular(15),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 15,
-                                  vertical: 10,
-                                ),
-                                child: Row(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'Product',
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColor.darkBlue,
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            AppColor.black.withOpacity(0.054),
+                                            AppColor.black.withOpacity(0.0),
+                                          ],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 15,
+                                          vertical: 10,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              shop.breadcrumb,
+                                              style: AppTextStyles.mulish(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColor.darkBlue,
+                                              ),
+                                            ),
+                                            SizedBox(width: 6),
+                                            Image.asset(
+                                              AppImages.rightArrow,
+                                              height: 10,
+                                              color: AppColor.darkGrey,
+                                            ),
+                                            SizedBox(width: 6),
+                                            Text(
+                                              shop.breadcrumb,
+                                              style: AppTextStyles.mulish(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColor.darkBlue,
+                                              ),
+                                            ),
+                                            SizedBox(width: 6),
+                                            Image.asset(
+                                              AppImages.rightArrow,
+                                              height: 10,
+                                              color: AppColor.darkGrey,
+                                            ),
+                                            SizedBox(width: 6),
+                                            Text(
+                                              shop.breadcrumb,
+                                              style: AppTextStyles.mulish(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColor.darkBlue,
+                                              ),
+                                            ),
+                                            SizedBox(width: 6),
+                                            Image.asset(
+                                              AppImages.rightArrow,
+                                              height: 10,
+                                              color: AppColor.darkGrey,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    SizedBox(width: 6),
-                                    Image.asset(
-                                      AppImages.rightArrow,
-                                      height: 10,
-                                      color: AppColor.darkGrey,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Daily',
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColor.darkBlue,
+                                    SizedBox(height: 20),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(15),
+                                      child: AspectRatio(
+                                        aspectRatio:
+                                            328 /
+                                            143, // your original image ratio
+                                        child: Image.network(
+                                          shop.imageUrl ?? '',
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
                                     ),
-                                    SizedBox(width: 6),
-                                    Image.asset(
-                                      AppImages.rightArrow,
-                                      height: 10,
-                                      color: AppColor.darkGrey,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Grocery',
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColor.darkBlue,
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Image.asset(
-                                      AppImages.rightArrow,
-                                      height: 10,
-                                      color: AppColor.darkGrey,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(15),
-                              child: AspectRatio(
-                                aspectRatio:
-                                    328 / 143, // your original image ratio
-                                child: Image.asset(
-                                  AppImages.homeImage2,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
 
-                            SizedBox(height: 20),
-                            Text(
-                              'HJ Grocery Stores',
-                              style: AppTextStyles.mulish(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 18,
-                                color: AppColor.darkBlue,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                              '77, Nehru St, Sathyamoorthy Nagar, State Bank Supervisors Colony, Madurai, Tamil Nadu 625016',
-                              style: AppTextStyles.mulish(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 12,
-                                color: AppColor.lightGray3,
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                            Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColor.white,
-                                    borderRadius: BorderRadius.circular(50),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Image.asset(
-                                      AppImages.premiumImage01,
-                                      height: 16,
-                                      width: 17,
+                                    SizedBox(height: 20),
+                                    Text(
+                                      shop.englishName,
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 18,
+                                        color: AppColor.darkBlue,
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                DottedBorder(
-                                  color: AppColor.black.withOpacity(0.2),
-                                  dashPattern: [3.0, 2.0],
-                                  borderType: dotted.BorderType.RRect,
-                                  padding: EdgeInsets.all(10),
-                                  radius: Radius.circular(18),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 5,
+                                    SizedBox(height: 10),
+                                    Text(
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                      '77, Nehru St, Sathyamoorthy Nagar, State Bank Supervisors Colony, Madurai, Tamil Nadu 625016',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 12,
+                                        color: AppColor.lightGray3,
+                                      ),
                                     ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                    SizedBox(height: 20),
+                                    Row(
                                       children: [
-                                        Text(
-                                          '1Year Premium ',
-                                          style: AppTextStyles.mulish(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 12,
-                                            color: AppColor.darkBlue,
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: AppColor.white,
+                                            borderRadius: BorderRadius.circular(
+                                              50,
+                                            ),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Image.asset(
+                                              AppImages.premiumImage,
+                                              height: 16,
+                                              width: 17,
+                                            ),
                                           ),
                                         ),
-                                        SizedBox(width: 10),
-                                        Text(
-                                          '10.40Pm',
-                                          style: AppTextStyles.mulish(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 12,
-                                            color: AppColor.lightGray3,
+                                        SizedBox(width: 8),
+                                        DottedBorder(
+                                          color: AppColor.black.withOpacity(
+                                            0.2,
+                                          ),
+                                          dashPattern: [3.0, 2.0],
+                                          borderType: dotted.BorderType.RRect,
+                                          padding: EdgeInsets.all(10),
+                                          radius: Radius.circular(18),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 5,
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  '2Months Pro Premium',
+                                                  style: AppTextStyles.mulish(
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 12,
+                                                    color: AppColor.darkBlue,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 10),
+                                                Text(
+                                                  '10.40Pm',
+                                                  style: AppTextStyles.mulish(
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 12,
+                                                    color: AppColor.lightGray3,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        GestureDetector(
+                                          onTap: () {
+                                            // Navigator.push(
+                                            //   context,
+                                            //   MaterialPageRoute(
+                                            //     builder: (context) =>
+                                            //         CommonBottomNavigation(initialIndex: 1),
+                                            //   ),
+                                            // );
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 13,
+                                              vertical: 7.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColor.black,
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                            ),
+                                            child: Image.asset(
+                                              AppImages.rightStickArrow,
+                                              height: 19,
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                Spacer(),
-                                // SizedBox(width: 10),
-                                GestureDetector(
-                                  onTap: () {
-                                    // Navigator.push(
-                                    //   context,
-                                    //   MaterialPageRoute(
-                                    //     builder: (context) =>
-                                    //         CommonBottomNavigation(initialIndex: 1),
-                                    //   ),
-                                    // );
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 13,
-                                      vertical: 7.5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColor.black,
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: Image.asset(
-                                      AppImages.rightStickArrow,
-                                      height: 19,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-              SizedBox(height: 44),
             ],
           ),
         ),
@@ -671,3 +543,413 @@ class _HeaterEmployeeDetailsState extends State<HeaterEmployeeDetails> {
     );
   }
 }
+
+// Padding(
+//   padding: const EdgeInsets.symmetric(horizontal: 15),
+//   child: Column(
+//     children: [
+//       Container(
+//         decoration: BoxDecoration(
+//           color: AppColor.ivoryGreen,
+//           borderRadius: BorderRadius.circular(15),
+//         ),
+//         child: Padding(
+//           padding: const EdgeInsets.all(20),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               Container(
+//                 decoration: BoxDecoration(
+//                   gradient: LinearGradient(
+//                     colors: [
+//                       AppColor.black.withOpacity(0.054),
+//                       AppColor.black.withOpacity(0.0),
+//                     ],
+//                     begin: Alignment.centerLeft,
+//                     end: Alignment.centerRight,
+//                   ),
+//                   borderRadius: BorderRadius.circular(16),
+//                 ),
+//                 child: Padding(
+//                   padding: const EdgeInsets.symmetric(
+//                     horizontal: 15,
+//                     vertical: 10,
+//                   ),
+//                   child: Row(
+//                     children: [
+//                       Text(
+//                         'Product',
+//                         style: AppTextStyles.mulish(
+//                           fontSize: 12,
+//                           fontWeight: FontWeight.bold,
+//                           color: AppColor.darkBlue,
+//                         ),
+//                       ),
+//                       SizedBox(width: 6),
+//                       Image.asset(
+//                         AppImages.rightArrow,
+//                         height: 10,
+//                         color: AppColor.darkGrey,
+//                       ),
+//                       SizedBox(width: 6),
+//                       Text(
+//                         'Textiles',
+//                         style: AppTextStyles.mulish(
+//                           fontSize: 12,
+//                           fontWeight: FontWeight.bold,
+//                           color: AppColor.darkBlue,
+//                         ),
+//                       ),
+//                       SizedBox(width: 6),
+//                       Image.asset(
+//                         AppImages.rightArrow,
+//                         height: 10,
+//                         color: AppColor.darkGrey,
+//                       ),
+//                       SizedBox(width: 6),
+//                       Text(
+//                         'Mens Wear',
+//                         style: AppTextStyles.mulish(
+//                           fontSize: 12,
+//                           fontWeight: FontWeight.bold,
+//                           color: AppColor.darkBlue,
+//                         ),
+//                       ),
+//                       SizedBox(width: 6),
+//                       Image.asset(
+//                         AppImages.rightArrow,
+//                         height: 10,
+//                         color: AppColor.darkGrey,
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//               SizedBox(height: 20),
+//               ClipRRect(
+//                 borderRadius: BorderRadius.circular(15),
+//                 child: AspectRatio(
+//                   aspectRatio:
+//                       328 / 143, // your original image ratio
+//                   child: Image.asset(
+//                     AppImages.homeImage1,
+//                     width: double.infinity,
+//                     fit: BoxFit.cover,
+//                   ),
+//                 ),
+//               ),
+//
+//               SizedBox(height: 20),
+//               Text(
+//                 'Kandhasamy Mobiles',
+//                 style: AppTextStyles.mulish(
+//                   fontWeight: FontWeight.w700,
+//                   fontSize: 18,
+//                   color: AppColor.darkBlue,
+//                 ),
+//               ),
+//               SizedBox(height: 10),
+//               Text(
+//                 overflow: TextOverflow.ellipsis,
+//                 maxLines: 2,
+//                 '77, Nehru St, Sathyamoorthy Nagar, State Bank Supervisors Colony, Madurai, Tamil Nadu 625016',
+//                 style: AppTextStyles.mulish(
+//                   fontWeight: FontWeight.w400,
+//                   fontSize: 12,
+//                   color: AppColor.lightGray3,
+//                 ),
+//               ),
+//               SizedBox(height: 20),
+//               Row(
+//                 children: [
+//                   Container(
+//                     decoration: BoxDecoration(
+//                       color: AppColor.white,
+//                       borderRadius: BorderRadius.circular(50),
+//                     ),
+//                     child: Padding(
+//                       padding: const EdgeInsets.all(10),
+//                       child: Image.asset(
+//                         AppImages.premiumImage,
+//                         height: 16,
+//                         width: 17,
+//                       ),
+//                     ),
+//                   ),
+//                   SizedBox(width: 8),
+//                   DottedBorder(
+//                     color: AppColor.black.withOpacity(0.2),
+//                     dashPattern: [3.0, 2.0],
+//                     borderType: dotted.BorderType.RRect,
+//                     padding: EdgeInsets.all(10),
+//                     radius: Radius.circular(18),
+//                     child: Padding(
+//                       padding: const EdgeInsets.symmetric(
+//                         horizontal: 5,
+//                       ),
+//                       child: Row(
+//                         mainAxisAlignment:
+//                             MainAxisAlignment.center,
+//                         children: [
+//                           Text(
+//                             '2Months Pro Premium',
+//                             style: AppTextStyles.mulish(
+//                               fontWeight: FontWeight.w700,
+//                               fontSize: 12,
+//                               color: AppColor.darkBlue,
+//                             ),
+//                           ),
+//                           SizedBox(width: 10),
+//                           Text(
+//                             '10.40Pm',
+//                             style: AppTextStyles.mulish(
+//                               fontWeight: FontWeight.w400,
+//                               fontSize: 12,
+//                               color: AppColor.lightGray3,
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                   Spacer(),
+//                   GestureDetector(
+//                     onTap: () {
+//                       // Navigator.push(
+//                       //   context,
+//                       //   MaterialPageRoute(
+//                       //     builder: (context) =>
+//                       //         CommonBottomNavigation(initialIndex: 1),
+//                       //   ),
+//                       // );
+//                     },
+//                     child: Container(
+//                       padding: EdgeInsets.symmetric(
+//                         horizontal: 13,
+//                         vertical: 7.5,
+//                       ),
+//                       decoration: BoxDecoration(
+//                         color: AppColor.black,
+//                         borderRadius: BorderRadius.circular(25),
+//                       ),
+//                       child: Image.asset(
+//                         AppImages.rightStickArrow,
+//                         height: 19,
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     ],
+//   ),
+// ),
+// SizedBox(height: 25),
+// Padding(
+//   padding: const EdgeInsets.symmetric(horizontal: 15),
+//   child: Column(
+//     children: [
+//       Container(
+//         decoration: BoxDecoration(
+//           color: AppColor.iceGray,
+//           borderRadius: BorderRadius.circular(15),
+//         ),
+//         child: Padding(
+//           padding: const EdgeInsets.all(20),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               Container(
+//                 decoration: BoxDecoration(
+//                   gradient: LinearGradient(
+//                     colors: [
+//                       AppColor.black.withOpacity(0.054),
+//                       AppColor.black.withOpacity(0.0),
+//                     ],
+//                     begin: Alignment.centerLeft,
+//                     end: Alignment.centerRight,
+//                   ),
+//                   borderRadius: BorderRadius.circular(16),
+//                 ),
+//                 child: Padding(
+//                   padding: const EdgeInsets.symmetric(
+//                     horizontal: 15,
+//                     vertical: 10,
+//                   ),
+//                   child: Row(
+//                     children: [
+//                       Text(
+//                         'Product',
+//                         style: AppTextStyles.mulish(
+//                           fontSize: 12,
+//                           fontWeight: FontWeight.bold,
+//                           color: AppColor.darkBlue,
+//                         ),
+//                       ),
+//                       SizedBox(width: 6),
+//                       Image.asset(
+//                         AppImages.rightArrow,
+//                         height: 10,
+//                         color: AppColor.darkGrey,
+//                       ),
+//                       SizedBox(width: 6),
+//                       Text(
+//                         'Daily',
+//                         style: AppTextStyles.mulish(
+//                           fontSize: 12,
+//                           fontWeight: FontWeight.bold,
+//                           color: AppColor.darkBlue,
+//                         ),
+//                       ),
+//                       SizedBox(width: 6),
+//                       Image.asset(
+//                         AppImages.rightArrow,
+//                         height: 10,
+//                         color: AppColor.darkGrey,
+//                       ),
+//                       SizedBox(width: 6),
+//                       Text(
+//                         'Grocery',
+//                         style: AppTextStyles.mulish(
+//                           fontSize: 12,
+//                           fontWeight: FontWeight.bold,
+//                           color: AppColor.darkBlue,
+//                         ),
+//                       ),
+//                       SizedBox(width: 6),
+//                       Image.asset(
+//                         AppImages.rightArrow,
+//                         height: 10,
+//                         color: AppColor.darkGrey,
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//               SizedBox(height: 20),
+//               ClipRRect(
+//                 borderRadius: BorderRadius.circular(15),
+//                 child: AspectRatio(
+//                   aspectRatio:
+//                       328 / 143, // your original image ratio
+//                   child: Image.asset(
+//                     AppImages.homeImage2,
+//                     width: double.infinity,
+//                     fit: BoxFit.cover,
+//                   ),
+//                 ),
+//               ),
+//
+//               SizedBox(height: 20),
+//               Text(
+//                 'HJ Grocery Stores',
+//                 style: AppTextStyles.mulish(
+//                   fontWeight: FontWeight.w700,
+//                   fontSize: 18,
+//                   color: AppColor.darkBlue,
+//                 ),
+//               ),
+//               SizedBox(height: 10),
+//               Text(
+//                 overflow: TextOverflow.ellipsis,
+//                 maxLines: 2,
+//                 '77, Nehru St, Sathyamoorthy Nagar, State Bank Supervisors Colony, Madurai, Tamil Nadu 625016',
+//                 style: AppTextStyles.mulish(
+//                   fontWeight: FontWeight.w400,
+//                   fontSize: 12,
+//                   color: AppColor.lightGray3,
+//                 ),
+//               ),
+//               SizedBox(height: 20),
+//               Row(
+//                 children: [
+//                   Container(
+//                     decoration: BoxDecoration(
+//                       color: AppColor.white,
+//                       borderRadius: BorderRadius.circular(50),
+//                     ),
+//                     child: Padding(
+//                       padding: const EdgeInsets.all(10),
+//                       child: Image.asset(
+//                         AppImages.premiumImage01,
+//                         height: 16,
+//                         width: 17,
+//                       ),
+//                     ),
+//                   ),
+//                   SizedBox(width: 8),
+//                   DottedBorder(
+//                     color: AppColor.black.withOpacity(0.2),
+//                     dashPattern: [3.0, 2.0],
+//                     borderType: dotted.BorderType.RRect,
+//                     padding: EdgeInsets.all(10),
+//                     radius: Radius.circular(18),
+//                     child: Padding(
+//                       padding: const EdgeInsets.symmetric(
+//                         horizontal: 5,
+//                       ),
+//                       child: Row(
+//                         mainAxisAlignment:
+//                             MainAxisAlignment.center,
+//                         children: [
+//                           Text(
+//                             '1Year Premium ',
+//                             style: AppTextStyles.mulish(
+//                               fontWeight: FontWeight.w700,
+//                               fontSize: 12,
+//                               color: AppColor.darkBlue,
+//                             ),
+//                           ),
+//                           SizedBox(width: 10),
+//                           Text(
+//                             '10.40Pm',
+//                             style: AppTextStyles.mulish(
+//                               fontWeight: FontWeight.w400,
+//                               fontSize: 12,
+//                               color: AppColor.lightGray3,
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                   Spacer(),
+//                   // SizedBox(width: 10),
+//                   GestureDetector(
+//                     onTap: () {
+//                       // Navigator.push(
+//                       //   context,
+//                       //   MaterialPageRoute(
+//                       //     builder: (context) =>
+//                       //         CommonBottomNavigation(initialIndex: 1),
+//                       //   ),
+//                       // );
+//                     },
+//                     child: Container(
+//                       padding: EdgeInsets.symmetric(
+//                         horizontal: 13,
+//                         vertical: 7.5,
+//                       ),
+//                       decoration: BoxDecoration(
+//                         color: AppColor.black,
+//                         borderRadius: BorderRadius.circular(25),
+//                       ),
+//                       child: Image.asset(
+//                         AppImages.rightStickArrow,
+//                         height: 19,
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     ],
+//   ),
+// ),
+// SizedBox(height: 44),

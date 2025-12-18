@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -2395,6 +2396,445 @@ class CommonContainer {
           ),
         ],
       ),
+    );
+  }
+
+  static Widget attractCustomerCard({
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(AppImages.containerBCImage2),
+          ),
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [AppColor.brightBlue, AppColor.electricBlue],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      title,
+                      style: AppTextStyles.mulish(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: AppColor.white,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      description,
+                      style: AppTextStyles.mulish(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.white,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    InkWell(
+                      onTap: onTap,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColor.white,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14.5,
+                            vertical: 6.5,
+                          ),
+                          child: Image.asset(
+                            AppImages.rightStickArrow,
+                            height: 20,
+                            color: AppColor.royalBlue,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 30),
+              Image.asset(AppImages.upgrade, height: 138),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget foodList({
+    required String image,
+    required String foodName,
+    required String ratingStar,
+    required String ratingCount,
+    required String offAmound,
+    required String oldAmound,
+    required String km,
+    required String location,
+    double imageHeight = 160,
+    double imageWidth = 155,
+    double fontSize = 16,
+    FontWeight titleWeight = FontWeight.w800,
+    bool Verify = false,
+    bool locations = false,
+    bool doorDelivery = false,
+    bool weight = false,
+    bool Ad = false,
+    VoidCallback? onTap,
+    bool horizontalDivider = false,
+
+    List<String> weightOptions = const ['300Gm', '500Gm'],
+    int? selectedWeightIndex, // null = none selected
+    ValueChanged<int>? onWeightChanged, // callback when tapped
+  }) {
+    // Apply filtering logic:
+    final List<String> filteredWeightOptions = [
+      if (weightOptions.contains('1Kg')) '1Kg',
+      ...weightOptions.where((w) => w.toLowerCase().endsWith('gm')).take(2),
+    ];
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20.0),
+            child: Row(
+              children: [
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: CachedNetworkImage(
+                        imageUrl: image, // 👈 your URL string here
+                        width: 130,
+                        height: 130,
+                        fit: BoxFit.cover, // same effect as FittedBox.cover
+                        placeholder: (context, url) => Container(
+                          width: 130,
+                          height: 130,
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: 130,
+                          height: 130,
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.broken_image,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // if (Ad)
+                    //   Positioned(
+                    //     bottom: 10,
+                    //     right: 8,
+                    //     child: Container(
+                    //       decoration: BoxDecoration(
+                    //         color: AppColor.black.withOpacity(0.5),
+                    //         borderRadius: BorderRadius.circular(50),
+                    //       ),
+                    //       child: Padding(
+                    //         padding: const EdgeInsets.symmetric(
+                    //           horizontal: 10,
+                    //           vertical: 4,
+                    //         ),
+                    //         child: Row(
+                    //           children: [
+                    //             Image.asset(AppImages.alertImage, height: 9),
+                    //             SizedBox(width: 4),
+                    //             Text(
+                    //               'AD',
+                    //               style: AppTextStyles.mulish(
+                    //                 fontSize: 10,
+                    //                 fontWeight: FontWeight.w900,
+                    //                 color: AppColor.scaffoldColor,
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                  ],
+                ),
+                SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          // if (Verify) CommonContainer.verifyTick(),
+                          // SizedBox(width: 5),
+                          doorDelivery
+                              ? CommonContainer.doorDelivery(
+                            text: 'Door Delivery',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            textColor: AppColor.skyBlue,
+                          )
+                              : SizedBox.shrink(),
+                        ],
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        foodName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.mulish(
+                          fontWeight: titleWeight,
+                          fontSize: fontSize,
+                          color: AppColor.darkBlue,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          CommonContainer.greenStarRating(
+                            ratingStar: ratingStar,
+                            ratingCount: ratingCount,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 7),
+                      Row(
+                        children: [
+                          Text(
+                            offAmound,
+                            style: AppTextStyles.mulish(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                              color: AppColor.darkBlue,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          oldAmound.isEmpty
+                              ? SizedBox.shrink()
+                              : Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Text(
+                                oldAmound,
+                                style: AppTextStyles.mulish(
+                                  fontSize: 14,
+                                  color: AppColor.gray84,
+                                ),
+                              ),
+                              Transform.rotate(
+                                angle: -0.1,
+                                child: Container(
+                                  height: 1.5,
+                                  width: 40,
+                                  color: AppColor.gray84,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      if (locations)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColor.white,
+                            borderRadius: BorderRadius.circular(50),
+                            border: Border.all(
+                              color: AppColor.iceBlue,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  AppImages.locationImage,
+                                  height: 13,
+                                  color: AppColor.skyBlue,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  km,
+                                  style: AppTextStyles.mulish(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    color: AppColor.skyBlue,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Flexible(
+                                  child: Text(
+                                    location,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTextStyles.mulish(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 10,
+                                      color: AppColor.darkBlue,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      // if (weight)
+                      //   Row(
+                      //     crossAxisAlignment: CrossAxisAlignment.center,
+                      //     children: [
+                      //       Text(
+                      //         'Weight',
+                      //         style: GoogleFont.Mulish(
+                      //           fontSize: 12,
+                      //           color: AppColor.darkBlue,
+                      //         ),
+                      //       ),
+                      //       const SizedBox(width: 10),
+                      //       Expanded(
+                      //         child: Wrap(
+                      //           spacing: 10,
+                      //           runSpacing: 8,
+                      //           children: List.generate(
+                      //             filteredWeightOptions.length,
+                      //                 (i) {
+                      //               final bool isSelected =
+                      //                   selectedWeightIndex == i;
+                      //               return InkWell(
+                      //                 borderRadius: BorderRadius.circular(50),
+                      //                 onTap: () => onWeightChanged?.call(i),
+                      //                 child: Container(
+                      //                   decoration: BoxDecoration(
+                      //                     color: isSelected
+                      //                         ? AppColor.white
+                      //                         : Colors.transparent,
+                      //                     borderRadius: BorderRadius.circular(
+                      //                       50,
+                      //                     ),
+                      //                     border: Border.all(
+                      //                       color: isSelected
+                      //                           ? AppColor.blue
+                      //                           : AppColor.lightGray2,
+                      //                       width: 1.5,
+                      //                     ),
+                      //                     boxShadow: isSelected
+                      //                         ? [
+                      //                       BoxShadow(
+                      //                         color: AppColor.blue
+                      //                             .withOpacity(0.14),
+                      //                         blurRadius: 10,
+                      //                         offset: const Offset(0, 2),
+                      //                       ),
+                      //                     ]
+                      //                         : null,
+                      //                   ),
+                      //                   padding: const EdgeInsets.symmetric(
+                      //                     horizontal: 12,
+                      //                     vertical: 6,
+                      //                   ),
+                      //                   child: Text(
+                      //                     filteredWeightOptions[i],
+                      //                     style: GoogleFont.Mulish(
+                      //                       fontSize: 12,
+                      //                       fontWeight: FontWeight.w800,
+                      //                       color: isSelected
+                      //                           ? AppColor.blue
+                      //                           : AppColor.lightGray2,
+                      //                     ),
+                      //                   ),
+                      //                 ),
+                      //               );
+                      //             },
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10),
+          if (horizontalDivider) CommonContainer.horizonalDivider(),
+        ],
+      ),
+    );
+  }
+
+  static greenStarRating({String? ratingStar, String? ratingCount}) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColor.green,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min, // 👈 stops expanding too much
+            children: [
+              Text(
+                ratingStar!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.mulish(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  color: AppColor.white,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Image.asset(AppImages.starImage, height: 9),
+              const SizedBox(width: 5),
+              Container(
+                width: 1.5,
+                height: 13,
+                decoration: BoxDecoration(
+                  color: AppColor.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                ratingCount!,
+                style: AppTextStyles.mulish(
+                  fontSize: 12,
+                  color: AppColor.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

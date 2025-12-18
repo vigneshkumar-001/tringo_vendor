@@ -8,12 +8,17 @@ import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Model/product_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/add_employee_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Employee%20details-edit/Model/heater_employee_edit_res.dart';
+
+import '../../Presentation/Employee History/Model/employee_history_response.dart';
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Model/owner_otp_response.dart';
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Model/owner_register_response.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_list_response.dart';
 
 import '../../Core/Utility/app_prefs.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Model/user_image_response.dart';
+import '../../Presentation/Heater/Employee Details/Model/employeeDetailsResponse.dart';
+import '../../Presentation/Heater/Employees/Model/heater_employee_response.dart';
 import '../../Presentation/Heater/Heater Home Screen/Model/heater_home_response.dart';
 import '../../Presentation/Heater/Heater Register/Model/vendorResponse.dart';
 import '../../Presentation/Home Screen/Model/employee_home_response.dart';
@@ -292,7 +297,7 @@ class ApiDataSource {
       switch (screen) {
         case VendorRegisterScreen.screen1:
           // Screen 1 – owner basic info
-          addIfNotEmpty("displayName", vendorName);
+          addIfNotEmpty("vendorName", vendorName);
           addIfNotEmpty("ownerNameTamil", vendorNameTamil);
           addIfNotEmpty("phoneNumber", phoneNumber);
           addIfNotEmpty("email", email);

@@ -1,6 +1,7 @@
 // lib/Core/Routing/app_go_routes.dart
 import 'package:go_router/go_router.dart';
 import 'package:tringo_vendor_new/Core/Widgets/bottom_navigation_bar.dart';
+import 'package:tringo_vendor_new/Presentation/Shop%20Details%20Edit/Screen/shop_details_edit.dart';
 
 import '../../Presentation/AddProduct/Screens/add_product_list.dart';
 import '../../Presentation/AddProduct/Screens/product_category_screens.dart';
@@ -52,6 +53,7 @@ class AppRoutes {
   static const String heaterEmployeeDetails = 'HeaterEmployeeDetails';
   static const String heaterEmployeeDetailsEdit = 'HeaterEmployeeDetailsEdit';
   static const String subscriptionScreen = 'SubscriptionScreen';
+  static const String shopDetailsEdit = 'ShopDetailsEdit';
 
   static const String splashScreenPath = '/splashScreen';
   static const String loginPath = '/login';
@@ -75,8 +77,10 @@ class AppRoutes {
   static const String privacyPolicyPath = '/privacyPolicy';
   static const String heaterEmployeeDetailsPath = '/HeaterEmployeeDetails';
   static const String subscriptionScreenPath = '/SubscriptionScreen';
+  static const String shopDetailsEditPath = '/ShopDetailsEdit';
+
   static const String heaterEmployeeDetailsEditPath =
-      '/HeaterEmployeeDetailsEdit';
+      '/heaterEmployeeDetailsEditPath';
 
   static const String employeeApprovalRejectedPath =
       '/EmployeeApprovalRejected';
@@ -277,12 +281,26 @@ final goRouter = GoRouter(
     GoRoute(
       path: AppRoutes.heaterEmployeeDetailsPath,
       name: AppRoutes.heaterEmployeeDetails,
-      builder: (context, state) => HeaterEmployeeDetails(),
+      builder: (context, state) {
+        final employeeId = state.extra as String;
+        return HeaterEmployeeDetails(employeeId: employeeId);
+      },
     ),
+
     GoRoute(
       path: AppRoutes.heaterEmployeeDetailsEditPath,
       name: AppRoutes.heaterEmployeeDetailsEdit,
-      builder: (context, state) => HeaterEmployeeDetailsEdit(),
+      builder: (context, state) {
+        final args = state.extra as Map<String, String?>;
+        return HeaterEmployeeDetailsEdit(
+          employeeId: args['employeeId']!,
+          name: args['name'],
+          employeeCode: args['employeeCode'],
+          phoneNumber: args['phoneNumber'],
+          avatarUrl: args['avatarUrl'],
+          totalAmount: args['totalAmount'],
+        );
+      },
     ),
 
     GoRoute(
@@ -300,6 +318,11 @@ final goRouter = GoRouter(
 
         return SubscriptionScreen(showSkip: showSkip);
       },
+    ),
+    GoRoute(
+      path: AppRoutes.shopDetailsEditPath,
+      name: AppRoutes.shopDetailsEdit,
+      builder: (context, state) => ShopDetailsEdit(),
     ),
   ],
 );
