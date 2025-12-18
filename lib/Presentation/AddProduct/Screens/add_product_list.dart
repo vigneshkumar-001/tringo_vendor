@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Controller/product_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/AddProduct/Controller/service_info_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Screens/product_search_keyword.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
@@ -286,11 +287,11 @@ class _AddProductListState extends ConsumerState<AddProductList> {
 
     // // watch both states
     final productState = ref.watch(productNotifierProvider);
-    // final serviceState = ref.watch(serviceInfoNotifierProvider);
+    final serviceState = ref.watch(serviceInfoNotifierProvider);
 
     // choose loader
     final isLoading =
-        isService ? productState.isLoading : productState.isLoading;
+        isService ? serviceState.isLoading : productState.isLoading;
     return Scaffold(
       body: SafeArea(
         child: Form(
@@ -401,82 +402,91 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                         text: 'Save & Continue',
                         width: double.infinity,
                         height: 60,
-                        backgroundColor: AppColor.black,
+
                         loader: isLoading ? ThreeDotsLoader() : null,
-                        onTap:
-                            isLoading
-                                ? null
-                                : () async {
-                                  // 1️⃣ Validate picked image
-                                  if (_pickedImages[0] == null) {
-                                    setState(() => _hasError[0] = true);
-                                    return;
-                                  }
+                        onTap: isLoading
+                            ? null
+                            : () async {
+                          if (_pickedImages[0] == null) {
+                            setState(() => _hasError[0] = true);
+                            return;
+                          }
 
-                                  // 2️⃣ Validate form
-                                  final formValid =
-                                      _formKey.currentState?.validate() ??
-                                      false;
-                                  setState(() {}); // refresh UI for errors
-                                  if (!formValid) return;
+                          final formValid =
+                              _formKey.currentState?.validate() ?? false;
+                          setState(() {});
+                          if (!formValid) return;
 
-                                  // 3️⃣ Build features list
-                                  final features =
-                                      _featureControllers.map((item) {
-                                        return {
-                                          "label": item['heading']!.text.trim(),
-                                          "value": item['answer']!.text.trim(),
-                                        };
-                                      }).toList();
+                          final features = _featureControllers.map((
+                              item,
+                              ) {
+                            return {
+                              "label": item['heading']!.text.trim(),
+                              "value": item['answer']!.text.trim(),
+                            };
+                          }).toList();
 
-                                  // 4️⃣ Handle upload
-                                  final notifier = /*isService
-                            ? ref.read(serviceInfoNotifierProvider.notifier)
-                            : */ ref.read(productNotifierProvider.notifier);
+                          bool success;
+                          String? apiError;
 
-                                  final success = /*isService
-                            ? await notifier.uploadServiceImages(
-                          images: _pickedImages,
-                          features: features,
-                          context: context,
-                        )
-                            :*/ await notifier.uploadProductImages(
-                                    images: _pickedImages,
-                                    features: features,
-                                    context: context,
-                                  );
+                          if (isService) {
+                            final serviceNotifier = ref.read(
+                              serviceInfoNotifierProvider.notifier,
+                            );
 
-                                  // 5️⃣ Get API error (if any)
-                                  final apiError = /* isService
-                            ? ref.read(serviceInfoNotifierProvider).error
-                            :*/
-                                      ref.read(productNotifierProvider).error;
+                            success = await serviceNotifier
+                                .uploadServiceImages(
+                              images: _pickedImages,
+                              features: features,
+                              context: context,
+                            );
 
-                                  if (!success) {
-                                    AppSnackBar.error(
-                                      context,
-                                      apiError ?? "Failed. Try again.",
-                                    );
-                                    return;
-                                  }
+                            // read correct error
+                            apiError = ref
+                                .read(serviceInfoNotifierProvider)
+                                .error;
+                          } else {
+                            final productNotifier = ref.read(
+                              productNotifierProvider.notifier,
+                            );
 
-                                  final isCompany =
-                                      RegistrationProductSeivice
-                                          .instance
-                                          .businessType ==
-                                      BusinessType.company;
+                            success = await productNotifier
+                                .uploadProductImages(
+                              images: _pickedImages,
+                              features: features,
+                              context: context,
+                            );
 
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => ProductSearchKeyword(
-                                            isService: isService,
-                                            isCompany: isCompany,
-                                          ),
-                                    ),
-                                  );
-                                },
+                            // read correct error
+                            apiError = ref
+                                .read(productNotifierProvider)
+                                .error;
+                          }
+
+                          if (!success) {
+                            AppSnackBar.error(
+                              context,
+                              apiError ?? "Failed. Try again.",
+                            );
+                            return;
+                          }
+
+                          final isCompany =
+                              RegistrationProductSeivice
+                                  .instance
+                                  .businessType ==
+                                  BusinessType.company;
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductSearchKeyword(
+                                isService: isService,
+                                isCompany: isCompany,
+                              ),
+                            ),
+                          );
+                        },
                       ),
 
                       SizedBox(height: 36),

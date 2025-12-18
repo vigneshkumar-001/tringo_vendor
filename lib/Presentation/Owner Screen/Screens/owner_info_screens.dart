@@ -524,10 +524,10 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                               extra: {
                                 'isService': widget.isService,
                                 'isIndividual': widget.isIndividual,
-                                'initialShopNameEnglish':
-                                    englishNameController.text.trim(),
-                                'initialShopNameTamil':
-                                    tamilNameController.text.trim(),
+                                // 'initialShopNameEnglish':
+                                //     englishNameController.text.trim(),
+                                // 'initialShopNameTamil':
+                                //     tamilNameController.text.trim(),
                                 'pages': 'OwnerInfoScreens',
                                 'employeeId': employeeId,
                               },

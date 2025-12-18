@@ -87,7 +87,7 @@ class AppRoutes {
 }
 
 final goRouter = GoRouter(
-  initialLocation: AppRoutes.addProductListPath,
+  initialLocation: AppRoutes.splashScreenPath,
   routes: [
     GoRoute(
       path: AppRoutes.splashScreenPath,
@@ -322,7 +322,12 @@ final goRouter = GoRouter(
     GoRoute(
       path: AppRoutes.shopDetailsEditPath,
       name: AppRoutes.shopDetailsEdit,
-      builder: (context, state) => ShopDetailsEdit(),
+      builder: (context, state) {
+        final shopId = state.extra as String;
+        return ShopDetailsEdit(shopId: shopId);
+      },
     ),
+
+
   ],
 );

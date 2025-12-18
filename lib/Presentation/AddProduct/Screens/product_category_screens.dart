@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Controller/product_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/AddProduct/Controller/service_info_notifier.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
 
@@ -464,7 +465,7 @@ class _ProductCategoryScreensState
   @override
   Widget build(BuildContext context) {
     final productState = ref.watch(productNotifierProvider);
-    // final serviceState = ref.watch(serviceInfoNotifierProvider);
+    final serviceState = ref.watch(serviceInfoNotifierProvider);
 
     // 👇 VERY IMPORTANT: Decide service / product from widget.isService if given
     final bool isServiceFlow =
@@ -476,7 +477,7 @@ class _ProductCategoryScreensState
         (widget.productId != null && widget.productId!.isNotEmpty);
     // 👇 VERY IMPORTANT:
     final bool isLoading =
-        isServiceFlow ? productState.isLoading : productState.isLoading;
+        isServiceFlow ? serviceState.isLoading : productState.isLoading;
 
     return Scaffold(
       body: SafeArea(
@@ -869,41 +870,41 @@ class _ProductCategoryScreensState
                           }
 
                           if (isServiceFlow) {
-                            // final serviceResponse = await ref
-                            //     .read(serviceInfoNotifierProvider.notifier)
-                            //     .saveServiceInfo(
-                            //   apiShopId: widget.shopId,
-                            //   ServiceId: widget.productId ?? '',
-                            //   title: _productNameController.text.trim(),
-                            //   tamilName: _productNameController.text.trim(),
-                            //   description: _descriptionController.text
-                            //       .trim(),
-                            //   startsAt: price ?? 0,
-                            //   offerLabel: _offerController.text.trim(),
-                            //   offerValue: _offerPriceController.text.trim(),
-                            //   durationMinutes: 60,
-                            //   categoryId: productCategorySlug,
-                            //   subCategory: _subCategoryController.text
-                            //       .trim(),
-                            //   tags: const [],
-                            // );
-                            //
-                            // success = serviceResponse != null;
-                            //
-                            // if (!success) {
-                            //   final svcState = ref.read(
-                            //     serviceInfoNotifierProvider,
-                            //   );
-                            //   if (svcState.error != null &&
-                            //       svcState.error!.isNotEmpty) {
-                            //     AppSnackBar.error(context, svcState.error!);
-                            //   } else {
-                            //     AppSnackBar.error(
-                            //       context,
-                            //       'Service save failed. Please try again.',
-                            //     );
-                            //   }
-                            // }
+                            final serviceResponse = await ref
+                                .read(serviceInfoNotifierProvider.notifier)
+                                .saveServiceInfo(
+                                  apiShopId: widget.shopId,
+                                  ServiceId: widget.productId ?? '',
+                                  title: _productNameController.text.trim(),
+                                  tamilName: _productNameController.text.trim(),
+                                  description:
+                                      _descriptionController.text.trim(),
+                                  startsAt: price ?? 0,
+                                  offerLabel: _offerController.text.trim(),
+                                  offerValue: _offerPriceController.text.trim(),
+                                  durationMinutes: 60,
+                                  categoryId: productCategorySlug,
+                                  subCategory:
+                                      _subCategoryController.text.trim(),
+                                  tags: const [],
+                                );
+
+                            success = serviceResponse != null;
+
+                            if (!success) {
+                              final svcState = ref.read(
+                                serviceInfoNotifierProvider,
+                              );
+                              if (svcState.error != null &&
+                                  svcState.error!.isNotEmpty) {
+                                AppSnackBar.error(context, svcState.error!);
+                              } else {
+                                AppSnackBar.error(
+                                  context,
+                                  'Service save failed. Please try again.',
+                                );
+                              }
+                            }
                           } else {
                             // PRODUCT SAVE / UPDATE
                             final ddText = _doorDeliveryController.text.trim();

@@ -711,7 +711,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 Spacer(),
                                 GestureDetector(
                                   onTap: () {
-                           context.push(AppRoutes.shopDetailsEditPath);
+                                    context.push(
+                                      AppRoutes.shopDetailsEditPath,
+                                      extra: 'f55414f1-9787-4f7d-84a6-affede17675e',
+                                    );
                                   },
                                   child: Container(
                                     padding: EdgeInsets.symmetric(

@@ -6,6 +6,7 @@ class AppPrefs {
   static const String _kVerificationToken = 'verificationToken';
   static const String _shopId = 'shop_id';
   static const String _productId = 'product_id';
+  static const String _serviceId = 'service_id';
 
   /// Save
   static Future<void> setVerificationToken(String token) async {
@@ -17,7 +18,10 @@ class AppPrefs {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_shopId, shopId);
   }
-
+  static Future<void> setServiceId(String shopId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_serviceId, shopId);
+  }
   static Future<void> setProductId(String productId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_productId, productId);
@@ -32,6 +36,10 @@ class AppPrefs {
   static Future<String?> getSopId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_shopId);
+  }
+  static Future<String?> getServiceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_serviceId);
   }
 
   static Future<String?> getProductId() async {
