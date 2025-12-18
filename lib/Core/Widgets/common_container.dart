@@ -36,6 +36,7 @@ class AadhaarInputFormatter extends TextInputFormatter {
 enum DatePickMode { none, single, range }
 
 class CommonContainer {
+  
   static Widget sellingProduct({
     required String image,
     required VoidCallback onTap,
@@ -988,7 +989,12 @@ class CommonContainer {
     TextInputType? keyboardType,
     FocusNode? focusNode,
     FormFieldValidator<String>? validator,
+    bool isLoading = false,
+    bool isOtpVerifying = false,
     bool readOnly = false,
+
+    Future<bool> Function(String mobile)? onSendOtp,
+    Future<bool> Function(String mobile, String otp)? onVerifyOtp,
   }) {
     // OTP controllers (created once per widget build)
     final List<TextEditingController> otpControllers = List.generate(
@@ -1151,9 +1157,57 @@ class CommonContainer {
 
                             // VERIFY BUTTON
                             if (isTenDigits && !isVerified && !showOtp)
+                              // GestureDetector(
+                              //   onTap:
+                              //       (!isVerified && isTenDigits)
+                              //           ? () async {
+                              //             if (onSendOtp == null) return;
+                              //
+                              //             final success = await onSendOtp(
+                              //               controller!.text,
+                              //             );
+                              //
+                              //             if (!success) return;
+                              //
+                              //             setState(() {
+                              //               showOtp = true;
+                              //               showOtpError = false;
+                              //               for (final c in otpControllers) {
+                              //                 c.clear();
+                              //               }
+                              //               startResendTimer(setState);
+                              //             });
+                              //           }
+                              //           : null,
+                              //
+                              //   child: Container(
+                              //     padding: const EdgeInsets.symmetric(
+                              //       horizontal: 14,
+                              //       vertical: 8,
+                              //     ),
+                              //     decoration: BoxDecoration(
+                              //       color: const Color(0xFF2196F3),
+                              //       borderRadius: BorderRadius.circular(12),
+                              //     ),
+                              //     child: Text(
+                              //       "Verify",
+                              //       style: AppTextStyles.mulish(
+                              //         color: Colors.white,
+                              //         fontWeight: FontWeight.w700,
+                              //       ),
+                              //     ),
+                              //   ),
+                              // ),
                               GestureDetector(
-                                onTap: () {
-                                  // TODO: call send-OTP API here
+                                onTap: isLoading
+                                    ? null
+                                    : () async {
+                                  if (onSendOtp == null) return;
+
+                                  final success = await onSendOtp(controller!.text);
+                                  if (!success) return;
+
+                                  // 🔥 THIS WAS MISSING
                                   setState(() {
                                     showOtp = true;
                                     showOtpError = false;
@@ -1164,15 +1218,21 @@ class CommonContainer {
                                   });
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2196F3),
+                                    color: isLoading ? Colors.grey : const Color(0xFF2196F3),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: Text(
+                                  child: isLoading
+                                      ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                      : Text(
                                     "Verify",
                                     style: AppTextStyles.mulish(
                                       color: Colors.white,
@@ -1181,6 +1241,7 @@ class CommonContainer {
                                   ),
                                 ),
                               ),
+
 
                             // VERIFIED LABEL
                             if (isVerified)
@@ -1231,13 +1292,37 @@ class CommonContainer {
                                 Row(
                                   children: [
                                     GestureDetector(
-                                      onTap: () {
+                                      onTap: () async {
+                                        final otp =
+                                            otpControllers
+                                                .map((c) => c.text)
+                                                .join();
+
+                                        if (otp.length != 4) {
+                                          setState(() => showOtpError = true);
+                                          return;
+                                        }
+
+                                        if (onVerifyOtp == null) return;
+
+                                        final success = await onVerifyOtp(
+                                          controller!.text,
+                                          otp,
+                                        );
+
+                                        if (!success) {
+                                          setState(() => showOtpError = true);
+                                          return;
+                                        }
+
                                         setState(() {
+                                          isVerified = true;
                                           showOtp = false;
                                           showOtpError = false;
                                           resendTimer?.cancel();
                                         });
                                       },
+
                                       child: Icon(
                                         Icons.arrow_back_ios_new,
                                         size: 14,
@@ -1341,37 +1426,130 @@ class CommonContainer {
                                         ),
                                       );
                                     }),
+                                    GestureDetector(
+                                      onTap:
+                                          isOtpVerifying
+                                              ? null
+                                              : () async {
+                                                final otp =
+                                                    otpControllers
+                                                        .map((c) => c.text)
+                                                        .join();
+
+                                                if (otp.length != 4) {
+                                                  setState(
+                                                    () => showOtpError = true,
+                                                  );
+                                                  return;
+                                                }
+
+                                                final success =
+                                                    await onVerifyOtp!(
+                                                      controller!.text,
+                                                      otp,
+                                                    );
+
+                                                if (!success) {
+                                                  setState(
+                                                    () => showOtpError = true,
+                                                  );
+                                                  return;
+                                                }
+
+                                                setState(() {
+                                                  isVerified = true;
+                                                  showOtp = false;
+                                                  showOtpError = false;
+                                                  resendTimer?.cancel();
+                                                });
+                                              },
+                                      child: Container(
+                                        width: 53,
+                                        height: 52,
+                                        decoration: BoxDecoration(
+                                          color:
+                                              isOtpVerifying
+                                                  ? Colors.grey
+                                                  : Colors.black,
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                        ),
+                                        child:
+                                            isOtpVerifying
+                                                ? const Padding(
+                                                  padding: EdgeInsets.all(12),
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color: Colors.white,
+                                                      ),
+                                                )
+                                                : const Icon(
+                                                  Icons.check,
+                                                  color: Colors.white,
+                                                ),
+                                      ),
+                                    ),
 
                                     //  button
-                                    GestureDetector(
-                                      onTap: () {
+                                    /*GestureDetector(
+                                      onTap: () async {
                                         final otp =
                                             otpControllers
                                                 .map((c) => c.text)
                                                 .join();
 
-                                        if (otp.length == 4) {
-                                          // TODO: call verify-OTP API here
-                                          setState(() {
-                                            isVerified = true;
-                                            showOtp = false;
-                                            showOtpError = false;
-                                            resendTimer?.cancel();
-                                          });
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Mobile number verified successfully',
-                                              ),
-                                            ),
-                                          );
-                                        } else {
-                                          setState(() {
-                                            showOtpError = true;
-                                          });
+                                        if (otp.length != 4) {
+                                          setState(() => showOtpError = true);
+                                          return;
                                         }
+
+                                        if (onVerifyOtp == null) return;
+
+                                        final success = await onVerifyOtp(
+                                          controller!.text,
+                                          otp,
+                                        );
+
+                                        if (!success) {
+                                          setState(() => showOtpError = true);
+                                          return;
+                                        }
+
+                                        setState(() {
+                                          isVerified = true;
+                                          showOtp = false;
+                                          showOtpError = false;
+                                          resendTimer?.cancel();
+                                        });
+                                        // final otp =
+                                        //     otpControllers
+                                        //         .map((c) => c.text)
+                                        //         .join();
+                                        //
+                                        // if (otp.length == 4) {
+                                        //   // TODO: call verify-OTP API here
+                                        //   setState(() {
+                                        //     isVerified = true;
+                                        //     showOtp = false;
+                                        //     showOtpError = false;
+                                        //     resendTimer?.cancel();
+                                        //   });
+                                        //   ScaffoldMessenger.of(
+                                        //     context,
+                                        //   ).showSnackBar(
+                                        //     const SnackBar(
+                                        //       content: Text(
+                                        //         'Mobile number verified successfully',
+                                        //       ),
+                                        //     ),
+                                        //   );
+                                        // } else {
+                                        //   setState(() {
+                                        //     showOtpError = true;
+                                        //   });
+                                        // }
                                       },
                                       child: Container(
                                         width: 53,
@@ -1388,7 +1566,7 @@ class CommonContainer {
                                           size: 28,
                                         ),
                                       ),
-                                    ),
+                                    ),*/
                                   ],
                                 ),
 

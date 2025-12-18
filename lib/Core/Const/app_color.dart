@@ -2,6 +2,7 @@ import 'dart:ui';
 
 class AppColor {
   static const darkBlue = Color(0xff071016);
+  static const scaffoldColor = Color(0xFFFFFFFF);
   static const lightBlueBorder = Color(0xff32393E);
   static const lightBlueCont = Color(0xff161E24);
   static const skyBlue = Color(0xFF2C8DD1);

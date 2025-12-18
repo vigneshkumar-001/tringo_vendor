@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../Api/DataSource/api_data_source.dart';
-import '../../../Login Screen/Controllre/login_notifier.dart';
+import '../../../Login Screen/Controller/login_notifier.dart';
 import '../Model/vendorResponse.dart';
 
 class HeaterRegisterState {

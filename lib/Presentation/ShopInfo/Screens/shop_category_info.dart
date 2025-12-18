@@ -7,6 +7,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Vendor%20Company%20Info/Controller/vendor_company_notofier.dart';
+import 'package:tringo_vendor_new/Presentation/ShopInfo/Controller/shop_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_list_response.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
 import '../../../Core/Utility/app_loader.dart';
@@ -15,6 +18,7 @@ import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Utility/thanglish_to_tamil.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/common_container.dart';
+import '../../Owner Screen/controller/owner_info_notifer.dart';
 
 class ShopCategoryInfo extends ConsumerStatefulWidget {
   final String? pages;
@@ -41,6 +45,7 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
   final String? initialOpenTimeText;
   final String? initialCloseTimeText;
   final String? initialOwnerImageUrl;
+  final String? employeeId;
 
   const ShopCategoryInfo({
     super.key,
@@ -66,6 +71,7 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
     this.initialOpenTimeText,
     this.initialCloseTimeText,
     this.initialOwnerImageUrl,
+    this.employeeId,
   });
 
   @override
@@ -75,7 +81,7 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
 class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   final _formKey = GlobalKey<FormState>();
 
-  // List<ShopCategoryListData>? _selectedCategoryChildren;
+   List<ShopCategoryListData>? _selectedCategoryChildren;
 
   final TextEditingController _openTimeController = TextEditingController();
   final TextEditingController _closeTimeController = TextEditingController();
@@ -167,304 +173,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     }
   }
 
-  // void _showCategoryBottomSheet(
-  //     BuildContext context,
-  //     TextEditingController controller, {
-  //       void Function(ShopCategoryListData selectedCategory)? onCategorySelected,
-  //     }) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     isDismissible: true,
-  //     enableDrag: true,
-  //     backgroundColor: Colors.white,
-  //     shape: const RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-  //     ),
-  //     builder: (context) {
-  //       final searchController = TextEditingController();
-  //
-  //       return Consumer(
-  //         builder: (context, ref, _) {
-  //           final shopState = ref.watch(shopCategoryNotifierProvider);
-  //           final isLoading = shopState.isLoading;
-  //           final categories = shopState.shopCategoryListResponse?.data ?? [];
-  //
-  //           // Local filtered list for search
-  //           List<ShopCategoryListData> filtered = List.from(categories);
-  //
-  //           return StatefulBuilder(
-  //             builder: (context, setModalState) {
-  //               return DraggableScrollableSheet(
-  //                 expand: false,
-  //                 initialChildSize: 0.8,
-  //                 minChildSize: 0.4,
-  //                 maxChildSize: 0.95,
-  //                 builder: (context, scrollController) {
-  //                   if (!isLoading && categories.isEmpty) {
-  //                     return const Center(
-  //                       child: Padding(
-  //                         padding: EdgeInsets.all(20),
-  //                         child: Text(
-  //                           'No categories found',
-  //                           style: TextStyle(
-  //                             fontSize: 16,
-  //                             fontWeight: FontWeight.w600,
-  //                           ),
-  //                         ),
-  //                       ),
-  //                     );
-  //                   }
-  //
-  //                   //  Normal UI: header + search + loader/list
-  //                   return Column(
-  //                     children: [
-  //                       Padding(
-  //                         padding: EdgeInsets.symmetric(vertical: 12),
-  //                         child: SizedBox(
-  //                           width: 40,
-  //                           height: 4,
-  //                           child: DecoratedBox(
-  //                             decoration: BoxDecoration(
-  //                               color: Colors.grey,
-  //                               borderRadius: BorderRadius.all(
-  //                                 Radius.circular(2),
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       Text(
-  //                         'Select Category',
-  //                         style: TextStyle(
-  //                           fontSize: 18,
-  //                           fontWeight: FontWeight.bold,
-  //                         ),
-  //                       ),
-  //                       const SizedBox(height: 10),
-  //
-  //                       // 🔍 Search box
-  //                       Padding(
-  //                         padding: const EdgeInsets.symmetric(
-  //                           horizontal: 16,
-  //                           vertical: 8,
-  //                         ),
-  //                         child: TextField(
-  //                           controller: searchController,
-  //                           onChanged: (value) {
-  //                             setModalState(() {
-  //                               filtered = categories
-  //                                   .where(
-  //                                     (c) => c.name.toLowerCase().contains(
-  //                                   value.toLowerCase(),
-  //                                 ),
-  //                               )
-  //                                   .toList();
-  //                             });
-  //                           },
-  //                           decoration: InputDecoration(
-  //                             hintText: 'Search category...',
-  //                             prefixIcon: const Icon(
-  //                               Icons.search,
-  //                               color: Colors.grey,
-  //                             ),
-  //                             filled: true,
-  //                             fillColor: Colors.grey[100],
-  //                             contentPadding: const EdgeInsets.symmetric(
-  //                               horizontal: 12,
-  //                               vertical: 10,
-  //                             ),
-  //                             border: OutlineInputBorder(
-  //                               borderRadius: BorderRadius.circular(12),
-  //                               borderSide: BorderSide.none,
-  //                             ),
-  //                           ),
-  //                         ),
-  //                       ),
-  //
-  //                       Expanded(
-  //                         child: isLoading
-  //                             ? Center(
-  //                           child: Padding(
-  //                             padding: EdgeInsets.all(20),
-  //                             child: ThreeDotsLoader(
-  //                               dotColor: AppColor.darkBlue,
-  //                             ),
-  //                           ),
-  //                         )
-  //                             : ListView.builder(
-  //                           controller: scrollController,
-  //                           itemCount: filtered.length,
-  //                           itemBuilder: (context, index) {
-  //                             final category = filtered[index];
-  //                             return ListTile(
-  //                               title: Text(category.name),
-  //                               trailing: category.children.isNotEmpty
-  //                                   ? const Icon(
-  //                                 Icons.arrow_forward_ios,
-  //                                 size: 14,
-  //                               )
-  //                                   : null,
-  //                               onTap: () {
-  //                                 Navigator.pop(context);
-  //
-  //                                 setState(() {
-  //                                   controller.text = category.name;
-  //                                   categorySlug = category.slug;
-  //                                   _categoryErrorText = null;
-  //                                   _selectedCategoryChildren =
-  //                                       category.children;
-  //                                   _subCategoryController.clear();
-  //                                   _subCategoryErrorText = null;
-  //                                 });
-  //
-  //                                 if (onCategorySelected != null) {
-  //                                   onCategorySelected(category);
-  //                                 }
-  //                               },
-  //                             );
-  //                           },
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   );
-  //                 },
-  //               );
-  //             },
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-  //
-  // void _showCategoryChildrenBottomSheet(
-  //     BuildContext context,
-  //     List<ShopCategoryListData> children,
-  //     TextEditingController controller,
-  //     ) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     backgroundColor: Colors.white,
-  //     shape: const RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-  //     ),
-  //     builder: (context) {
-  //       final searchController = TextEditingController();
-  //       List<ShopCategoryListData> filtered = List.from(children);
-  //
-  //       return StatefulBuilder(
-  //         builder: (context, setModalState) {
-  //           return DraggableScrollableSheet(
-  //             expand: false,
-  //             initialChildSize: 0.6,
-  //             minChildSize: 0.4,
-  //             maxChildSize: 0.9,
-  //             builder: (context, scrollController) {
-  //               return Column(
-  //                 children: [
-  //                   const Padding(
-  //                     padding: EdgeInsets.symmetric(vertical: 10),
-  //                     child: SizedBox(
-  //                       width: 40,
-  //                       height: 4,
-  //                       child: DecoratedBox(
-  //                         decoration: BoxDecoration(
-  //                           color: Colors.grey,
-  //                           borderRadius: BorderRadius.all(Radius.circular(2)),
-  //                         ),
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   const Text(
-  //                     'Select Subcategory',
-  //                     style: TextStyle(
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //                   ),
-  //                   const SizedBox(height: 10),
-  //
-  //                   // 🔹 Search field with no underline
-  //                   Padding(
-  //                     padding: const EdgeInsets.symmetric(
-  //                       horizontal: 16,
-  //                       vertical: 8,
-  //                     ),
-  //                     child: TextField(
-  //                       controller: searchController,
-  //                       onChanged: (value) {
-  //                         setModalState(() {
-  //                           filtered = children
-  //                               .where(
-  //                                 (c) => c.name.toLowerCase().contains(
-  //                               value.toLowerCase(),
-  //                             ),
-  //                           )
-  //                               .toList();
-  //                         });
-  //                       },
-  //                       decoration: InputDecoration(
-  //                         hintText: 'Search subcategory...',
-  //                         prefixIcon: const Icon(
-  //                           Icons.search,
-  //                           color: Colors.grey,
-  //                         ),
-  //                         filled: true,
-  //                         fillColor: Colors.grey[100],
-  //                         contentPadding: const EdgeInsets.symmetric(
-  //                           horizontal: 12,
-  //                           vertical: 10,
-  //                         ),
-  //                         border: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(12),
-  //                           borderSide: BorderSide.none, // ❌ No divider
-  //                         ),
-  //                       ),
-  //                     ),
-  //                   ),
-  //
-  //                   Expanded(
-  //                     child: filtered.isEmpty
-  //                         ? const Center(
-  //                       child: Text(
-  //                         'No subcategories found',
-  //                         style: TextStyle(
-  //                           fontSize: 16,
-  //                           fontWeight: FontWeight.w500,
-  //                         ),
-  //                       ),
-  //                     )
-  //                         : ListView.builder(
-  //                       controller: scrollController,
-  //                       itemCount: filtered.length,
-  //                       itemBuilder: (context, index) {
-  //                         final child = filtered[index];
-  //                         return ListTile(
-  //                           title: Text(child.name),
-  //                           onTap: () {
-  //                             Navigator.pop(context);
-  //                             setState(() {
-  //                               controller.text = child.name;
-  //                               subCategorySlug = child.slug;
-  //                               _subCategoryErrorText = null;
-  //                             });
-  //                           },
-  //                         );
-  //                       },
-  //                     ),
-  //                   ),
-  //                 ],
-  //               );
-  //             },
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-
   XFile? _permanentImage;
   bool _hasExistingOwnerImage = false;
 
@@ -485,7 +193,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
     setState(() {
       _pickedImage = File(pickedFile.path);
-      _existingUrl = null; // clear server image
+      _existingUrl = null;
       _imageInvalid = false;
       _imageErrorText = null;
     });
@@ -601,248 +309,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     }
   }
 
-  ///new////
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   AppLogger.log.i(widget.shopId);
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     ref.read(shopCategoryNotifierProvider.notifier).fetchCategories();
-  //   });
-  //
-  //   if (widget.pages == "AboutMeScreens") {
-  //     // 👉 shop name
-  //     if (widget.initialShopNameEnglish?.isNotEmpty ?? false) {
-  //       _shopNameEnglishController.text = widget.initialShopNameEnglish!;
-  //     }
-  //
-  //     if (widget.initialShopNameTamil?.isNotEmpty ?? false) {
-  //       tamilNameController.text = widget.initialShopNameTamil!;
-  //       _tamilPrefilled = true;
-  //     } else {
-  //       _prefillTamilFromEnglishOnce();
-  //     }
-  //
-  //     // 👉 description
-  //     if (widget.initialDescriptionEnglish?.isNotEmpty ?? false) {
-  //       _descriptionEnglishController.text = widget.initialDescriptionEnglish!;
-  //     }
-  //     if (widget.initialDescriptionTamil?.isNotEmpty ?? false) {
-  //       descriptionTamilController.text = widget.initialDescriptionTamil!;
-  //     }
-  //
-  //     // 👉 address
-  //     if (widget.initialAddressEnglish?.isNotEmpty ?? false) {
-  //       _addressEnglishController.text = widget.initialAddressEnglish!;
-  //     }
-  //     if (widget.initialAddressTamil?.isNotEmpty ?? false) {
-  //       addressTamilNameController.text = widget.initialAddressTamil!;
-  //     }
-  //
-  //     // 👉 GPS
-  //     if (widget.initialGps?.isNotEmpty ?? false) {
-  //       _gpsController.text = widget.initialGps!;
-  //       _gpsFetched = true;
-  //     }
-  //
-  //     // 👉 phones (strip +91 / 91 for edit mode)
-  //     if (widget.initialPrimaryMobile?.isNotEmpty ?? false) {
-  //       var phone = widget.initialPrimaryMobile!.trim();
-  //       if (widget.pages == "AboutMeScreens") {
-  //         phone = _stripIndianCode(phone);
-  //       }
-  //       _primaryMobileController.text = phone;
-  //     }
-  //
-  //     if (widget.initialWhatsapp?.isNotEmpty ?? false) {
-  //       var wa = widget.initialWhatsapp!.trim();
-  //       if (widget.pages == "AboutMeScreens") {
-  //         wa = _stripIndianCode(wa); // 👈 REMOVE +91 / 91 HERE ALSO
-  //       }
-  //       _whatsappController.text = wa;
-  //     }
-  //
-  //     // 👉 email
-  //     if (widget.initialEmail?.isNotEmpty ?? false) {
-  //       _emailController.text = widget.initialEmail!;
-  //     }
-  //
-  //     // 👉 category / subcategory
-  //     if (widget.initialCategoryName?.isNotEmpty ?? false) {
-  //       _categoryController.text = widget.initialCategoryName!;
-  //       categorySlug = widget.initialCategorySlug ?? '';
-  //     }
-  //     if (widget.initialSubCategoryName?.isNotEmpty ?? false) {
-  //       _subCategoryController.text = widget.initialSubCategoryName!;
-  //       subCategorySlug = widget.initialSubCategorySlug ?? '';
-  //     }
-  //
-  //     // 👉 door delivery (for product flow)
-  //     if (widget.initialDoorDeliveryText?.isNotEmpty ?? false) {
-  //       _doorDeliveryController.text = widget.initialDoorDeliveryText!;
-  //     }
-  //
-  //     // 👉 open / close time – text + parse to TimeOfDay
-  //     if (widget.initialOpenTimeText?.isNotEmpty ?? false) {
-  //       final parsedOpen = _parseTimeOfDay(widget.initialOpenTimeText!);
-  //
-  //       if (parsedOpen != null) {
-  //         _openTod = parsedOpen;
-  //         WidgetsBinding.instance.addPostFrameCallback((_) {
-  //           if (mounted) {
-  //             _openTimeController.text = parsedOpen.format(context);
-  //           }
-  //         });
-  //       } else {
-  //         _openTimeController.text = widget.initialOpenTimeText!;
-  //       }
-  //     }
-  //
-  //     if (widget.initialCloseTimeText?.isNotEmpty ?? false) {
-  //       final parsedClose = _parseTimeOfDay(widget.initialCloseTimeText!);
-  //
-  //       if (parsedClose != null) {
-  //         _closeTod = parsedClose;
-  //         WidgetsBinding.instance.addPostFrameCallback((_) {
-  //           if (mounted) {
-  //             _closeTimeController.text = parsedClose.format(context);
-  //           }
-  //         });
-  //       } else {
-  //         _closeTimeController.text = widget.initialCloseTimeText!;
-  //       }
-  //     }
-  //
-  //     if ((widget.initialOwnerImageUrl?.isNotEmpty ?? false) &&
-  //         (widget.isService == true)) {
-  //       _hasExistingOwnerImage = true;
-  //     }
-  //   }
-  // }
-  ///old////
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   AppLogger.log.i(widget.shopId);
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     ref.read(shopCategoryNotifierProvider.notifier).fetchCategories();
-  //   });
-  //
-  //   if (widget.pages == "AboutMeScreens") {
-  //     // 👉 shop name
-  //     if (widget.initialShopNameEnglish?.isNotEmpty ?? false) {
-  //       _shopNameEnglishController.text = widget.initialShopNameEnglish!;
-  //     }
-  //
-  //     if (widget.initialShopNameTamil?.isNotEmpty ?? false) {
-  //       tamilNameController.text = widget.initialShopNameTamil!;
-  //       _tamilPrefilled = true;
-  //     } else {
-  //       _prefillTamilFromEnglishOnce();
-  //     }
-  //
-  //     // 👉 description
-  //     if (widget.initialDescriptionEnglish?.isNotEmpty ?? false) {
-  //       _descriptionEnglishController.text = widget.initialDescriptionEnglish!;
-  //     }
-  //     if (widget.initialDescriptionTamil?.isNotEmpty ?? false) {
-  //       descriptionTamilController.text = widget.initialDescriptionTamil!;
-  //     }
-  //
-  //     // 👉 address
-  //     if (widget.initialAddressEnglish?.isNotEmpty ?? false) {
-  //       _addressEnglishController.text = widget.initialAddressEnglish!;
-  //     }
-  //     if (widget.initialAddressTamil?.isNotEmpty ?? false) {
-  //       addressTamilNameController.text = widget.initialAddressTamil!;
-  //     }
-  //
-  //     // 👉 GPS
-  //     if (widget.initialGps?.isNotEmpty ?? false) {
-  //       _gpsController.text = widget.initialGps!;
-  //       _gpsFetched = true;
-  //     }
-  //
-  //     // 👉 phones
-  //     // if (widget.initialPrimaryMobile?.isNotEmpty ?? false) {
-  //     //   var phone = widget.initialPrimaryMobile!;
-  //     //
-  //     //   // 🔹 If editing from AboutMeScreens, remove leading +91
-  //     //   if (widget.pages == "AboutMeScreens" && phone.startsWith('+91')) {
-  //     //     phone = phone.substring(3); // remove "+91"
-  //     //   }
-  //     //
-  //     //   _primaryMobileController.text = phone.trim();
-  //     // }
-  //     //
-  //     // if (widget.initialWhatsapp?.isNotEmpty ?? false) {
-  //     //   var wa = widget.initialWhatsapp!;
-  //     //
-  //     //   if (widget.pages == "AboutMeScreens" && wa.startsWith('+91')) {
-  //     //     wa = wa.substring(3);
-  //     //   }
-  //     //
-  //     //   _whatsappController.text = wa.trim();
-  //     // }
-  //     // 👉 phones
-  //     if (widget.initialPrimaryMobile?.isNotEmpty ?? false) {
-  //       var phone = widget.initialPrimaryMobile!.trim();
-  //
-  //       if (widget.pages == "AboutMeScreens" && phone.startsWith('+91')) {
-  //         phone = phone.substring(3); // +91 remove
-  //       }
-  //
-  //       _primaryMobileController.text = phone.trim();
-  //     }
-  //
-  //     if (widget.initialWhatsapp?.isNotEmpty ?? false) {
-  //       var wa = widget.initialWhatsapp!.trim();
-  //
-  //       // 👉 AboutMeScreens இருந்து வந்தா +91 remove பண்ணு
-  //       if (widget.pages == "AboutMeScreens" && wa.startsWith('+91')) {
-  //         wa = wa.substring(3); // +91 remove
-  //       }
-  //
-  //       _whatsappController.text = wa.trim();
-  //     }
-  //
-  //     // if (widget.initialPrimaryMobile?.isNotEmpty ?? false) {
-  //     //   _primaryMobileController.text = widget.initialPrimaryMobile!;
-  //     // }
-  //     // if (widget.initialWhatsapp?.isNotEmpty ?? false) {
-  //     //   _whatsappController.text = widget.initialWhatsapp!;
-  //     // }
-  //
-  //     // 👉 email
-  //     if (widget.initialEmail?.isNotEmpty ?? false) {
-  //       _emailController.text = widget.initialEmail!;
-  //     }
-  //
-  //     // 👉 category / subcategory
-  //     if (widget.initialCategoryName?.isNotEmpty ?? false) {
-  //       _categoryController.text = widget.initialCategoryName!;
-  //       categorySlug = widget.initialCategorySlug ?? '';
-  //     }
-  //     if (widget.initialSubCategoryName?.isNotEmpty ?? false) {
-  //       _subCategoryController.text = widget.initialSubCategoryName!;
-  //       subCategorySlug = widget.initialSubCategorySlug ?? '';
-  //     }
-  //
-  //     // 👉 door delivery (for product flow)
-  //     if (widget.initialDoorDeliveryText?.isNotEmpty ?? false) {
-  //       _doorDeliveryController.text = widget.initialDoorDeliveryText!;
-  //     }
-  //
-  //     // 👉 open / close time (only text; you can parse to TimeOfDay if needed)
-  //     if (widget.initialOpenTimeText?.isNotEmpty ?? false) {
-  //       _openTimeController.text = widget.initialOpenTimeText!;
-  //     }
-  //     if (widget.initialCloseTimeText?.isNotEmpty ?? false) {
-  //       _closeTimeController.text = widget.initialCloseTimeText!;
-  //     }
-  //   }
-  // }
-
   Future<void> _prefillTamilFromEnglishOnce() async {
     if (_tamilPrefilled) return;
     final english = _shopNameEnglishController.text.trim();
@@ -940,10 +406,309 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     setState(() {});
     return allGood;
   }
+  void _showCategoryBottomSheet(
+      BuildContext context,
+      TextEditingController controller, {
+        void Function(ShopCategoryListData selectedCategory)? onCategorySelected,
+      })
 
+  {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final searchController = TextEditingController();
+
+        return Consumer(
+          builder: (context, ref, _) {
+            final shopState = ref.watch(shopCategoryNotifierProvider);
+            final isLoading = shopState.isLoading;
+            final categories = shopState. categoryListResponse?.data ?? [];
+
+            // Local filtered list for search
+            List<ShopCategoryListData> filtered = List.from(categories);
+
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                return DraggableScrollableSheet(
+                  expand: false,
+                  initialChildSize: 0.8,
+                  minChildSize: 0.4,
+                  maxChildSize: 0.95,
+                  builder: (context, scrollController) {
+                    if (!isLoading && categories.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text(
+                            'No categories found',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    //  Normal UI: header + search + loader/list
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: SizedBox(
+                            width: 40,
+                            height: 4,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.grey,
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(2),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          'Select Category',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // 🔍 Search box
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: TextField(
+                            controller: searchController,
+                            onChanged: (value) {
+                              setModalState(() {
+                                filtered = categories
+                                    .where(
+                                      (c) => c.name.toLowerCase().contains(
+                                    value.toLowerCase(),
+                                  ),
+                                )
+                                    .toList();
+                              });
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Search category...',
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: Colors.grey,
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        Expanded(
+                          child: isLoading
+                              ? Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: ThreeDotsLoader(
+                                dotColor: AppColor.darkBlue,
+                              ),
+                            ),
+                          )
+                              : ListView.builder(
+                            controller: scrollController,
+                            itemCount: filtered.length,
+                            itemBuilder: (context, index) {
+                              final category = filtered[index];
+                              return ListTile(
+                                title: Text(category.name),
+                                trailing: category.children.isNotEmpty
+                                    ? const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 14,
+                                )
+                                    : null,
+                                onTap: () {
+                                  Navigator.pop(context);
+
+                                  setState(() {
+                                    controller.text = category.name;
+                                    categorySlug = category.slug;
+                                    _categoryErrorText = null;
+                                    _selectedCategoryChildren =
+                                        category.children;
+                                    _subCategoryController.clear();
+                                    _subCategoryErrorText = null;
+                                  });
+
+                                  if (onCategorySelected != null) {
+                                    onCategorySelected(category);
+                                  }
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showCategoryChildrenBottomSheet(
+      BuildContext context,
+      List<ShopCategoryListData> children,
+      TextEditingController controller,
+      )
+  {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        final searchController = TextEditingController();
+        List<ShopCategoryListData> filtered = List.from(children);
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.6,
+              minChildSize: 0.4,
+              maxChildSize: 0.9,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: SizedBox(
+                        width: 40,
+                        height: 4,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.grey,
+                            borderRadius: BorderRadius.all(Radius.circular(2)),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'Select Subcategory',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // 🔹 Search field with no underline
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: (value) {
+                          setModalState(() {
+                            filtered = children
+                                .where(
+                                  (c) => c.name.toLowerCase().contains(
+                                value.toLowerCase(),
+                              ),
+                            )
+                                .toList();
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Search subcategory...',
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.grey,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none, // ❌ No divider
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Expanded(
+                      child: filtered.isEmpty
+                          ? const Center(
+                        child: Text(
+                          'No subcategories found',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )
+                          : ListView.builder(
+                        controller: scrollController,
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) {
+                          final child = filtered[index];
+                          return ListTile(
+                            title: Text(child.name),
+                            onTap: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                controller.text = child.name;
+                                subCategorySlug = child.slug;
+                                _subCategoryErrorText = null;
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
-    // final state = ref.watch(shopCategoryNotifierProvider);
+    final state = ref.watch(shopCategoryNotifierProvider);
     final bool isServiceFlow = widget.isService ?? false;
     final bool isIndividualFlow = widget.isIndividual ?? true;
     final bool isEditFromAboutMe = widget.pages == "AboutMeScreens";
@@ -1016,27 +781,27 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       ),
                       const SizedBox(height: 10),
                       GestureDetector(
-                        // onTap: () {
-                        //   // 1️⃣ Start API call – this will set isLoading = true
-                        //   ref
-                        //       .read(shopCategoryNotifierProvider.notifier)
-                        //       .fetchCategories();
-                        //
-                        //   // 2️⃣ Open bottom sheet immediately
-                        //   _showCategoryBottomSheet(
-                        //     context,
-                        //     _categoryController,
-                        //     onCategorySelected: (selectedCategory) {
-                        //       setState(() {
-                        //         _selectedCategoryChildren =
-                        //             selectedCategory.children;
-                        //         _subCategoryController.clear();
-                        //         _categoryErrorText = null;
-                        //         _subCategoryErrorText = null;
-                        //       });
-                        //     },
-                        //   );
-                        // },
+                        onTap: () {
+                          // 1️⃣ Start API call – this will set isLoading = true
+                          ref
+                              .read(shopCategoryNotifierProvider.notifier)
+                              .fetchCategories();
+
+                          // 2️⃣ Open bottom sheet immediately
+                          _showCategoryBottomSheet(
+                            context,
+                            _categoryController,
+                            onCategorySelected: (selectedCategory) {
+                              setState(() {
+                                _selectedCategoryChildren =
+                                    selectedCategory.children;
+                                _subCategoryController.clear();
+                                _categoryErrorText = null;
+                                _subCategoryErrorText = null;
+                              });
+                            },
+                          );
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -1063,11 +828,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     ),
                                   ),
                                 ),
-                                Image.asset(
-                                  AppImages.drapDownImage,
-                                  height: 20,
-                                  color: AppColor.gray84,
-                                ),
+                                Image.asset(AppImages.drapDownImage, height: 30),
                               ],
                             ),
                           ),
@@ -1088,21 +849,21 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       const SizedBox(height: 10),
 
                       GestureDetector(
-                        // onTap: () {
-                        //   if (_categoryController.text.isEmpty ||
-                        //       _selectedCategoryChildren == null) {
-                        //     AppSnackBar.info(
-                        //       context,
-                        //       'Please select a category first',
-                        //     );
-                        //     return;
-                        //   }
-                        //   _showCategoryChildrenBottomSheet(
-                        //     context,
-                        //     _selectedCategoryChildren!,
-                        //     _subCategoryController,
-                        //   );
-                        // },
+                        onTap: () {
+                          if (_categoryController.text.isEmpty ||
+                              _selectedCategoryChildren == null) {
+                            AppSnackBar.info(
+                              context,
+                              'Please select a category first',
+                            );
+                            return;
+                          }
+                          _showCategoryChildrenBottomSheet(
+                            context,
+                            _selectedCategoryChildren!,
+                            _subCategoryController,
+                          );
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -1126,18 +887,13 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     style: AppTextStyles.mulish(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 18,
-                                      color:
-                                          _subCategoryController.text.isEmpty
-                                              ? Colors.grey
-                                              : Colors.black,
+                                      color: _subCategoryController.text.isEmpty
+                                          ? Colors.grey
+                                          : Colors.black,
                                     ),
                                   ),
                                 ),
-                                Image.asset(
-                                  AppImages.drapDownImage,
-                                  height: 20,
-                                  color: AppColor.gray84,
-                                ),
+                                Image.asset(AppImages.drapDownImage, height: 30),
                               ],
                             ),
                           ),
@@ -1154,7 +910,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             ),
                           ),
                         ),
-
                       const SizedBox(height: 25),
                       Row(
                         children: [
@@ -1690,80 +1445,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: _buildOwnerPhotoWidget(),
-
-                              // _permanentImage == null
-                              //     ? Center(
-                              //         child: Row(
-                              //           mainAxisSize: MainAxisSize.min,
-                              //           children: [
-                              //             Image.asset(
-                              //               AppImages.uploadImage,
-                              //               height: 30,
-                              //             ),
-                              //             const SizedBox(width: 10),
-                              //             Text(
-                              //               'Upload',
-                              //               style: AppTextStyles.mulish(
-                              //                 fontSize: 14,
-                              //                 fontWeight: FontWeight.w500,
-                              //                 color: AppColor.mediumLightGray,
-                              //               ),
-                              //             ),
-                              //           ],
-                              //         ),
-                              //       )
-                              //     : Row(
-                              //         children: [
-                              //           Expanded(
-                              //             child: ClipRRect(
-                              //               borderRadius: BorderRadius.circular(
-                              //                 12,
-                              //               ),
-                              //               child: Image.file(
-                              //                 File(_permanentImage!.path),
-                              //                 height: 140,
-                              //                 fit: BoxFit.cover,
-                              //               ),
-                              //             ),
-                              //           ),
-                              //           const SizedBox(width: 8),
-                              //           InkWell(
-                              //             onTap: () {
-                              //               setState(() {
-                              //                 _permanentImage = null;
-                              //                 _imageErrorText =
-                              //                     'Please Add Your Photo';
-                              //                 _timetableInvalid = true;
-                              //               });
-                              //             },
-                              //             child: Padding(
-                              //               padding: const EdgeInsets.symmetric(
-                              //                 vertical: 35.0,
-                              //               ),
-                              //               child: Column(
-                              //                 mainAxisAlignment:
-                              //                     MainAxisAlignment.center,
-                              //                 children: [
-                              //                   Image.asset(
-                              //                     AppImages.closeImage,
-                              //                     height: 26,
-                              //                     color: AppColor.mediumGray,
-                              //                   ),
-                              //                   Text(
-                              //                     'Clear',
-                              //                     style: AppTextStyles.mulish(
-                              //                       fontSize: 14,
-                              //                       fontWeight: FontWeight.w400,
-                              //                       color: AppColor
-                              //                           .mediumLightGray,
-                              //                     ),
-                              //                   ),
-                              //                 ],
-                              //               ),
-                              //             ),
-                              //           ),
-                              //         ],
-                              //       ),
                             ),
                           ),
                         ),
@@ -1782,7 +1463,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                       SizedBox(height: 30),
                       CommonContainer.button(
-                        buttonColor: AppColor.black,
+
                         onTap: () async {
                           FocusScope.of(context).unfocus();
 
@@ -1850,180 +1531,68 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                   : _withCountryCode(_whatsappController.text);
 
                           // API CALL
-                          // final response = await ref
-                          //     .read(shopCategoryNotifierProvider.notifier)
-                          //     .shopCategoryInfo(
-                          //   shopId: widget.shopId,
-                          //   ownerImageFile: ownerFile,
-                          //   type: type,
-                          //   addressEn: _addressEnglishController.text
-                          //       .trim(),
-                          //   addressTa: addressTamilNameController.text
-                          //       .trim(),
-                          //   // alternatePhone: _whatsappController.text.trim(),
-                          //   alternatePhone: alternatePhoneToSend,
-                          //   primaryPhone: primaryPhoneToSend,
-                          //
-                          //   category: categorySlug,
-                          //   contactEmail: _emailController.text.trim(),
-                          //   descriptionEn: _descriptionEnglishController
-                          //       .text
-                          //       .trim(),
-                          //   descriptionTa: descriptionTamilController.text
-                          //       .trim(),
-                          //   doorDelivery: isDoorDeliveryEnabled,
-                          //   englishName: _shopNameEnglishController.text
-                          //       .trim(),
-                          //   gpsLatitude: latitude,
-                          //   gpsLongitude: longitude,
-                          //   // primaryPhone: _primaryMobileController.text
-                          //   //     .trim(),
-                          //   subCategory: subCategorySlug,
-                          //   tamilName: tamilNameController.text.trim(),
-                          //   weeklyHours: weeklyHoursText,
-                          // );
-                          //
-                          // final newState = ref.read(
-                          //   shopCategoryNotifierProvider,
-                          // );
-                          //
-                          // if (newState.error != null &&
-                          //     newState.error!.isNotEmpty) {
-                          //   AppSnackBar.error(context, newState.error!);
-                          // } else if (response != null) {
-                          //   if (widget.pages == 'AboutMeScreens') {
-                          //     Navigator.pop(context, true);
-                          //   } else {
-                          context.pushNamed(
-                            AppRoutes.shopPhotoInfo,
-                            extra: 'shopCategory',
-                          );
-                          //   }
-                          // } else {
-                          //   AppSnackBar.error(
-                          //     context,
-                          //     "Unexpected error, please try again",
-                          //   );
-                          // }
+                          final response = await ref
+                              .read(shopCategoryNotifierProvider.notifier)
+                              .shopInfoRegister(
+                                businessProfileId: widget.employeeId ?? '',
+                                ownerImageUrl: ownerFile,
+                                type: type,
+                                addressEn:
+                                    _addressEnglishController.text.trim(),
+                                addressTa:
+                                    addressTamilNameController.text.trim(),
+                                // alternatePhone: _whatsappController.text.trim(),
+                                alternatePhone: alternatePhoneToSend,
+                                primaryPhone: primaryPhoneToSend,
+
+                                category: categorySlug,
+                                contactEmail: _emailController.text.trim(),
+                                descriptionEn:
+                                    _descriptionEnglishController.text.trim(),
+                                descriptionTa:
+                                    descriptionTamilController.text.trim(),
+                                doorDelivery: isDoorDeliveryEnabled,
+                                englishName:
+                                    _shopNameEnglishController.text.trim(),
+                                gpsLatitude: latitude,
+                                gpsLongitude: longitude,
+                                // primaryPhone: _primaryMobileController.text
+                                //     .trim(),
+                                subCategory: subCategorySlug,
+                                tamilName: tamilNameController.text.trim(),
+                                weeklyHours: weeklyHoursText,
+                              );
+
+                          final newState = ref.read(shopCategoryNotifierProvider);
+
+                          if (newState.error != null &&
+                              newState.error!.isNotEmpty) {
+                            AppSnackBar.error(context, newState.error!);
+                          } else if (response != null) {
+                            context.pushNamed(
+                              AppRoutes.shopPhotoInfo,
+                              extra: 'shopCategory',
+                            );
+                          } else {
+                            AppSnackBar.error(context, newState.error ?? '');
+                          }
                         },
 
-                        /*onTap: () async {
-                          FocusScope.of(context).unfocus();
 
-                          // if (!_validateAll()) {
-                          //   return;
-                          // }
-
-                          AppLogger.log.i(_gpsController.text);
-                          final bool isServiceFlow = widget.isService ?? false;
-                          final String type = isServiceFlow
-                              ? 'service'
-                              : 'product';
-                          final gpsText = _gpsController.text.trim();
-                          double latitude = 0.0;
-                          double longitude = 0.0;
-
-                          if (gpsText.isNotEmpty && gpsText.contains(',')) {
-                            final parts = gpsText.split(',');
-                            latitude = double.tryParse(parts[0].trim()) ?? 0.0;
-                            longitude = double.tryParse(parts[1].trim()) ?? 0.0;
-                          }
-
-                          bool isDoorDeliveryEnabled = false;
-                          if (!isServiceFlow) {
-                            final doorDeliveryValue = _doorDeliveryController.text.trim();
-                            final isDoorDeliveryEnabled = doorDeliveryValue == 'Yes';
-                            print(isDoorDeliveryEnabled);
-                          }
-                          // final String ownerImageUrl = isServiceFlow
-                          //     ? (_permanentImage?.path ?? '')
-                          //     : '';
-                          final File? ownerFile = _permanentImage == null
-                              ? null
-                              : File(_permanentImage!.path);
-
-                          // if (ownerFile == null) {
-                          //   AppSnackBar.error(
-                          //     context,
-                          //     "Please capture the image",
-                          //   );
-                          //   return;
-                          // }
-
-                          // final response = await ref
-                          //     .read(shopCategoryNotifierProvider.notifier)
-                          //     .shopCategoryInfo(
-                          //       shopId: widget.shopId,
-                          //       ownerImageFile: ownerFile,
-                          //       type: type,
-                          //
-                          //       addressEn: _addressEnglishController.text
-                          //           .trim(),
-                          //       addressTa: addressTamilNameController.text
-                          //           .trim(),
-                          //       alternatePhone: _whatsappController.text.trim(),
-                          //       category: categorySlug,
-                          //       contactEmail: _emailController.text.trim(),
-                          //       descriptionEn: _descriptionEnglishController
-                          //           .text
-                          //           .trim(),
-                          //       descriptionTa: descriptionTamilController.text
-                          //           .trim(),
-                          //       doorDelivery: isDoorDeliveryEnabled,
-                          //       englishName: _shopNameEnglishController.text
-                          //           .trim(),
-                          //       gpsLatitude: latitude,
-                          //       gpsLongitude: longitude,
-                          //       primaryPhone: _primaryMobileController.text
-                          //           .trim(),
-                          //       subCategory: subCategorySlug,
-                          //       tamilName: tamilNameController.text.trim(),
-                          //     );
-                          //
-                          // final newState = ref.read(
-                          //   shopCategoryNotifierProvider,
-                          // );
-                          //
-                          // if (newState.error != null &&
-                          //     newState.error!.isNotEmpty) {
-                          //   AppSnackBar.error(
-                          //     context,
-                          //     newState.error!,
-                          //   ); //  show API error
-                          // } else if (response != null) {
-                          //   AppSnackBar.success(
-                          //     context,
-                          //     'Shop category details saved successfully',
-                          //   );
-                          //   if (widget.pages == 'AboutMeScreens') {
-                          //     Navigator.pop(context, true);
-                          //     // context.pushNamed(
-                          //     //   AppRoutes.homeScreen,
-                          //     //   extra: 3, // or 3 depending on the tab you want
-                          //     // );
-                          //   } else {
-                          //     context.pushNamed(
-                          //       AppRoutes.shopPhotoInfo,
-                          //       extra: 'shopCategory',
-                          //     );
-                          //   }
-                          // } else {
-                          //   AppSnackBar.error(
-                          //     context,
-                          //     "Unexpected error, please try again",
-                          //   );
-                          // }
-                        },*/
-                        text: Text(
-                          widget.pages == "AboutMeScreens"
-                              ? 'Update'
-                              : 'Save & Continue',
-                          style: AppTextStyles.mulish(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        imagePath: AppImages.rightStickArrow,
+                        text:
+                            state.isLoading
+                                ? ThreeDotsLoader()
+                                : Text(
+                                  widget.pages == "AboutMeScreens"
+                                      ? 'Update'
+                                      : 'Save & Continue',
+                                  style: AppTextStyles.mulish(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        imagePath:
+                            state.isLoading ? null : AppImages.rightStickArrow,
                       ),
                       const SizedBox(height: 36),
                     ],
@@ -2138,7 +1707,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       );
     }
 
-    // 3️⃣ No image → default upload UI
     return Center(
       child: Row(
         mainAxisSize: MainAxisSize.min,

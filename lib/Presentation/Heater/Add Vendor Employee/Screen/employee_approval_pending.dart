@@ -86,8 +86,6 @@ class _EmployeeApprovalPendingState
         if (!mounted) return;
 
         context.go(AppRoutes.heaterHomeScreenPath);
-
-        
       });
 
       return Scaffold(

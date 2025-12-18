@@ -2,6 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tringo_vendor_new/Presentation/ShopInfo/Controller/shop_notifier.dart';
 
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
@@ -74,7 +75,7 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
 
   @override
   Widget build(BuildContext context) {
-    // final state = ref.watch(shopCategoryNotifierProvider);
+   final state = ref.watch(shopCategoryNotifierProvider);
     // final bool isIndividualFlow = widget.isIndividual ?? true;
     return Scaffold(
       body: SafeArea(
@@ -347,54 +348,41 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                           return;
                         }
 
-                        // final notifier = ref.read(
-                        //   shopCategoryNotifierProvider.notifier,
-                        // );
-                        // final state = ref.read(shopCategoryNotifierProvider);
-                        //
-                        // // Call the API
-                        // final success = await notifier.searchKeywords(
-                        //   keywords: _keywords,
-                        // );
-                        //
-                        // if (success) {
-                        //   // Show success message
-                        //   AppSnackBar.success(
-                        //     context,
-                        //     'Keywords saved successfully!',
-                        //   );
-                        //
-                        //   // Navigate after short delay so user sees the message
-                        //   Future.delayed(const Duration(milliseconds: 500), () {
-                        context.pushNamed(
-                          AppRoutes.productCategoryScreens,
-                          extra: 'SearchKeyword',
+                        final notifier = ref.read(
+                          shopCategoryNotifierProvider.notifier,
                         );
-                        //   });
-                        // } else {
-                        //   // Show error from state if available
-                        //   final errorMsg =
-                        //       state.error ??
-                        //           'Failed to save keywords. Try again.';
-                        //   AppSnackBar.error(context, errorMsg);
-                        // }
+                        final state = ref.read(shopCategoryNotifierProvider);
+
+                        // Call the API
+                        final success = await notifier.searchKeywords(
+                          keywords: _keywords,
+                        );
+
+                        if (success) {
+                          context.pushNamed(
+                            AppRoutes.productCategoryScreens,
+                            extra: 'SearchKeyword',
+                          );
+                        } else {
+                          // Show error from state if available
+                          final errorMsg =
+                              state.error ??
+                                  'Failed to save keywords. Try again.';
+                          AppSnackBar.error(context, errorMsg);
+                        }
                       },
-                      text:
-                      // state.isLoading
-                      //     ? const ThreeDotsLoader()
-                      //     :
-                      Text(
+                      text: state.isLoading
+                          ? const ThreeDotsLoader()
+                          : Text(
                         'Save & Continue',
                         style: AppTextStyles.mulish(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      imagePath:
-                          // state.isLoading
-                          //     ? null
-                          //     :
-                          AppImages.rightStickArrow,
+                      imagePath: state.isLoading
+                          ? null
+                          : AppImages.rightStickArrow,
                       imgHeight: 20,
                     ),
 

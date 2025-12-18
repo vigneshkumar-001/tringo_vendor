@@ -5,7 +5,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
 
 import '../../../../Api/DataSource/api_data_source.dart';
-import '../../../Login Screen/Controllre/login_notifier.dart';
+import '../../../Login Screen/Controller/login_notifier.dart';
 import '../Model/heater_home_response.dart';
 
 class heaterHomeState {
