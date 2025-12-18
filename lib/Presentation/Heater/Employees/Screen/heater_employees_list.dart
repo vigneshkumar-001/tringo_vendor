@@ -501,7 +501,7 @@ class _HeaterEmployeesListState extends State<HeaterEmployeesList> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      // handle error or show a snackbar
+
       debugPrint('Could not launch dialer for $phoneNumber');
     }
   }

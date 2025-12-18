@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Presentation/AddProduct/Controller/product_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Screens/product_search_keyword.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
@@ -284,13 +285,12 @@ class _AddProductListState extends ConsumerState<AddProductList> {
         BusinessType.company;
 
     // // watch both states
-    // final productState = ref.watch(productNotifierProvider);
+    final productState = ref.watch(productNotifierProvider);
     // final serviceState = ref.watch(serviceInfoNotifierProvider);
 
     // choose loader
-    // final isLoading = isService
-    //     ? serviceState.isLoading
-    //     : productState.isLoading;
+    final isLoading =
+        isService ? productState.isLoading : productState.isLoading;
     return Scaffold(
       body: SafeArea(
         child: Form(
@@ -402,93 +402,81 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                         width: double.infinity,
                         height: 60,
                         backgroundColor: AppColor.black,
-                        // loader: isLoading ? ThreeDotsLoader() : null,
+                        loader: isLoading ? ThreeDotsLoader() : null,
                         onTap:
-                        // isLoading
-                        //     ? null
-                        //     :
-                        () async {
-                          if (_pickedImages[0] == null) {
-                            setState(() => _hasError[0] = true);
-                            return;
-                          }
+                            isLoading
+                                ? null
+                                : () async {
+                                  // 1️⃣ Validate picked image
+                                  if (_pickedImages[0] == null) {
+                                    setState(() => _hasError[0] = true);
+                                    return;
+                                  }
 
-                          // final formValid =
-                          //     _formKey.currentState?.validate() ?? false;
-                          // setState(() {});
-                          // if (!formValid) return;
-                          //
-                          // final features = _featureControllers.map((
-                          //     item,
-                          //     ) {
-                          //   return {
-                          //     "label": item['heading']!.text.trim(),
-                          //     "value": item['answer']!.text.trim(),
-                          //   };
-                          // }).toList();
-                          //
-                          // bool success;
-                          // String? apiError;
+                                  // 2️⃣ Validate form
+                                  final formValid =
+                                      _formKey.currentState?.validate() ??
+                                      false;
+                                  setState(() {}); // refresh UI for errors
+                                  if (!formValid) return;
 
-                          // if (isService) {
-                          //   final serviceNotifier = ref.read(
-                          //     serviceInfoNotifierProvider.notifier,
-                          //   );
-                          //
-                          //   success = await serviceNotifier
-                          //       .uploadServiceImages(
-                          //     images: _pickedImages,
-                          //     features: features,
-                          //     context: context,
-                          //   );
-                          //
-                          //   // read correct error
-                          //   apiError = ref
-                          //       .read(serviceInfoNotifierProvider)
-                          //       .error;
-                          // } else {
-                          //   final productNotifier = ref.read(
-                          //     productNotifierProvider.notifier,
-                          //   );
-                          //
-                          //   success = await productNotifier
-                          //       .uploadProductImages(
-                          //     images: _pickedImages,
-                          //     features: features,
-                          //     context: context,
-                          //   );
-                          //
-                          //   // read correct error
-                          //   apiError = ref
-                          //       .read(productNotifierProvider)
-                          //       .error;
-                          // }
-                          //
-                          // if (!success) {
-                          //   AppSnackBar.error(
-                          //     context,
-                          //     apiError ?? "Failed. Try again.",
-                          //   );
-                          //   return;
-                          // }
-                          //
-                          // final isCompany =
-                          //     RegistrationProductSeivice
-                          //         .instance
-                          //         .businessType ==
-                          //         BusinessType.company;
+                                  // 3️⃣ Build features list
+                                  final features =
+                                      _featureControllers.map((item) {
+                                        return {
+                                          "label": item['heading']!.text.trim(),
+                                          "value": item['answer']!.text.trim(),
+                                        };
+                                      }).toList();
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => ProductSearchKeyword(
-                                    isService: isService,
-                                    isCompany: isCompany,
-                                  ),
-                            ),
-                          );
-                        },
+                                  // 4️⃣ Handle upload
+                                  final notifier = /*isService
+                            ? ref.read(serviceInfoNotifierProvider.notifier)
+                            : */ ref.read(productNotifierProvider.notifier);
+
+                                  final success = /*isService
+                            ? await notifier.uploadServiceImages(
+                          images: _pickedImages,
+                          features: features,
+                          context: context,
+                        )
+                            :*/ await notifier.uploadProductImages(
+                                    images: _pickedImages,
+                                    features: features,
+                                    context: context,
+                                  );
+
+                                  // 5️⃣ Get API error (if any)
+                                  final apiError = /* isService
+                            ? ref.read(serviceInfoNotifierProvider).error
+                            :*/
+                                      ref.read(productNotifierProvider).error;
+
+                                  if (!success) {
+                                    AppSnackBar.error(
+                                      context,
+                                      apiError ?? "Failed. Try again.",
+                                    );
+                                    return;
+                                  }
+
+                                  final isCompany =
+                                      RegistrationProductSeivice
+                                          .instance
+                                          .businessType ==
+                                      BusinessType.company;
+
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => ProductSearchKeyword(
+                                            isService: isService,
+                                            isCompany: isCompany,
+                                          ),
+                                    ),
+                                  );
+                                },
                       ),
 
                       SizedBox(height: 36),

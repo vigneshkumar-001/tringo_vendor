@@ -5,15 +5,18 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
-import '../../../Core/Session/registration_session.dart';
-import '../../Core/Const/app_color.dart';
-import '../../Core/Const/app_images.dart';
-import '../../Core/Utility/app_loader.dart';
-import '../../Core/Utility/app_snackbar.dart';
-import '../../Core/Utility/app_textstyles.dart';
-import '../../Core/Utility/thanglish_to_tamil.dart';
-import '../../Core/Widgets/app_go_routes.dart';
-import '../../Core/Widgets/common_container.dart';
+import 'package:tringo_vendor_new/Presentation/Login%20Screen/Controller/login_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/Owner%20Screen/controller/owner_info_notifer.dart';
+import '../../../../Core/Session/registration_session.dart';
+import '../../../Core/Const/app_color.dart';
+import '../../../Core/Const/app_images.dart';
+import '../../../Core/Utility/app_loader.dart';
+import '../../../Core/Utility/app_snackbar.dart';
+import '../../../Core/Utility/app_textstyles.dart';
+import '../../../Core/Utility/thanglish_to_tamil.dart';
+import '../../../Core/Widgets/app_go_routes.dart';
+import '../../../Core/Widgets/common_container.dart';
+import '../../../Core/Widgets/owner_verify_feild.dart';
 
 class OwnerInfoScreens extends ConsumerStatefulWidget {
   final bool isService;
@@ -34,8 +37,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitted = false;
 
-  // final type = RegistrationSession.instance.businessType?.label ?? 'Not set';
-
   final TextEditingController englishNameController = TextEditingController();
   final TextEditingController tamilNameController = TextEditingController();
   final TextEditingController emailIdController = TextEditingController();
@@ -48,7 +49,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   List<String> tamilNameSuggestion = [];
   bool isTamilNameLoading = false;
 
-  // OTP
   final int otpLength = 4;
   late List<TextEditingController> otpControllers;
   late List<FocusNode> otpFocusNodes;
@@ -64,6 +64,25 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
     otpControllers = List.generate(otpLength, (_) => TextEditingController());
     otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
+  }
+
+  bool showOtp = false;
+  bool isVerified = false;
+  bool showOtpError = false;
+
+  Timer? resendTimer;
+
+  void startResendTimer() {
+    resendTimer?.cancel();
+    resendSeconds = 30;
+
+    resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (resendSeconds == 0) {
+        timer.cancel();
+      } else {
+        setState(() => resendSeconds--);
+      }
+    });
   }
 
   @override
@@ -109,6 +128,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   @override
   Widget build(BuildContext context) {
     // final state = ref.watch(ownerInfoNotifierProvider);
+    final ownerState = ref.watch(ownerInfoNotifierProvider);
     final bool isIndividualFlow = widget.isIndividual ?? true;
     return Scaffold(
       body: SafeArea(
@@ -332,17 +352,23 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                               opacity: animation,
                               child: child,
                             ),
-                        child: CommonContainer.mobileNumberField(
+                        child: OwnerVerifyField(
                           controller: mobileController,
-                          // validator: (value) {
-                          //   if (value == null || value.isEmpty) {
-                          //     return 'Mobile number required';
-                          //   }
-                          //   if (value.length != 10) {
-                          //     return 'Enter valid 10-digit number';
-                          //   }
-                          //   return null;
-                          // },
+                          isLoading: ownerState.isSendingOtp,
+                          isOtpVerifying: ownerState.isVerifyingOtp,
+                          onSendOtp: (mobile) {
+                            return ref
+                                .read(ownerInfoNotifierProvider.notifier)
+                                .ownerInfoNumberRequest(phoneNumber: mobile);
+                          },
+                          onVerifyOtp: (mobile, otp) {
+                            return ref
+                                .read(ownerInfoNotifierProvider.notifier)
+                                .ownerInfoOtpRequest(
+                                  phoneNumber: mobile,
+                                  code: otp,
+                                );
+                          },
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -424,33 +450,40 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                       /// SUBMIT
                       CommonContainer.button(
-                        imagePath: AppImages.rightStickArrow,
-                        text: Text('Save & Continue'),
+                        imagePath:
+                            ownerState.isLoading
+                                ? null
+                                : AppImages.rightStickArrow,
+
+                        text:
+                            ownerState.isLoading
+                                ? ThreeDotsLoader()
+                                : Text('Save & Continue'),
                         onTap: () async {
                           setState(() => _isSubmitted = true);
 
-                          // if (!_formKey.currentState!.validate()) {
-                          //   return;
-                          // }
+                          if (!_formKey.currentState!.validate()) {
+                            return;
+                          }
 
-                          // final englishName = englishNameController.text.trim();
-                          // final tamilName = tamilNameController.text.trim();
-                          // final mobile = mobileController.text.trim();
-                          // final email = emailIdController.text.trim();
-                          // final input = dateOfBirthController.text.trim();
-                          //
-                          // String dobForApi = '';
-                          // try {
-                          //   final parsedDate = DateFormat(
-                          //     'dd-MM-yyyy',
-                          //   ).parseStrict(input);
-                          //   dobForApi = DateFormat(
-                          //     'yyyy-MM-dd',
-                          //   ).format(parsedDate);
-                          // } catch (e) {
-                          //   AppSnackBar.error(context, "Invalid DOB");
-                          //   return;
-                          // }
+                          final englishName = englishNameController.text.trim();
+                          final tamilName = tamilNameController.text.trim();
+                          final mobile = mobileController.text.trim();
+                          final email = emailIdController.text.trim();
+                          final input = dateOfBirthController.text.trim();
+
+                          String dobForApi = '';
+                          try {
+                            final parsedDate = DateFormat(
+                              'dd-MM-yyyy',
+                            ).parseStrict(input);
+                            dobForApi = DateFormat(
+                              'yyyy-MM-dd',
+                            ).format(parsedDate);
+                          } catch (e) {
+                            AppSnackBar.error(context, "Invalid DOB");
+                            return;
+                          }
 
                           final gender = genderController.text.trim();
 
@@ -458,49 +491,53 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                             'ownershipType: $ownershipType, businessType: $businessTypeForApi',
                           );
 
-                          // await ref
-                          //     .read(ownerInfoNotifierProvider.notifier)
-                          //     .submitOwnerInfo(
-                          //       ownershipType:
-                          //           ownershipType, // ✅ "INDIVIDUAL" / "COMPANY"
-                          //       businessType:
-                          //           businessTypeForApi, // ✅ "PRODUCT" / "SERVICE" (adjust if backend uses different strings)
-                          //       ownerNameTamil: tamilName,
-                          //       identityDocumentUrl: '',
-                          //       govtRegisteredName: englishName,
-                          //       gender: gender,
-                          //       fullName: englishName,
-                          //       dateOfBirth: dobForApi,
-                          //       email: email,
-                          //       preferredLanguage: '',
-                          //     );
-                          //
-                          // final newState = ref.read(ownerInfoNotifierProvider);
-                          //
-                          // if (newState.error != null) {
-                          //   AppSnackBar.error(context, newState.error!);
-                          // } else if (newState.ownerResponse != null) {
-                          //   AppSnackBar.success(
-                          //     context,
-                          //     "Owner information saved successfully",
-                          //   );
-                          context.push(
-                            AppRoutes.shopCategoryInfoPath,
-                            extra: {
-                              'isService': widget.isService,
-                              'isIndividual': widget.isIndividual,
-                              'initialShopNameEnglish':
-                                  englishNameController.text.trim(),
-                              'initialShopNameTamil':
-                                  tamilNameController.text.trim(),
-                              'pages': 'OwnerInfoScreens',
-                            },
-                          );
-                          //
-                          //   AppLogger.log.i(
-                          //     "Owner Info Saved  ${newState.ownerResponse?.toJson()}",
-                          //   );
-                          // }
+                          await ref
+                              .read(ownerInfoNotifierProvider.notifier)
+                              .ownerInfoRegister(
+                                ownershipType:
+                                    ownershipType, // ✅ "INDIVIDUAL" / "COMPANY"
+                                businessType:
+                                    businessTypeForApi, // ✅ "PRODUCT" / "SERVICE" (adjust if backend uses different strings)
+                                ownerNameTamil: tamilName,
+                                ownerPhoneNumber: mobile,
+                                govtRegisteredName: englishName,
+                                gender: gender,
+                                fullName: englishName,
+                                dateOfBirth: dobForApi,
+                                email: email,
+                                preferredLanguage: '',
+                              );
+
+                          final newState = ref.read(ownerInfoNotifierProvider);
+
+                          if (newState.error != null) {
+                            AppSnackBar.error(context, newState.error!);
+                          } else if (newState.ownerRegisterResponse != null) {
+                            final employeeId =
+                                newState
+                                    .ownerRegisterResponse
+                                    ?.data
+                                    ?.id; // <-- change if your model differs
+
+                            context.push(
+                              AppRoutes.shopCategoryInfoPath,
+                              extra: {
+                                'isService': widget.isService,
+                                'isIndividual': widget.isIndividual,
+                                'initialShopNameEnglish':
+                                    englishNameController.text.trim(),
+                                'initialShopNameTamil':
+                                    tamilNameController.text.trim(),
+                                'pages': 'OwnerInfoScreens',
+                                'employeeId': employeeId,
+                              },
+                            );
+                            //
+                            //   AppLogger.log.i(
+                            //     "Owner Info Saved  ${newState.ownerResponse?.toJson()}",
+                            //   );
+                            // }
+                          }
                         },
                       ),
                     ],

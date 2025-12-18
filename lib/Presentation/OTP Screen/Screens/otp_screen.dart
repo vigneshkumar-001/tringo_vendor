@@ -12,7 +12,7 @@ import '../../../Core/Utility/app_loader.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/heater_bottom_navigation_bar.dart';
-import '../../Login Screen/Controllre/login_notifier.dart';
+import '../../Login Screen/Controller/login_notifier.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
   final String phoneNumber;

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:tringo_vendor_new/Presentation/ShopInfo/Controller/shop_notifier.dart';
 
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
 import '../../../Core/Session/registration_product_seivice.dart';
 import '../../../Core/Session/registration_session.dart';
+import '../../../Core/Utility/app_loader.dart';
 import '../../../Core/Utility/app_snackbar.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
@@ -281,48 +283,48 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
     );
   }
 
-  // Future<void> _validateImages() async {
-  //   bool valid = true;
-  //
-  //   setState(() {
-  //     // Slot 0 & 1: must have File OR URL
-  //     for (int i = 0; i <= 1; i++) {
-  //       final has =
-  //           _pickedImages[i] != null ||
-  //           (_existingUrls[i] != null && _existingUrls[i]!.isNotEmpty);
-  //
-  //       if (!has) {
-  //         _hasError[i] = true;
-  //         valid = false;
-  //       } else {
-  //         _hasError[i] = false;
-  //       }
-  //     }
-  //
-  //     // Inside photos validation (2 OR 3)
-  //     final hasInside =
-  //         _pickedImages[2] != null ||
-  //         _pickedImages[3] != null ||
-  //         (_existingUrls[2] != null && _existingUrls[2]!.isNotEmpty) ||
-  //         (_existingUrls[3] != null && _existingUrls[3]!.isNotEmpty);
-  //
-  //     if (!hasInside) {
-  //       _insidePhotoError = true;
-  //       valid = false;
-  //     } else {
-  //       _insidePhotoError = false;
-  //     }
-  //   });
-  //
-  //   if (!valid) return;
-  //
-  //   debugPrint("✔ All images valid (File or Existing URL)");
-  // }
+  Future<void> _validateImages() async {
+    bool valid = true;
+
+    setState(() {
+      // Slot 0 & 1: must have File OR URL
+      for (int i = 0; i <= 1; i++) {
+        final has =
+            _pickedImages[i] != null ||
+            (_existingUrls[i] != null && _existingUrls[i]!.isNotEmpty);
+
+        if (!has) {
+          _hasError[i] = true;
+          valid = false;
+        } else {
+          _hasError[i] = false;
+        }
+      }
+
+      // Inside photos validation (2 OR 3)
+      final hasInside =
+          _pickedImages[2] != null ||
+          _pickedImages[3] != null ||
+          (_existingUrls[2] != null && _existingUrls[2]!.isNotEmpty) ||
+          (_existingUrls[3] != null && _existingUrls[3]!.isNotEmpty);
+
+      if (!hasInside) {
+        _insidePhotoError = true;
+        valid = false;
+      } else {
+        _insidePhotoError = false;
+      }
+    });
+
+    if (!valid) return;
+
+    debugPrint("✔ All images valid (File or Existing URL)");
+  }
 
   @override
   Widget build(BuildContext context) {
-    // final state = ref.watch(shopCategoryNotifierProvider);
-    // final notifier = ref.read(shopCategoryNotifierProvider.notifier);
+      final state = ref.watch(shopCategoryNotifierProvider);
+      final notifier = ref.read(shopCategoryNotifierProvider.notifier);
 
     return Scaffold(
       body: SafeArea(
@@ -440,7 +442,7 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
                       onTap: () async {
                         // 🔹 Validation ONLY for registration flow
                         if (widget.pages != "AboutMeScreens") {
-                          // await _validateImages();
+                          await _validateImages();
 
                           if (_hasError.contains(true) || _insidePhotoError) {
                             AppSnackBar.error(
@@ -452,33 +454,27 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
                         }
 
                         // 🔹 In AboutMeScreens flow → NO validation, direct upload
-                        // final success = await notifier.uploadShopImages(
-                        //   images: _pickedImages,
-                        //   shopId: widget.shopId,
-                        //   context: context,
-                        // );
-                        context.pushNamed(AppRoutes.searchKeyword);
-                        // if (success) {
-                        //   if (widget.pages == "AboutMeScreens") {
-                        //     context.pushNamed(AppRoutes.home, extra: 3);
-                        //   } else {
-                        //     context.pushNamed(AppRoutes.searchKeyword);
-                        //   }
-                        // } else {
-                        //   final err = ref
-                        //       .read(shopCategoryNotifierProvider)
-                        //       .error;
-                        //   AppSnackBar.error(
-                        //     context,
-                        //     err ?? 'Image upload failed. Try again.',
-                        //   );
-                        // }
+                        final success = await notifier.uploadShopImages(
+                          images: _pickedImages,
+                          shopId: widget.shopId,
+                          context: context,
+                        );
+
+                        if (success) {
+                          context.pushNamed(AppRoutes.searchKeyword);
+                        } else {
+                          final err = ref
+                              .read(shopCategoryNotifierProvider)
+                              .error;
+                          AppSnackBar.error(
+                            context,
+                            err ?? 'Image upload failed. Try again.',
+                          );
+                        }
                       },
-                      text:
-                      // state.isLoading
-                      //     ? const ThreeDotsLoader()
-                      //     :
-                      Text(
+                      text: state.isLoading
+                          ? const ThreeDotsLoader()
+                          : Text(
                         widget.pages == "AboutMeScreens"
                             ? 'Update'
                             : 'Save & Continue',
@@ -487,11 +483,9 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      imagePath:
-                          // state.isLoading
-                          //     ? null
-                          //     :
-                          AppImages.rightStickArrow,
+                      imagePath: state.isLoading
+                          ? null
+                          : AppImages.rightStickArrow,
                       imgHeight: 20,
                     ),
 

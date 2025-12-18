@@ -18,7 +18,7 @@ import '../../Presentation/Home Screen/home_screen.dart';
 import '../../Presentation/Login Screen/Screens/login_mobile_number.dart';
 import '../../Presentation/Mobile Nomber Verify/Screen/mobile_number_verify.dart';
 import '../../Presentation/OTP Screen/Screens/otp_screen.dart';
-import '../../Presentation/Owner Screen/owner_info_screens.dart';
+import '../../Presentation/Owner Screen/Screens/owner_info_screens.dart';
 import '../../Presentation/Privacy Policy/Screen/privacy_policy.dart';
 import '../../Presentation/ShopInfo/Screens/search_keyword.dart';
 import '../../Presentation/ShopInfo/Screens/shop_category_info.dart';
@@ -87,7 +87,7 @@ class AppRoutes {
 }
 
 final goRouter = GoRouter(
-  initialLocation: AppRoutes.splashScreenPath,
+  initialLocation: AppRoutes.addProductListPath,
   routes: [
     GoRoute(
       path: AppRoutes.splashScreenPath,
@@ -157,6 +157,7 @@ final goRouter = GoRouter(
         final args = state.extra as Map<String, dynamic>? ?? {};
         final isService = args['isService'] as bool? ?? false;
         final isIndividual = args['isIndividual'] as bool? ?? true;
+        final employeeId = args['employeeId'] as String?; // ✅ NEW
 
         return ShopCategoryInfo(
           isService: isService,
@@ -164,6 +165,7 @@ final goRouter = GoRouter(
           initialShopNameEnglish: args['initialShopNameEnglish'] as String?,
           initialShopNameTamil: args['initialShopNameTamil'] as String?,
           pages: args['pages'] as String?,
+          employeeId: employeeId,
         );
       },
     ),

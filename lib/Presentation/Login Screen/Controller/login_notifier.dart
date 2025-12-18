@@ -52,7 +52,6 @@ class LoginState {
 class LoginNotifier extends Notifier<LoginState> {
   late final ApiDataSource api;
 
-  // 🔒 guard to prevent multiple OTP requests
   bool _isRequestingOtp = false;
 
   @override
