@@ -80,4 +80,8 @@ class AppImages {
   static String settingAvatar = 'Assets/Images/SettingAvatar.png';
   static String crown = 'Assets/Images/crown.png';
   static String downLoad = 'Assets/Images/downLoad.png';
+  static String employeeHistoryDark = 'Assets/Images/EmployeeHistoryDark.png';
+  static String upgrade = 'Assets/Images/upgrade.png';
+  static String product = 'Assets/Images/Product.png';
+  static String containerBCImage2 = 'Assets/Images/Container Bc Image 2.png';
 }

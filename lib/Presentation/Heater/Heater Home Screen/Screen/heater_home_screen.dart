@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tringo_vendor_new/Core/Const/app_color.dart';
 import 'package:tringo_vendor_new/Core/Const/app_images.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_loader.dart';
@@ -10,6 +11,8 @@ import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Home%20Screen/Con
 import 'package:tringo_vendor_new/Presentation/No%20Data%20Screen/Screen/no_data_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../Core/Widgets/app_go_routes.dart';
+import '../../Employees/Screen/heater_employees_list.dart';
 import '../Model/heater_home_response.dart';
 
 class HeaterHomeScreen extends ConsumerStatefulWidget {
@@ -326,11 +329,10 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                                   BorderRadius.circular(10),
                                             ),
                                             child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 14.5,
-                                                    vertical: 19.5,
-                                                  ),
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 14.5,
+                                                vertical: 19.5,
+                                              ),
                                               child: Image.asset(
                                                 AppImages.callImage1,
                                                 height: 12,
@@ -340,7 +342,12 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                         ),
                                         SizedBox(height: 15),
                                         InkWell(
-                                          onTap: () {},
+                                          onTap: () {
+                                            context.push(
+                                              AppRoutes
+                                                  .heaterEmployeeDetailsPath,
+                                            );
+                                          },
                                           child: Container(
                                             decoration: BoxDecoration(
                                               border: Border.all(
@@ -352,7 +359,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                             ),
                                             child: Padding(
                                               padding:
-                                                  const EdgeInsets.symmetric(
+                                                    EdgeInsets.symmetric(
                                                     horizontal: 14.5,
                                                     vertical: 14.5,
                                                   ),
@@ -392,13 +399,12 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                       SizedBox(width: 20),
                       GestureDetector(
                         onTap: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) =>
-                          //         CommonBottomNavigation(initialIndex: 1),
-                          //   ),
-                          // );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HeaterEmployeesList(),
+                            ),
+                          );
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(

@@ -1,5 +1,3 @@
-
-
 class EmployeeHomeResponse {
   final bool status;
   final EmployeeData? data;
@@ -118,13 +116,9 @@ class RecentActivity {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'date': date.toIso8601String(),
-      'entryCount': entryCount,
-    };
+    return {'date': date.toIso8601String(), 'entryCount': entryCount};
   }
 }
-
 
 // class RecentActivity {
 //   // Add fields when backend sends activity data

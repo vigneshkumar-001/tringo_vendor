@@ -45,6 +45,7 @@ class AppColor {
   static const textWhite = Color(0xffF4FAFF);
   static const textLowWhite = Color(0xffBFC9DB);
   static const deepTeaBlue = Color(0xff3C6373);
+  static const royalBlue = Color(0xFF297CF1);
   static const iceBlue = Color(0xffDEEDF3);
   static const frostBlue = Color(0xffC4DCE4);
   static const dustyBlue = Color(0xff829CA7);

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -13,9 +14,25 @@ import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 import '../../Add Vendor Employee/Controller/add_employee_notifier.dart';
+import '../Controller/heater_employee_edit_notifier.dart';
 
 class HeaterEmployeeDetailsEdit extends ConsumerStatefulWidget {
-  const HeaterEmployeeDetailsEdit({super.key});
+  final String employeeId;
+  final String? name;
+  final String? employeeCode;
+  final String? phoneNumber;
+  final String? avatarUrl;
+  final String? totalAmount;
+
+  const HeaterEmployeeDetailsEdit({
+    super.key,
+    required this.employeeId,
+    this.name,
+    this.employeeCode,
+    this.phoneNumber,
+    this.avatarUrl,
+    this.totalAmount,
+  });
 
   @override
   ConsumerState<HeaterEmployeeDetailsEdit> createState() =>
@@ -26,8 +43,12 @@ class _HeaterEmployeeDetailsEditState
     extends ConsumerState<HeaterEmployeeDetailsEdit> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitted = false;
+  bool _initialized = false;
 
   final TextEditingController englishNameController = TextEditingController();
+  final TextEditingController employeeNameController = TextEditingController();
+  final TextEditingController employeeNumberController =
+      TextEditingController();
   final TextEditingController emergencyNameController = TextEditingController();
   final TextEditingController emergencyRelationShipController =
       TextEditingController();
@@ -64,6 +85,15 @@ class _HeaterEmployeeDetailsEditState
         _existingUrls[index] = null;
         _hasError[index] = false;
       });
+    }
+  }
+
+  Future<void> _launchDialer(String phoneNumber) async {
+    final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      debugPrint('Could not launch dialer for $phoneNumber');
     }
   }
 
@@ -142,8 +172,8 @@ class _HeaterEmployeeDetailsEditState
         Stack(
           children: [
             GestureDetector(
-              onTap: () => _showImageSourcePicker(index),
               // onTap: () => _pickImage(index),
+              onTap: () => _showImageSourcePicker(index),
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -239,8 +269,22 @@ class _HeaterEmployeeDetailsEditState
   }
 
   @override
+  void initState() {
+    super.initState();
+    englishNameController.text = '';
+    mobileController.text = '';
+    emailIdController.text = ''; // populate if you have initial email
+    aadharController.text = ''; // populate if you have initial Aadhar
+    emergencyNameController.text = '';
+    emergencyRelationShipController.text = '';
+    emergencyMobileController.text = '';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final state = ref.watch(addEmployeeNotifier);
+    final state = ref.watch(heaterEmployeeEditNotifier);
+    final a = widget; // or just use widget.name, widget.avatarUrl, etc.
+
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
@@ -279,7 +323,7 @@ class _HeaterEmployeeDetailsEditState
                       ],
                     ),
                   ),
-                  SizedBox(height: 35),
+                  SizedBox(height: 20),
                   Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
@@ -301,49 +345,45 @@ class _HeaterEmployeeDetailsEditState
                             child: SizedBox(
                               height: 115,
                               width: 92,
-                              child: Image.asset(
-                                AppImages.humanImage1,
-                                width: 92,
-                                height: 115,
-                              ),
-                              // Image.network(
-                              //    data.avatarUrl ?? "",
-                              //   fit: BoxFit.cover,
-                              //   errorBuilder: (_, __, ___) {
-                              //     return const Center(
-                              //       child: Icon(
-                              //         Icons.broken_image,
-                              //         size: 40,
-                              //       ),
-                              //     );
-                              //   },
-                              // ),
+                              child:
+                                  (a.avatarUrl != null &&
+                                          a.avatarUrl!.isNotEmpty)
+                                      ? Image.network(
+                                        a.avatarUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (_, __, ___) => const Icon(
+                                              Icons.person,
+                                              size: 40,
+                                            ),
+                                      )
+                                      : const Icon(Icons.person, size: 40),
                             ),
                           ),
-                          SizedBox(width: 20),
+
+                          const SizedBox(width: 20),
+
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Siva',
-                                // data.name,
+                                a.name ?? '',
                                 style: AppTextStyles.mulish(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
                                   color: AppColor.darkBlue,
                                 ),
                               ),
-                              SizedBox(height: 3),
+                              const SizedBox(height: 3),
                               Text(
-                                'THU29849H',
-                                // data.employeeCode,
+                                a.employeeCode ?? '',
                                 style: AppTextStyles.mulish(
                                   fontSize: 11,
                                   color: AppColor.mildBlack,
                                 ),
                               ),
-                              SizedBox(height: 20),
+                              const SizedBox(height: 20),
                               Text(
                                 'Today Collection',
                                 style: AppTextStyles.mulish(
@@ -352,8 +392,7 @@ class _HeaterEmployeeDetailsEditState
                                 ),
                               ),
                               Text(
-                                // 'Rs.${data.todayAmount}',
-                                'Rs. 49,098',
+                                'Rs. ${a.totalAmount}',
                                 style: AppTextStyles.mulish(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 18,
@@ -362,14 +401,17 @@ class _HeaterEmployeeDetailsEditState
                               ),
                             ],
                           ),
-                          Spacer(),
+
+                          const Spacer(),
+
                           Column(
                             children: [
                               InkWell(
                                 onTap: () {
-                                  // if (data.phoneNumber.isNotEmpty) {
-                                  //   _launchDialer(data.phoneNumber);
-                                  // }
+                                  if (a.phoneNumber != null &&
+                                      a.phoneNumber!.isNotEmpty) {
+                                    _launchDialer(a.phoneNumber!);
+                                  }
                                 },
                                 child: Container(
                                   decoration: BoxDecoration(
@@ -390,11 +432,7 @@ class _HeaterEmployeeDetailsEditState
                               ),
                               SizedBox(height: 15),
                               InkWell(
-                                onTap: () {
-                                  // context.push(
-                                  //   AppRoutes.heaterEmployeeDetailsPath,
-                                  // );
-                                },
+                                onTap: () {},
                                 child: Container(
                                   decoration: BoxDecoration(
                                     border: Border.all(
@@ -454,11 +492,11 @@ class _HeaterEmployeeDetailsEditState
                             CommonContainer.fillingContainer(
                               controller: englishNameController,
                               context: context,
-                              validator:
-                                  (v) =>
-                                      v == null || v.trim().isEmpty
-                                          ? 'Name required'
-                                          : null,
+                              // validator:
+                              //     (v) =>
+                              //         v == null || v.trim().isEmpty
+                              //             ? 'Name required'
+                              //             : null,
                             ),
                             SizedBox(height: 30),
 
@@ -466,15 +504,15 @@ class _HeaterEmployeeDetailsEditState
                               duration: const Duration(milliseconds: 300),
                               child: CommonContainer.mobileNumberField(
                                 controller: mobileController,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Mobile number required';
-                                  }
-                                  if (value.length != 10) {
-                                    return 'Enter valid 10-digit number';
-                                  }
-                                  return null;
-                                },
+                                // validator: (value) {
+                                //   if (value == null || value.isEmpty) {
+                                //     return 'Mobile number required';
+                                //   }
+                                //   if (value.length != 10) {
+                                //     return 'Enter valid 10-digit number';
+                                //   }
+                                //   return null;
+                                // },
                               ),
                             ),
                             SizedBox(height: 30),
@@ -490,16 +528,16 @@ class _HeaterEmployeeDetailsEditState
                               controller: emailIdController,
                               keyboardType: TextInputType.emailAddress,
                               context: context,
-                              validator: (v) {
-                                if (v == null || v.isEmpty)
-                                  return 'Email required';
-                                if (!RegExp(
-                                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                                ).hasMatch(v)) {
-                                  return 'Enter valid email';
-                                }
-                                return null;
-                              },
+                              // validator: (v) {
+                              //   if (v == null || v.isEmpty)
+                              //     return 'Email required';
+                              //   if (!RegExp(
+                              //     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                              //   ).hasMatch(v)) {
+                              //     return 'Enter valid email';
+                              //   }
+                              //   return null;
+                              // },
                             ),
 
                             SizedBox(height: 30),
@@ -517,11 +555,11 @@ class _HeaterEmployeeDetailsEditState
                               verticalDivider: true,
                               controller: emergencyNameController,
                               context: context,
-                              validator:
-                                  (v) =>
-                                      v == null || v.trim().isEmpty
-                                          ? 'Name required'
-                                          : null,
+                              // validator:
+                              //     (v) =>
+                              //         v == null || v.trim().isEmpty
+                              //             ? 'Name required'
+                              //             : null,
                             ),
                             SizedBox(height: 10),
 
@@ -530,11 +568,11 @@ class _HeaterEmployeeDetailsEditState
                               verticalDivider: true,
                               controller: emergencyRelationShipController,
                               context: context,
-                              validator:
-                                  (v) =>
-                                      v == null || v.trim().isEmpty
-                                          ? 'Relationship required'
-                                          : null,
+                              // validator:
+                              //     (v) =>
+                              //         v == null || v.trim().isEmpty
+                              //             ? 'Relationship required'
+                              //             : null,
                             ),
                             SizedBox(height: 10),
 
@@ -543,11 +581,11 @@ class _HeaterEmployeeDetailsEditState
                               isMobile: true,
                               controller: emergencyMobileController,
                               context: context,
-                              validator:
-                                  (v) =>
-                                      v == null || v.isEmpty
-                                          ? 'Please enter mobile number'
-                                          : null,
+                              // validator:
+                              //     (v) =>
+                              //         v == null || v.isEmpty
+                              //             ? 'Please enter mobile number'
+                              //             : null,
                             ),
 
                             SizedBox(height: 30),
@@ -566,13 +604,16 @@ class _HeaterEmployeeDetailsEditState
                               context: context,
                               keyboardType: TextInputType.number,
                               isAadhaar: true,
-                              validator: (v) {
-                                final digits = (v ?? '').replaceAll(' ', '');
-                                if (digits.length != 12) {
-                                  return 'Enter valid 12 digit Aadhar No';
-                                }
-                                return null;
-                              },
+                              // validator: (v) {
+                              //   final digits = (v ?? '').replaceAll(
+                              //     ' ',
+                              //     '',
+                              //   );
+                              //   if (digits.length != 12) {
+                              //     return 'Enter valid 12 digit Aadhar No';
+                              //   }
+                              //   return null;
+                              // },
                             ),
 
                             SizedBox(height: 30),
@@ -599,7 +640,6 @@ class _HeaterEmployeeDetailsEditState
                             _imageBox(index: 1),
 
                             SizedBox(height: 30),
-
                             CommonContainer.button(
                               buttonColor: AppColor.darkBlue,
                               imagePath:
@@ -624,8 +664,9 @@ class _HeaterEmployeeDetailsEditState
                                 }
 
                                 await ref
-                                    .read(addEmployeeNotifier.notifier)
-                                    .addEmployeeVendor(
+                                    .read(heaterEmployeeEditNotifier.notifier)
+                                    .editEmployee(
+                                      employeeId: widget.employeeId,
                                       phoneNumber: mobileController.text,
                                       fullName:
                                           englishNameController.text.trim(),
@@ -643,7 +684,9 @@ class _HeaterEmployeeDetailsEditState
                                       ownerImageFile: _pickedImages[1]!,
                                     );
 
-                                final newState = ref.read(addEmployeeNotifier);
+                                final newState = ref.read(
+                                  heaterEmployeeEditNotifier,
+                                );
 
                                 if (newState.error != null) {
                                   AppSnackBar.error(context, newState.error!);
@@ -654,12 +697,20 @@ class _HeaterEmployeeDetailsEditState
                                   context,
                                   "Employee updated successfully",
                                 );
-                                if (!mounted) return;
-
-                                // context.pop(true);
                                 context.pushReplacement(
-                                  AppRoutes.heaterEmployeeDetailsEditPath,
+                                  AppRoutes.heaterEmployeeDetailsPath,
+                                  // extra: {
+                                  //   'employeeId': widget.employeeId,
+                                  //   'name': englishNameController.text.trim(),
+                                  //   'phoneNumber': mobileController.text.trim(),
+                                  //   'avatarUrl': _existingUrls[1] ?? '',
+                                  //   'totalAmount': widget.totalAmount,
+                                  // },
                                 );
+
+                                // context.pushReplacement(
+                                //   AppRoutes.heaterEmployeeDetailsPath,
+                                // );
                               },
                             ),
 
