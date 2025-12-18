@@ -46,5 +46,8 @@ class ApiUrl {
   static String updateProducts({required String productId}) {
     return "${base}api/v1/products/$productId";
   }
+  static String shopDetails({required String shopId}) {
+    return "${base}api/v1/shops/$shopId";
+  }
 
 }
