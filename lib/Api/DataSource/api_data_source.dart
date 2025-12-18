@@ -6,11 +6,13 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Model/product_response.dart';
+import 'package:tringo_vendor_new/Presentation/AddProduct/Model/service_info_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/add_employee_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Employee%20details-edit/Model/heater_employee_edit_res.dart';
 import 'package:tringo_vendor_new/Presentation/Shops%20Details/Model/shop_details_response.dart';
 
+import '../../Presentation/AddProduct/Model/image_upload_response.dart';
 import '../../Presentation/Employee History/Model/employee_history_response.dart';
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Model/owner_otp_response.dart';
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Model/owner_register_response.dart';
@@ -28,6 +30,7 @@ import '../../Presentation/Login Screen/Model/otp_response.dart';
 import '../../Presentation/Login Screen/Model/resend_otp_response.dart';
 import '../../Presentation/Login Screen/Model/whatsapp_response.dart';
 import '../../Presentation/Mobile Nomber Verify/Model/sim_verify_response.dart';
+import '../../Presentation/Shop Details Edit/Model/shop_root_response.dart';
 import '../../Presentation/ShopInfo/Model/search_keywords_response.dart';
 import '../../Presentation/ShopInfo/Model/shop_info_photos_response.dart';
 import '../Repository/api_url.dart';
@@ -900,8 +903,9 @@ class ApiDataSource {
         }
         return Left(ServerFailure(response.message ?? "Unknown Dio error"));
       }
-    } catch (e) {
+    } catch (e, st) {
       AppLogger.log.e(e);
+      AppLogger.log.e(st);
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -1105,18 +1109,18 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
   Future<Either<Failure, ShopDetailsResponse>> getShopDetails({
     String? apiShopId,
   }) async {
     try {
-
       final savedShopId = await AppPrefs.getSopId();
 
-
       // Priority: apiShopId > savedShopId > ""
-      final shopId = (apiShopId != null && apiShopId.trim().isNotEmpty)
-          ? apiShopId
-          : (savedShopId ?? '');
+      final shopId =
+          (apiShopId != null && apiShopId.trim().isNotEmpty)
+              ? apiShopId
+              : (savedShopId ?? '');
 
       final url = ApiUrl.shopDetails(shopId: shopId);
 
@@ -1262,6 +1266,275 @@ class ApiDataSource {
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (response.data['status'] == true) {
             return Right(HeaterEmployeeResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, ServiceInfoResponse>> serviceInfo({
+    required String title,
+    required String tamilName,
+    required String description,
+    required int startsAt,
+    required String offerLabel,
+    required String offerValue,
+    required int durationMinutes,
+    required String categoryId,
+    String? apiShopId,
+    required String apiServiceId,
+    required String subCategory,
+    required List<String> tags,
+  }) async {
+    try {
+      final savedServiceId = await AppPrefs.getServiceId();
+
+      final serviceIdToUse =
+          (apiServiceId != null && apiServiceId.trim().isNotEmpty)
+              ? apiServiceId
+              : (savedServiceId ?? '');
+      AppLogger.log.i('Service id - $apiServiceId');
+
+      final savedShopId = await AppPrefs.getSopId();
+      final shopIdToUse =
+          (apiShopId != null && apiShopId.trim().isNotEmpty)
+              ? apiShopId
+              : (savedShopId ?? '');
+
+      // DECIDE CREATE OR EDIT API
+      // apiServiceId is required but may be "", so we check empty only
+      final url =
+          serviceIdToUse.isNotEmpty
+              ? ApiUrl.serviceEdit(serviceId: serviceIdToUse)
+              : ApiUrl.serviceInfo(shopId: shopIdToUse);
+      AppLogger.log.i("SERVICE URL → $url");
+      final payload = {
+        "title": title,
+        "tamilName": tamilName,
+        "description": description,
+        "startsAt": startsAt,
+        "offerLabel": offerLabel,
+        "offerValue": offerValue,
+        "durationMinutes": durationMinutes,
+        "categoryId": categoryId,
+        "subCategory": subCategory,
+        "tags": tags,
+      };
+
+      final response = await Request.sendRequest(url, payload, 'Post', true);
+
+      AppLogger.log.i(response);
+      AppLogger.log.i(payload);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final root = response.data as Map<String, dynamic>;
+          if (root['status'] == true) {
+            return Right(ServiceInfoResponse.fromJson(root));
+          } else {
+            return Left(
+              ServerFailure(root['message'] ?? "Something went wrong"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(
+              (response.data is Map && response.data['message'] != null)
+                  ? response.data['message']
+                  : "Something went wrong",
+            ),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData['message'] != null) {
+          return Left(ServerFailure(errorData['message'].toString()));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.i(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, ServiceInfoResponse>> serviceList({
+    required List<String> images,
+    required List<Map<String, String>> features,
+  }) async {
+    try {
+      final serviceId = await AppPrefs.getServiceId();
+
+      // Example: PATCH /api/v1/services/{serviceId}/info
+      final String url = ApiUrl.serviceList(serviceId: serviceId ?? '');
+      // Make sure ApiUrl.serviceList builds a SERVICE URL, not PRODUCTS
+
+      final payload = {"images": images, "features": features};
+
+      // If your backend uses PATCH → 'Patch'
+      // If it uses PUT → 'Put'
+      // Only keep 'Post' if your backend really expects POST here.
+      dynamic response = await Request.sendRequest(url, payload, 'Post', true);
+
+      AppLogger.log.i(response);
+      AppLogger.log.i(payload);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(ServiceInfoResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Update failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, ServiceInfoResponse>> serviceSearchKeyWords({
+    required List<String> keywords,
+  }) async {
+    try {
+
+      final serviceId = await  AppPrefs.getServiceId();
+
+      String url = ApiUrl.serviceList(serviceId: serviceId?? '');
+
+      // ✅ Use the actual images + features passed from caller
+      final payload = {"keywords": keywords};
+
+      dynamic response = await Request.sendRequest(url, payload, 'Post', true);
+
+      AppLogger.log.i(response);
+      AppLogger.log.i(payload);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(ServiceInfoResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Update failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+  Future<Either<Failure, ImageUploadResponse>> serviceImageUpload({
+    required File imageFile,
+  }) async {
+    try {
+      if (!await imageFile.exists()) {
+        return Left(ServerFailure('Image file does not exist.'));
+      }
+
+      final String url = ApiUrl.imageUrl;
+
+      final formData = FormData.fromMap({
+        'images': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+      });
+
+      final response = await Request.formData(url, formData, 'POST', true);
+
+      if (response is! Response) {
+        return Left(ServerFailure("Unexpected error type"));
+      }
+
+      // ✅ Safely handle both String and Map
+      late final Map<String, dynamic> responseData;
+      if (response.data is String) {
+        responseData =
+        jsonDecode(response.data as String) as Map<String, dynamic>;
+      } else if (response.data is Map<String, dynamic>) {
+        responseData = response.data as Map<String, dynamic>;
+      } else {
+        return Left(ServerFailure("Invalid response format"));
+      }
+
+      if (response.statusCode == 200) {
+        if (responseData['status'] == true) {
+          return Right(ImageUploadResponse.fromJson(responseData));
+        } else {
+          return Left(
+            ServerFailure(responseData['message'] ?? 'Upload failed'),
+          );
+        }
+      } else if (response.statusCode == 409) {
+        return Left(ServerFailure(responseData['message'] ?? 'Conflict error'));
+      } else {
+        return Left(ServerFailure(responseData['message'] ?? "Unknown error"));
+      }
+    } catch (e) {
+      print(e);
+      return Left(ServerFailure('Something went wrong'));
+    }
+  }
+
+
+  Future<Either<Failure, ShopRootResponse>> getAllShopDetails({
+    required String shopId,
+  }) async {
+    try {
+      final url = ApiUrl.getAllShop(shopId: shopId ?? '');
+
+      dynamic response = await Request.sendGetRequest(url, {}, 'Post', true);
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        // If status code is success
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(ShopRootResponse.fromJson(response.data));
           } else {
             return Left(
               ServerFailure(response.data['message'] ?? "Login failed"),

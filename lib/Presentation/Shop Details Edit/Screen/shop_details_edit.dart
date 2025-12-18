@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Presentation/Shop%20Details%20Edit/Controller/shop_edit_notifier.dart';
 
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
@@ -11,16 +13,30 @@ import '../../../Core/Widgets/common_container.dart';
 import '../../AddProduct/Screens/product_category_screens.dart';
 import '../../subscription/Screen/subscription_screen.dart';
 
-class ShopDetailsEdit extends StatefulWidget {
-  const ShopDetailsEdit({super.key});
+class ShopDetailsEdit extends ConsumerStatefulWidget {
+  final String shopId;
+  const ShopDetailsEdit({required this.shopId, super.key});
 
   @override
-  State<ShopDetailsEdit> createState() => _ShopDetailsEditState();
+  ConsumerState<ShopDetailsEdit> createState() => _ShopDetailsEditState();
 }
 
-class _ShopDetailsEditState extends State<ShopDetailsEdit> {
+class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
+  int selectedIndex = 0;
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() async {
+      await ref
+          .read(shopEditNotifierProvider.notifier)
+          .fetchAllShopDetails(shopId: widget.shopId);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final aboutState = ref.watch(shopEditNotifierProvider);
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -76,7 +92,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                           //   // },
                           //   onTap: () => Navigator.pop(context),
                           // ),
-                            Spacer(),
+                          Spacer(),
                           CommonContainer.gradientContainer(
                             text: 'kalavasal...',
                             textColor: AppColor.skyBlue,
@@ -85,7 +101,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                         ],
                       ),
                     ),
-                      SizedBox(height: 15),
+                    SizedBox(height: 15),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -105,7 +121,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                             ],
                           ),
                         ),
-                          SizedBox(height: 12),
+                        SizedBox(height: 12),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
@@ -128,7 +144,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                                 height: 15,
                                 color: AppColor.darkGrey,
                               ),
-                                SizedBox(width: 3),
+                              SizedBox(width: 3),
                               Expanded(
                                 child: Text(
                                   'kbdn',
@@ -142,7 +158,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                             ],
                           ),
                         ),
-                          SizedBox(height: 27),
+                        SizedBox(height: 27),
 
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
@@ -190,7 +206,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                           ),
                         ),
 
-                          SizedBox(height: 20),
+                        SizedBox(height: 20),
 
                         SizedBox(
                           height: 250,
@@ -369,7 +385,6 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                         //     ),
                         //   ),
                         // ),
-
                         SizedBox(height: 15),
                       ],
                     ),
@@ -388,7 +403,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                           height: 35,
                           color: AppColor.darkBlue,
                         ),
-                          SizedBox(width: 10),
+                        SizedBox(width: 10),
                         Text(
                           // hasServices ? 'Services' :
                           'Products',
@@ -400,7 +415,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                         ),
                       ],
                     ),
-                    SizedBox(width: 10,),
+                    SizedBox(width: 10),
                     CommonContainer.foodList(
                       fontSize: 14,
                       titleWeight: FontWeight.w700,
@@ -449,7 +464,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                             ],
                           ),
                         ),
-                        SizedBox(width: 15,),
+                        SizedBox(width: 15),
                         Expanded(
                           child: GestureDetector(
                             /*   onTap: () async {
@@ -572,8 +587,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                               //       :
                               Row(
                                 mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Image.asset(
                                     AppImages.closeImage,
@@ -595,7 +609,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 30,),
+                    SizedBox(height: 30),
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
@@ -625,7 +639,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                         ],
                       ),
                     ),
-                    SizedBox(height: 30,),
+                    SizedBox(height: 30),
                     CommonContainer.attractCustomerCard(
                       title: 'Attract More Customers',
                       description: 'Unlock premium to attract more customers',
@@ -638,11 +652,10 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
                         );
                       },
                     ),
-                    SizedBox(height: 30,),
+                    SizedBox(height: 30),
                   ],
                 ),
               ),
-
             ],
           ),
         ),
@@ -662,10 +675,7 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: ElevatedButton(
                 onPressed: () {
                   // 1️⃣ Always navigate immediately
@@ -698,9 +708,9 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
         ),
       ),
     );
-
   }
-/*  Widget _buildShopDetails() {
+
+  /*  Widget _buildShopDetails() {
     final isPremium = RegistrationProductSeivice.instance.isPremium;
     final selectedShop = _getSelectedShop(aboutState);
     final products = selectedShop?.products ?? [];
@@ -1463,14 +1473,13 @@ class _ShopDetailsEditState extends State<ShopDetailsEdit> {
               'Based on ${(selectedShop?.shopReviewCount ?? 0)} reviews',
               style: AppTextStyles.mulish(color: AppColor.gray84),
             ),
-            *//*      const SizedBox(height: 17),
+            */ /*      const SizedBox(height: 17),
             CommonContainer.reviewBox(),
             const SizedBox(height: 17),
-            CommonContainer.reviewBox(),*//*
+            CommonContainer.reviewBox(),*/ /*
           ],
         ),
       ),
     );
   }*/
-
 }

@@ -15,6 +15,7 @@ import '../../../Core/Session/registration_product_seivice.dart';
 import '../../../Core/Session/registration_session.dart';
 import '../../../Core/Utility/app_loader.dart';
 import '../../../Core/Utility/app_textstyles.dart';
+import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/bottom_navigation_bar.dart';
 import '../../AddProduct/Screens/product_category_screens.dart';
 import '../../AddProduct/Screens/product_search_keyword.dart';
@@ -22,8 +23,6 @@ import '../../AddProduct/Screens/product_search_keyword.dart';
 import '../../No Data Screen/Screen/no_data_screen.dart';
 import '../../ShopInfo/Screens/shop_category_info.dart';
 import '../../subscription/Screen/subscription_screen.dart';
-
-
 
 class ShopsDetails extends ConsumerStatefulWidget {
   final bool backDisabled;
@@ -139,13 +138,14 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                 // ),
                 const SizedBox(height: 16),
                 CommonContainer.button(
-                  onTap: state.isLoading
-                      ? null
-                      : () {
-                    ref
-                        .read(shopDetailsNotifierProvider.notifier)
-                        .fetchShopDetails();
-                  },
+                  onTap:
+                      state.isLoading
+                          ? null
+                          : () {
+                            ref
+                                .read(shopDetailsNotifierProvider.notifier)
+                                .fetchShopDetails();
+                          },
                   text: Text('Try Again'),
                 ),
                 // ElevatedButton(
@@ -274,11 +274,11 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                               children: [
                                 shop?.shopDoorDelivery == true
                                     ? CommonContainer.doorDelivery(
-                                  text: 'Door Delivery',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w900,
-                                  textColor: AppColor.skyBlue,
-                                )
+                                      text: 'Door Delivery',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w900,
+                                      textColor: AppColor.skyBlue,
+                                    )
                                     : SizedBox.shrink(),
                               ],
                             ),
@@ -327,8 +327,8 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                 horizontal: 16,
                               ),
                               child: CommonContainer.callNowButton(
-                                callOnTap: () =>
-                                    _openDialer(shop?.shopPhone ?? ''),
+                                callOnTap:
+                                    () => _openDialer(shop?.shopPhone ?? ''),
 
                                 callImage: AppImages.callImage,
                                 callText: 'Call Now',
@@ -337,10 +337,11 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                 messageOnTap: () {},
                                 MessageIcon: true,
                                 mapText: 'Map',
-                                mapOnTap: () => _openMap(
-                                  shop?.shopGpsLatitude.toString() ?? '',
-                                  shop?.shopGpsLongitude.toString() ?? '',
-                                ),
+                                mapOnTap:
+                                    () => _openMap(
+                                      shop?.shopGpsLatitude.toString() ?? '',
+                                      shop?.shopGpsLongitude.toString() ?? '',
+                                    ),
                                 mapImage: AppImages.locationImage,
                                 callIconSize: 21,
                                 callTextSize: 16,
@@ -358,10 +359,10 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                   vertical: 10,
                                 ),
                                 iconContainerPadding:
-                                const EdgeInsets.symmetric(
-                                  horizontal: 22,
-                                  vertical: 13,
-                                ),
+                                    const EdgeInsets.symmetric(
+                                      horizontal: 22,
+                                      vertical: 13,
+                                    ),
                                 messageContainer: true,
                                 mapBox: true,
                               ),
@@ -381,7 +382,7 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                               child: Row(
                                 children: List.generate(
                                   shop?.shopImages.length ?? 0,
-                                      (index) {
+                                  (index) {
                                     final imageData = shop?.shopImages[index];
 
                                     return Padding(
@@ -402,8 +403,8 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                               width: 310,
                                               fit: BoxFit.cover,
 
-                                              placeholder: (context, url) =>
-                                                  Container(
+                                              placeholder:
+                                                  (context, url) => Container(
                                                     width: 310,
                                                     height: 230,
                                                     color: Colors.grey[300],
@@ -414,15 +415,15 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                               // The errorWidget is shown if the image fails to load
                                               errorWidget:
                                                   (context, url, error) =>
-                                                  Container(
-                                                    width: 310,
-                                                    height: 230,
-                                                    color: Colors.grey[300],
-                                                    child: const Icon(
-                                                      Icons.broken_image,
-                                                      color: Colors.grey,
-                                                    ),
-                                                  ),
+                                                      Container(
+                                                        width: 310,
+                                                        height: 230,
+                                                        color: Colors.grey[300],
+                                                        child: const Icon(
+                                                          Icons.broken_image,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
                                             ),
                                           ),
                                           Positioned(
@@ -430,14 +431,14 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                             left: 15,
                                             child: Container(
                                               padding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: AppColor.scaffoldColor,
                                                 borderRadius:
-                                                BorderRadius.circular(30),
+                                                    BorderRadius.circular(30),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -448,7 +449,7 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                                         .toStringAsFixed(1),
                                                     style: AppTextStyles.mulish(
                                                       fontWeight:
-                                                      FontWeight.bold,
+                                                          FontWeight.bold,
                                                       fontSize: 14,
                                                       color: AppColor.darkBlue,
                                                     ),
@@ -467,9 +468,9 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                                       color: AppColor.darkBlue
                                                           .withOpacity(0.2),
                                                       borderRadius:
-                                                      BorderRadius.circular(
-                                                        1,
-                                                      ),
+                                                          BorderRadius.circular(
+                                                            1,
+                                                          ),
                                                     ),
                                                   ),
                                                   const SizedBox(width: 5),
@@ -500,16 +501,16 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                    const ShopCategoryInfo(
-                                      // isEditMode: true,
-                                      initialShopNameEnglish:
-                                      shopDisplayName,
-                                      initialShopNameTamil:
-                                      shopDisplayNameTamil,
-                                      isService: true,
-                                      isIndividual: false,
-                                    ),
+                                    builder:
+                                        (context) => const ShopCategoryInfo(
+                                          // isEditMode: true,
+                                          initialShopNameEnglish:
+                                              shopDisplayName,
+                                          initialShopNameTamil:
+                                              shopDisplayNameTamil,
+                                          isService: true,
+                                          isIndividual: false,
+                                        ),
                                   ),
                                 );
                               },
@@ -532,7 +533,7 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                     ),
                                     child: Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                       children: [
                                         Image.asset(
                                           AppImages.addBranch,
@@ -598,9 +599,10 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                 final data = shop.products[index];
 
                                 // Safe image
-                                final imageUrl = (data.media.isNotEmpty)
-                                    ? (data.media.first.url ?? '')
-                                    : '';
+                                final imageUrl =
+                                    (data.media.isNotEmpty)
+                                        ? (data.media.first.url ?? '')
+                                        : '';
 
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 10),
@@ -614,7 +616,7 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                     foodName: data.englishName ?? '',
                                     ratingStar: data.rating?.toString() ?? '0',
                                     ratingCount:
-                                    data.ratingCount?.toString() ?? '0',
+                                        data.ratingCount?.toString() ?? '0',
                                     offAmound: '₹${data.offerPrice ?? 0}',
                                     oldAmound: '₹${data.price ?? 0}',
                                     km: '',
@@ -695,13 +697,14 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount:
-                              shop?.services.length ?? 0, // 👈 null-safe
+                                  shop?.services.length ?? 0, // 👈 null-safe
                               itemBuilder: (context, index) {
                                 final data = shop!.services[index];
 
-                                final imageUrl = (data.media.isNotEmpty)
-                                    ? (data.media.first.url ?? '')
-                                    : '';
+                                final imageUrl =
+                                    (data.media.isNotEmpty)
+                                        ? (data.media.first.url ?? '')
+                                        : '';
 
                                 // Fallbacks
                                 final double startsAt = data.startsAt ?? 0;
@@ -718,13 +721,13 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                     image: imageUrl,
                                     foodName: data.englishName ?? '',
                                     ratingStar: (data.rating ?? 0).toString(),
-                                    ratingCount: (data.ratingCount ?? 0)
-                                        .toString(),
+                                    ratingCount:
+                                        (data.ratingCount ?? 0).toString(),
 
                                     //  show both prices
                                     offAmound: '₹${offer.toStringAsFixed(0)}',
                                     oldAmound:
-                                    '₹${startsAt.toStringAsFixed(0)}',
+                                        '₹${startsAt.toStringAsFixed(0)}',
 
                                     km: '',
                                     location: '',
@@ -857,14 +860,16 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                         CommonContainer.attractCustomerCard(
                           title: 'Attract More Customers',
                           description:
-                          'Unlock premium to attract more customers',
+                              'Unlock premium to attract more customers',
                           onTap: () {
                             // From details we don’t want Skip again – only real subscribe
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                const SubscriptionScreen(showSkip: false),
+                                builder:
+                                    (context) => const SubscriptionScreen(
+                                      showSkip: false,
+                                    ),
                               ),
                             );
                           },
@@ -914,9 +919,8 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
                                 final data = reviews[index];
-                                final reviewText = data is String
-                                    ? data
-                                    : data.toString();
+                                final reviewText =
+                                    data is String ? data : data.toString();
 
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -985,18 +989,16 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                 ),
                 child: ElevatedButton(
                   onPressed: () async {
-                    // // 1️⃣ Always navigate immediately
-                    // context.go(AppRoutes.homeScreenPath);
+                    // 1️⃣ Always navigate immediately
+                    context.goNamed(AppRoutes.home);
                     // await ref
                     //     .read(selectedShopProvider.notifier)
                     //     .switchShop('');
-                    //
-                    //
-                    // // 2️⃣ Reset AFTER navigation
-                    // Future.microtask(() {
-                    //   RegistrationSession.instance.reset();
-                    //   // RegistrationProductSeivice.instance.reset();
-                    // });
+
+                    Future.microtask(() {
+                      RegistrationSession.instance.reset();
+                      // RegistrationProductSeivice.instance.reset();
+                    });
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -1018,8 +1020,6 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
             ),
           ),
         ),
-
-
       ),
     );
   }

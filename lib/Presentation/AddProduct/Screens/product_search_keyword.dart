@@ -14,6 +14,7 @@ import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/common_container.dart';
 import '../../AddProduct/Screens/product_category_screens.dart';
+import '../Controller/service_info_notifier.dart';
 import 'add_product_list.dart';
 
 class ProductSearchKeyword extends ConsumerStatefulWidget {
@@ -92,12 +93,12 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
     final isProduct = !isService;
     final bool isCompany = widget.isCompanyResolved;
 
-    //   final serviceState = ref.watch(serviceInfoNotifierProvider);
+  final serviceState = ref.watch(serviceInfoNotifierProvider);
     final productState = ref.watch(productNotifierProvider);
 
-    final bool isLoading = /*isService
+    final bool isLoading = isService
           ? serviceState.isLoading
-          :*/
+          :
         productState.isLoading;
     return Scaffold(
       body: SafeArea(
@@ -348,11 +349,11 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                     SizedBox(height: 30),
 
                     CommonContainer.button(
-                      buttonColor: AppColor.black,
+
                       onTap: () async {
                         FocusScope.of(context).unfocus();
 
-                        // Basic validation
+                        // 🔹 Basic validation
                         if (_keywords.isEmpty) {
                           AppSnackBar.error(
                             context,
@@ -361,13 +362,16 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                           return;
                         }
 
+                        // final session = RegistrationProductSeivice.instance;
+                        // final isService = session.isServiceBusiness;
+
                         bool success = false;
 
-                        // Call correct API (service / product)
+                        // 🔹 Call correct API (service / product)
                         if (isService) {
-                          // success = await ref
-                          //     .read(serviceInfoNotifierProvider.notifier)
-                          //     .serviceSearchWords(keywords: _keywords);
+                          success = await ref
+                              .read(serviceInfoNotifierProvider.notifier)
+                              .serviceSearchWords(keywords: _keywords);
                         } else {
                           success = await ref
                               .read(productNotifierProvider.notifier)
@@ -375,24 +379,23 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                         }
 
                         final productState = ref.read(productNotifierProvider);
-                        //   final serviceState = ref.read(serviceInfoNotifierProvider);
+                        final serviceState = ref.read(
+                          serviceInfoNotifierProvider,
+                        );
 
-                        // Handle errors
+                        // ❌ Handle errors
                         if (!success) {
-                          String? errorMessage;
                           if (!isService && productState.error != null) {
-                            errorMessage = productState.error!;
-                          } /* else if (isService && serviceState.error != null) {
-                            errorMessage = serviceState.error!;
-                          }*/
-
-                          if (errorMessage != null) {
-                            AppSnackBar.error(context, errorMessage);
+                            AppSnackBar.error(context, productState.error!);
+                          } else if (isService && serviceState.error != null) {
+                            AppSnackBar.error(context, serviceState.error!);
                           }
                           return;
                         }
 
-                        // Success flow
+                        // ================================
+                        //        SUCCESS FLOW
+                        // ================================
                         final productSession =
                             RegistrationProductSeivice.instance;
                         final regSession = RegistrationSession.instance;
@@ -407,32 +410,43 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                           return;
                         }
 
-                        // Navigate to Shop Details Screen
-                        final routeData = {
-                          'backDisabled': true,
-                          'fromSubscriptionSkip': false,
-                          'shopId': /*isService
-                              ? serviceState.serviceInfoResponse?.data.shopId
-                              : */
+                        // ================================
+                        //      SEPARATE NAVIGATION
+                        // ================================
+                        if (isService) {
+                          AppLogger.log.i(
+                            'App Servikces Passing ${serviceState.serviceInfoResponse?.data.shopId}',
+                          );
+                          context.goNamed(
+                            AppRoutes.shopsDetails,
+                            extra: {
+                              'backDisabled': true,
+                              'fromSubscriptionSkip': false,
+                              'shopId':
+                              serviceState.serviceInfoResponse?.data.shopId,
+                            },
+                          );
+                        } else {
+                          context.goNamed(
+                            AppRoutes.shopsDetails,
+                            extra: {
+                              'backDisabled': true,
+                              'fromSubscriptionSkip': false,
+                              'shopId':
                               productState.productResponse?.data.shopId,
-                        };
-
-                        /*  AppLogger.log.i(
-                          'App Services Passing ${isService ? serviceState.serviceInfoResponse?.data.shopId : productState.productResponse?.data.shopId}',
-                        );*/
-
-                        // context.goNamed(AppRoutes.shopsDetails, extra: routeData);
+                            },
+                          );
+                        }
                       },
-                      text:
-                          isLoading
-                              ? ThreeDotsLoader()
-                              : Text(
-                                'Preview Shop & Product',
-                                style: AppTextStyles.mulish(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                      text: isLoading
+                          ? ThreeDotsLoader()
+                          : Text(
+                        'Preview Shop',
+                        style: AppTextStyles.mulish(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       imagePath: isLoading ? null : AppImages.rightStickArrow,
                       imgHeight: 20,
                     ),
