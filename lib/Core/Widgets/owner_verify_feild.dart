@@ -191,7 +191,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
 
                               if (!mounted) return;
                               setState(() {
-                                showOtp = true; // ✅ this now persists
+                                showOtp = true; // this now persists
                                 showOtpError = false;
                                 for (final c in otpControllers) {
                                   c.clear();
@@ -315,7 +315,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                             SizedBox(height: 16),
 
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

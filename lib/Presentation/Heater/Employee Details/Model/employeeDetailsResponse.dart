@@ -2,10 +2,7 @@ class EmployeeDetailsResponse {
   final bool status;
   final EmployeeDetailsData data;
 
-  EmployeeDetailsResponse({
-    required this.status,
-    required this.data,
-  });
+  EmployeeDetailsResponse({required this.status, required this.data});
 
   factory EmployeeDetailsResponse.fromJson(Map<String, dynamic> json) {
     return EmployeeDetailsResponse(
@@ -30,8 +27,9 @@ class EmployeeDetailsData {
     return EmployeeDetailsData(
       employee: Employee.fromJson(json['employee'] ?? {}),
       summary: Summary.fromJson(json['summary'] ?? {}),
-      shopsAndServices:
-      ShopsAndServices.fromJson(json['shopsAndServices'] ?? {}),
+      shopsAndServices: ShopsAndServices.fromJson(
+        json['shopsAndServices'] ?? {},
+      ),
     );
   }
 }
@@ -75,8 +73,7 @@ class Employee {
       avatarUrl: json['avatarUrl'],
       isActive: json['isActive'] ?? false,
       emergencyContactName: json['emergencyContactName'] ?? '',
-      emergencyContactRelationship:
-      json['emergencyContactRelationship'] ?? '',
+      emergencyContactRelationship: json['emergencyContactRelationship'] ?? '',
       emergencyContactPhone: json['emergencyContactPhone'] ?? '',
       aadharNumber: json['aadharNumber'] ?? '',
       aadharDocumentUrl: json['aadharDocumentUrl'],
@@ -88,10 +85,7 @@ class Summary {
   final int collectionCount;
   final int totalAmount;
 
-  Summary({
-    required this.collectionCount,
-    required this.totalAmount,
-  });
+  Summary({required this.collectionCount, required this.totalAmount});
 
   factory Summary.fromJson(Map<String, dynamic> json) {
     return Summary(
@@ -128,6 +122,8 @@ class ShopItem {
   final String englishName;
   final String tamilName;
   final String typeLabel;
+  final String addressEn;
+  final String addressTa;
   final String category;
   final String subCategory;
   final String categoryLabel;
@@ -145,6 +141,8 @@ class ShopItem {
     required this.englishName,
     required this.tamilName,
     required this.typeLabel,
+    required this.addressEn,
+    required this.addressTa,
     required this.category,
     required this.subCategory,
     required this.categoryLabel,
@@ -165,14 +163,17 @@ class ShopItem {
       tamilName: json['tamilName'] ?? '',
       typeLabel: json['typeLabel'] ?? '',
       category: json['category'] ?? '',
+      addressEn: json['addressEn'] ?? '',
+      addressTa: json['addressTa'] ?? '',
       subCategory: json['subCategory'] ?? '',
       categoryLabel: json['categoryLabel'] ?? '',
       subCategoryLabel: json['subCategoryLabel'] ?? '',
       breadcrumb: json['breadcrumb'] ?? '',
       imageUrl: json['imageUrl'],
-      createdAt: json['createdAt'] != null && json['createdAt'].isNotEmpty
-          ? DateTime.parse(json['createdAt'])
-          : DateTime.now(), // or handle differently
+      createdAt:
+          json['createdAt'] != null && json['createdAt'].isNotEmpty
+              ? DateTime.parse(json['createdAt'])
+              : DateTime.now(), // or handle differently
       businessProfileId: json['businessProfileId'] ?? '',
       businessType: json['businessType'] ?? '',
       planType: json['planType'],

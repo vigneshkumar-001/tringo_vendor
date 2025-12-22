@@ -15,6 +15,7 @@ import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add Vendor Employee/Controller/add_employee_notifier.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
+import '../../../../Core/Widgets/owner_verify_feild.dart';
 
 class HeaterAddEmployee extends ConsumerStatefulWidget {
   const HeaterAddEmployee({super.key});
@@ -102,7 +103,6 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
       _hasError[index] = false;
     });
   }
-
 
   Future<void> _pickImage(int index) async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -366,17 +366,30 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                         SizedBox(height: 30),
 
                         AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: CommonContainer.mobileNumberField(
+                          duration: const Duration(milliseconds: 400),
+                          transitionBuilder:
+                              (child, animation) => FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                          child: OwnerVerifyField(
                             controller: mobileController,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Mobile number required';
-                              }
-                              if (value.length != 10) {
-                                return 'Enter valid 10-digit number';
-                              }
-                              return null;
+                            isLoading: state.isSendingOtp,
+                            isOtpVerifying: state.isVerifyingOtp,
+                            onSendOtp: (mobile) {
+                              return ref
+                                  .read(addEmployeeNotifier.notifier)
+                                  .employeeAddNumberRequest(
+                                    phoneNumber: mobile,
+                                  );
+                            },
+                            onVerifyOtp: (mobile, otp) {
+                              return ref
+                                  .read(addEmployeeNotifier.notifier)
+                                  .employeeAddOtpRequest(
+                                    phoneNumber: mobile,
+                                    code: otp,
+                                  );
                             },
                           ),
                         ),

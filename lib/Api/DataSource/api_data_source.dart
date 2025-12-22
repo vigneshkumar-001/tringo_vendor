@@ -19,8 +19,13 @@ import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Model/owner_regist
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_list_response.dart';
 
 import '../../Core/Utility/app_prefs.dart';
+import '../../Presentation/Heater/Add Vendor Employee/Model/masked_contact_response.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Model/user_image_response.dart';
+import '../../Presentation/Heater/Add Vendor Employee/Model/verification_response.dart';
 import '../../Presentation/Heater/Employee Details/Model/employeeDetailsResponse.dart';
+import '../../Presentation/Heater/Employee details-edit/Model/employee_change_number.dart';
+import '../../Presentation/Heater/Employee details-edit/Model/employee_unblock_response.dart';
+import '../../Presentation/Heater/Employee details-edit/Model/phone_verification_response.dart';
 import '../../Presentation/Heater/Employees/Model/heater_employee_response.dart';
 import '../../Presentation/Heater/Heater Home Screen/Model/heater_home_response.dart';
 import '../../Presentation/Heater/Heater Register/Model/vendorResponse.dart';
@@ -369,6 +374,7 @@ class ApiDataSource {
   Future<Either<Failure, AddEmployeeResponse>> addEmployee({
     // 1st screen
     required String phoneNumber,
+    final String? employeeVerificationToken,
     required String fullName,
     required String email,
     required String emergencyContactName,
@@ -380,9 +386,10 @@ class ApiDataSource {
   }) async {
     try {
       final url = ApiUrl.addEmployees;
-
+      final verification = await AppPrefs.getVerificationToken();
       final payload = {
         "phoneNumber": '+91${phoneNumber}',
+        "employeeVerificationToken": verification,
         "fullName": fullName,
         "email": email,
         "emergencyContactName": emergencyContactName,
@@ -428,36 +435,107 @@ class ApiDataSource {
         return Left(ServerFailure('Image file does not exist.'));
       }
 
-      String url = ApiUrl.imageUrl;
-      FormData formData = FormData.fromMap({
+      final url = ApiUrl.imageUrl;
+
+      final formData = FormData.fromMap({
+        // ✅ backend may expect "image" not "images"
+        // keep your key if backend requires it
         'images': await MultipartFile.fromFile(
           imageFile.path,
           filename: imageFile.path.split('/').last,
         ),
       });
 
-      final response = await Request.formData(url, formData, 'POST', true);
-      Map<String, dynamic> responseData =
-          jsonDecode(response.data) as Map<String, dynamic>;
+      final res = await Request.formData(url, formData, 'POST', true);
+
+      // ✅ If Request.formData returned DioException
+      if (res is DioException) {
+        final msg =
+            res.response?.data?.toString() ??
+            res.message ??
+            res.error?.toString() ??
+            "Upload failed (network error)";
+        return Left(ServerFailure(msg));
+      }
+
+      // ✅ If Request.formData returned something unexpected
+      if (res is! Response) {
+        return Left(ServerFailure("Unexpected error"));
+      }
+
+      final response = res;
+
+      // ✅ response.data could be String or Map
+      final dynamic raw = response.data;
+      Map<String, dynamic> responseData;
+
+      if (raw is String) {
+        responseData = jsonDecode(raw) as Map<String, dynamic>;
+      } else if (raw is Map<String, dynamic>) {
+        responseData = raw;
+      } else {
+        return Left(ServerFailure("Invalid server response"));
+      }
+
       if (response.statusCode == 200) {
         if (responseData['status'] == true) {
           return Right(UserImageResponse.fromJson(responseData));
         } else {
-          return Left(ServerFailure(responseData['message']));
+          return Left(
+            ServerFailure(responseData['message']?.toString() ?? "Failed"),
+          );
         }
-      } else if (response is Response && response.statusCode == 409) {
-        return Left(ServerFailure(responseData['message']));
-      } else if (response is Response) {
-        return Left(ServerFailure(responseData['message'] ?? "Unknown error"));
-      } else {
-        return Left(ServerFailure("Unexpected error"));
       }
+
+      return Left(
+        ServerFailure(
+          responseData['message']?.toString() ??
+              "Upload failed (${response.statusCode})",
+        ),
+      );
     } catch (e) {
-      // CommonLogger.log.e(e);
-      print(e);
-      return Left(ServerFailure('Something went wrong'));
+      return Left(ServerFailure(e.toString()));
     }
   }
+
+  // Future<Either<Failure, UserImageResponse>> userProfileUpload({
+  //   required File imageFile,
+  // }) async {
+  //   try {
+  //     if (!await imageFile.exists()) {
+  //       return Left(ServerFailure('Image file does not exist.'));
+  //     }
+  //
+  //     String url = ApiUrl.imageUrl;
+  //     FormData formData = FormData.fromMap({
+  //       'images': await MultipartFile.fromFile(
+  //         imageFile.path,
+  //         filename: imageFile.path.split('/').last,
+  //       ),
+  //     });
+  //
+  //     final response = await Request.formData(url, formData, 'POST', true);
+  //     Map<String, dynamic> responseData =
+  //         jsonDecode(response.data) as Map<String, dynamic>;
+  //     if (response.statusCode == 200) {
+  //       if (responseData['status'] == true) {
+  //         return Right(UserImageResponse.fromJson(responseData));
+  //       } else {
+  //         return Left(ServerFailure(responseData['message']));
+  //       }
+  //     } else if (response is Response && response.statusCode == 409) {
+  //       return Left(ServerFailure(responseData['message']));
+  //     } else if (response is Response) {
+  //       return Left(ServerFailure(responseData['message'] ?? "Unknown error"));
+  //     } else {
+  //       return Left(ServerFailure("Unexpected error"));
+  //     }
+  //   } catch (e) {
+  //     // CommonLogger.log.e(e);
+  //     print(e);
+  //     return Left(ServerFailure('Something went wrong'));
+  //   }
+  // }
 
   Future<Either<Failure, EmployeeListResponse>> getEmployeeList() async {
     try {
@@ -1197,6 +1275,7 @@ class ApiDataSource {
 
   Future<Either<Failure, EmployeeUpdateResponse>> heaterEmployeeEdit({
     required String employeeId,
+    String? employeeVerificationToken,
     required String phoneNumber,
     required String fullName,
     required String email,
@@ -1204,14 +1283,15 @@ class ApiDataSource {
     required String emergencyContactRelationship,
     required String emergencyContactPhone,
     required String aadhaarNumber,
-    required String aadhaarDocumentUrl,
-    required String avatarUrl,
+    String? aadhaarDocumentUrl,
+    String? avatarUrl,
   }) async {
     try {
       final url = ApiUrl.heaterEmployeeEdit(employeeId: employeeId);
-
+      final verification = await AppPrefs.getVerificationToken();
       final payload = {
         "phoneNumber": '+91${phoneNumber}',
+        "employeeVerificationToken": verification,
         "fullName": fullName,
         "email": email,
         "emergencyContactName": emergencyContactName,
@@ -1427,10 +1507,9 @@ class ApiDataSource {
     required List<String> keywords,
   }) async {
     try {
+      final serviceId = await AppPrefs.getServiceId();
 
-      final serviceId = await  AppPrefs.getServiceId();
-
-      String url = ApiUrl.serviceList(serviceId: serviceId?? '');
+      String url = ApiUrl.serviceList(serviceId: serviceId ?? '');
 
       // ✅ Use the actual images + features passed from caller
       final payload = {"keywords": keywords};
@@ -1466,6 +1545,7 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
   Future<Either<Failure, ImageUploadResponse>> serviceImageUpload({
     required File imageFile,
   }) async {
@@ -1493,7 +1573,7 @@ class ApiDataSource {
       late final Map<String, dynamic> responseData;
       if (response.data is String) {
         responseData =
-        jsonDecode(response.data as String) as Map<String, dynamic>;
+            jsonDecode(response.data as String) as Map<String, dynamic>;
       } else if (response.data is Map<String, dynamic>) {
         responseData = response.data as Map<String, dynamic>;
       } else {
@@ -1518,7 +1598,6 @@ class ApiDataSource {
       return Left(ServerFailure('Something went wrong'));
     }
   }
-
 
   Future<Either<Failure, ShopRootResponse>> getAllShopDetails({
     required String shopId,
@@ -1556,6 +1635,230 @@ class ApiDataSource {
     } catch (e) {
       AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, EmployeeUnblockResponse>> employeeUnblock({
+    required String employeeId,
+  }) async {
+    try {
+      final url = ApiUrl.employeeUnblock(employeeId: employeeId);
+
+      final payload = {
+        "isActive": true, // unblock = always true
+      };
+
+      final response = await Request.sendRequest(url, payload, 'POST', true);
+
+      if (response is DioException) {
+        final errorData = response.response?.data;
+        return Left(
+          ServerFailure(
+            errorData is Map
+                ? errorData['message'] ?? 'Request failed'
+                : 'Network error',
+          ),
+        );
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['status'] == true) {
+          return Right(EmployeeUnblockResponse.fromJson(response.data));
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? 'Unblock failed'),
+          );
+        }
+      }
+
+      return Left(ServerFailure('Unexpected status code'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, EmployeeUnblockResponse>> employeeBlock({
+    required String employeeId,
+    String? reason,
+  }) async {
+    try {
+      final url = ApiUrl.employeeUnblock(
+        employeeId: employeeId,
+      ); // same endpoint
+
+      final payload = {
+        "isActive": false,
+        if (reason != null) "blockedReason": reason,
+      };
+
+      final response = await Request.sendRequest(url, payload, 'POST', true);
+
+      if (response is DioException) {
+        final errorData = response.response?.data;
+        return Left(
+          ServerFailure(
+            errorData is Map
+                ? errorData['message'] ?? 'Request failed'
+                : 'Network error',
+          ),
+        );
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['status'] == true) {
+          return Right(EmployeeUnblockResponse.fromJson(response.data));
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? 'Block failed'),
+          );
+        }
+      }
+
+      return Left(ServerFailure('Unexpected status code'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, MaskedContactResponse>> employeeAddNumberRequest({
+    required String phone,
+  }) async {
+    String url = ApiUrl.employeeAddNumber;
+
+    final response = await Request.sendRequest(
+      url,
+      {"phoneNumber": "+91$phone"},
+      'Post',
+      true,
+    );
+
+    if (response is! DioException) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['status'] == true) {
+          return Right(MaskedContactResponse.fromJson(response.data));
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Login failed"),
+          );
+        }
+      } else {
+        return Left(
+          ServerFailure(response.data['message'] ?? "Something went wrong"),
+        );
+      }
+    } else {
+      final errorData = response.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+    }
+  }
+
+  Future<Either<Failure, VerificationResponse>> employeeAddOtpRequest({
+    required String phone,
+    required String code,
+  }) async {
+    String url = ApiUrl.employeeAddOtp;
+
+    final response = await Request.sendRequest(
+      url,
+      {"phoneNumber": "+91$phone", "code": code},
+      'Post',
+      true,
+    );
+
+    if (response is! DioException) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['status'] == true) {
+          return Right(VerificationResponse.fromJson(response.data));
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Login failed"),
+          );
+        }
+      } else {
+        return Left(
+          ServerFailure(response.data['message'] ?? "Something went wrong"),
+        );
+      }
+    } else {
+      final errorData = response.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+    }
+  }
+
+  Future<Either<Failure, EmployeeChangeNumber>> employeeUpdateNumberRequest({
+    required String phone,
+  }) async {
+    String url = ApiUrl.employeeUpdateNumber;
+
+    final response = await Request.sendRequest(
+      url,
+      {"phoneNumber": "+91$phone"},
+      'Post',
+      true,
+    );
+
+    if (response is! DioException) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['status'] == true) {
+          return Right(EmployeeChangeNumber.fromJson(response.data));
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Login failed"),
+          );
+        }
+      } else {
+        return Left(
+          ServerFailure(response.data['message'] ?? "Something went wrong"),
+        );
+      }
+    } else {
+      final errorData = response.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+    }
+  }
+
+  Future<Either<Failure, PhoneVerificationResponse>> employeeUpdateOtpRequest({
+    required String phone,
+    required String code,
+  }) async {
+    String url = ApiUrl.employeeUpdateOtp;
+
+    final response = await Request.sendRequest(
+      url,
+      {"phoneNumber": "+91$phone", "code": code},
+      'Post',
+      true,
+    );
+
+    if (response is! DioException) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['status'] == true) {
+          return Right(PhoneVerificationResponse.fromJson(response.data));
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Login failed"),
+          );
+        }
+      } else {
+        return Left(
+          ServerFailure(response.data['message'] ?? "Something went wrong"),
+        );
+      }
+    } else {
+      final errorData = response.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(response.message ?? "Unknown Dio error"));
     }
   }
 }

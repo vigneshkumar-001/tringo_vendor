@@ -7,11 +7,11 @@ import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 
 class Request {
   static Future<dynamic> sendRequest(
-      String url,
-      Map<String, dynamic> body,
-      String? method,
-      bool isTokenRequired,
-      ) async {
+    String url,
+    Map<String, dynamic> body,
+    String? method,
+    bool isTokenRequired,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
     final String? sessionToken = prefs.getString('sessionToken');
@@ -36,7 +36,7 @@ class Request {
           return handler.next(response);
         },
         onError: (DioException error, handler) async {
-          final sc = error.response?.statusCode; // ✅ int
+          final sc = error.response?.statusCode; //int
 
           if (sc == 402 || sc == 406 || sc == 401 || sc == 429 || sc == 409) {
             return handler.reject(error);
@@ -57,19 +57,19 @@ class Request {
 
       final response = await dio
           .post(
-        url,
-        data: body,
-        options: Options(
-          headers: headers,
-          validateStatus: (status) => status != null && status < 503,
-        ),
-      )
+            url,
+            data: body,
+            options: Options(
+              headers: headers,
+              validateStatus: (status) => status != null && status < 503,
+            ),
+          )
           .timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException("Request timed out after 10 seconds");
-        },
-      );
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException("Request timed out after 10 seconds");
+            },
+          );
 
       AppLogger.log.i(
         "RESPONSE \n API: $url \n Token : $token \n session Token : $sessionToken \n Headers : $headers \n RESPONSE: ${response.toString()}",
@@ -302,7 +302,6 @@ class Request {
     );
 
     try {
-
       final headers = <String, dynamic>{
         "Content-Type": "application/json",
         if (token != null && isTokenRequired) "Authorization": "Bearer $token",

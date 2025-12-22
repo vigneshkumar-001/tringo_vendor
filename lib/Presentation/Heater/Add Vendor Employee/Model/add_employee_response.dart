@@ -31,6 +31,7 @@ class AddEmployeeData {
   final bool? isActive;
   final String? status;
   final String? employeeCode;
+  final String? employeeVerificationToken;
 
   AddEmployeeData({
     this.id,
@@ -41,6 +42,7 @@ class AddEmployeeData {
     this.isActive,
     this.status,
     this.employeeCode,
+    this.employeeVerificationToken,
   });
 
   factory AddEmployeeData.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class AddEmployeeData {
       isActive: json['isActive'],
       status: json['status'],
       employeeCode: json['employeeCode'],
+      employeeVerificationToken: json['employeeVerificationToken'],
     );
   }
 
@@ -66,6 +69,7 @@ class AddEmployeeData {
       'isActive': isActive,
       'status': status,
       'employeeCode': employeeCode,
+      'employeeVerificationToken': employeeVerificationToken,
     };
   }
 }

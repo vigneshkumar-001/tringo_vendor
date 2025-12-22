@@ -12,6 +12,7 @@ import 'package:tringo_vendor_new/Presentation/No%20Data%20Screen/Screen/no_data
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../Core/Widgets/app_go_routes.dart';
+import '../../../../Core/Widgets/heater_bottom_navigation_bar.dart';
 import '../../Employees/Screen/heater_employees_list.dart';
 import '../Model/heater_home_response.dart';
 
@@ -241,6 +242,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                     itemCount: todayActivity.length,
                     itemBuilder: (context, index) {
                       final data = todayActivity[index];
+
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 15),
                         child: Column(
@@ -344,9 +346,19 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                         InkWell(
                                           onTap: () {
                                             context.push(
-                                              AppRoutes
-                                                  .heaterEmployeeDetailsPath,
+                                              AppRoutes.heaterEmployeeDetailsPath,
+                                              extra: data.employeeId,
                                             );
+                                            // Navigator.push(
+                                            //   context,
+                                            //   MaterialPageRoute(
+                                            //     builder:
+                                            //         (context) =>
+                                            //             HeaterBottomNavigationBar(
+                                            //               initialIndex: 1,
+                                            //             ),
+                                            //   ),
+                                            // );
                                           },
                                           child: Container(
                                             decoration: BoxDecoration(
@@ -358,11 +370,10 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                                   BorderRadius.circular(10),
                                             ),
                                             child: Padding(
-                                              padding:
-                                                    EdgeInsets.symmetric(
-                                                    horizontal: 14.5,
-                                                    vertical: 14.5,
-                                                  ),
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 14.5,
+                                                vertical: 14.5,
+                                              ),
                                               child: Image.asset(
                                                 AppImages.rightArrow,
                                                 color: AppColor.darkBlue,

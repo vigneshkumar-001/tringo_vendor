@@ -1,41 +1,62 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/add_employee_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
 
 import '../../../../Api/DataSource/api_data_source.dart';
+import '../../../../Core/Utility/app_prefs.dart';
 import '../../../Login Screen/Controller/login_notifier.dart';
+import '../Model/masked_contact_response.dart';
+import '../Model/verification_response.dart';
 
 class AddEmployeeState {
   final bool isLoading;
   final String? error;
   final bool isSuccess;
+  final bool isSendingOtp;
+  final bool isVerifyingOtp;
   final AddEmployeeResponse? addEmployeeResponse;
   final EmployeeListResponse? employeeListResponse;
+  final MaskedContactResponse? maskedContactResponse;
+  final VerificationResponse? verificationResponse;
 
   const AddEmployeeState({
     this.isLoading = false,
+    this.isSendingOtp = false,
+    this.isVerifyingOtp = false,
     this.error,
     this.isSuccess = false,
     this.addEmployeeResponse,
     this.employeeListResponse,
+    this.maskedContactResponse,
+    this.verificationResponse,
   });
 
   factory AddEmployeeState.initial() => const AddEmployeeState();
 
   AddEmployeeState copyWith({
     bool? isLoading,
+    bool? isSendingOtp,
+    bool? isVerifyingOtp,
     String? error,
     AddEmployeeResponse? addEmployeeResponse,
     EmployeeListResponse? employeeListResponse,
+    MaskedContactResponse? maskedContactResponse,
+    VerificationResponse? verificationResponse,
     bool clearError = false,
   }) {
     return AddEmployeeState(
       isLoading: isLoading ?? this.isLoading,
+      isSendingOtp: isSendingOtp ?? this.isSendingOtp,
+      isVerifyingOtp: isVerifyingOtp ?? this.isVerifyingOtp,
       error: clearError ? null : (error ?? this.error),
       addEmployeeResponse: addEmployeeResponse ?? this.addEmployeeResponse,
       employeeListResponse: employeeListResponse ?? this.employeeListResponse,
+      maskedContactResponse:
+          maskedContactResponse ?? this.maskedContactResponse,
+      verificationResponse: verificationResponse ?? this.verificationResponse,
     );
   }
 }
@@ -151,20 +172,64 @@ class AddEmployeeNotifier extends Notifier<AddEmployeeState> {
     }
   }
 
-  // Future<void> getEmployeeList( ) async {
-  //   state = state.copyWith(isLoading: true, employeeListResponse: null);
-  //
-  //   final result = await api.getEmployeeList( );
-  //
-  //   result.fold(
-  //         (failure) {
-  //       state = state.copyWith(isLoading: false, employeeListResponse: null);
-  //     },
-  //         (response) {
-  //       state = state.copyWith(isLoading: false, employeeListResponse: response);
-  //     },
-  //   );
-  // }
+  Future<bool> employeeAddNumberRequest({required String phoneNumber}) async {
+    if (state.isSendingOtp) return false;
+
+    state = state.copyWith(isSendingOtp: true, error: null);
+
+    final result = await api.employeeAddNumberRequest(phone: phoneNumber);
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isSendingOtp: false, error: failure.message);
+        return false;
+      },
+      (response) {
+        state = state.copyWith(
+          isSendingOtp: false,
+          maskedContactResponse: response,
+        );
+        return true;
+      },
+    );
+  }
+
+  Future<bool> employeeAddOtpRequest({
+    required String phoneNumber,
+    required String code,
+  }) async {
+    if (state.isVerifyingOtp) return false;
+
+    state = state.copyWith(isVerifyingOtp: true, error: null);
+
+    final result = await api.employeeAddOtpRequest(
+      phone: phoneNumber,
+      code: code,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isVerifyingOtp: false, error: failure.message);
+        return false;
+      },
+      (response) async {
+        final data = response.data;
+
+        await AppPrefs.setVerificationToken(data?.verificationToken ?? '');
+        final verification = await AppPrefs.getVerificationToken();
+        AppLogger.log.i('verification Token → $verification');
+
+        // await prefs.setString('refreshToken', data?.refreshToken ?? '');
+        // await prefs.setString('sessionToken', data?.sessionToken ?? '');
+        // await prefs.setString('role', data?.role ?? '');
+        state = state.copyWith(
+          isVerifyingOtp: false,
+          verificationResponse: response,
+        );
+        return true;
+      },
+    );
+  }
 
   void resetState() {
     state = AddEmployeeState.initial();
