@@ -46,7 +46,6 @@ class AppRoutes {
   static const String vendorCompanyPhoto = 'VendorCompanyPhoto';
   static const String heaterHomeScreen = 'HeaterHomeScreen';
   static const String employeeApprovalPending = 'EmployeeApprovalPending';
-  static const String employeeApprovalRejected = 'EmployeeApprovalRejected';
   static const String heaterAddEmployee = 'heaterAddEmployee';
   static const String mobileNumberVerify = 'MobileNumberVerify';
   static const String privacyPolicy = 'privacyPolicy';
@@ -81,9 +80,6 @@ class AppRoutes {
 
   static const String heaterEmployeeDetailsEditPath =
       '/heaterEmployeeDetailsEditPath';
-
-  static const String employeeApprovalRejectedPath =
-      '/EmployeeApprovalRejected';
 }
 
 final goRouter = GoRouter(
@@ -192,7 +188,8 @@ final goRouter = GoRouter(
         } else if (extra is Map) {
           // ✅ New call: extra: {"from": "...", "initialImageUrls": [...]}
           pageName = (extra["from"] as String?) ?? '';
-          initialImageUrls = (extra["initialImageUrls"] as List?)?.cast<String?>();
+          initialImageUrls =
+              (extra["initialImageUrls"] as List?)?.cast<String?>();
         }
 
         return ShopPhotoInfo(
@@ -207,7 +204,6 @@ final goRouter = GoRouter(
       name: AppRoutes.searchKeyword,
       builder: (context, state) => const SearchKeyword(),
     ),
-
 
     GoRoute(
       path: AppRoutes.productCategoryScreensPath,
@@ -299,11 +295,6 @@ final goRouter = GoRouter(
       builder: (context, state) => EmployeeApprovalPending(),
     ),
     GoRoute(
-      path: AppRoutes.employeeApprovalRejectedPath,
-      name: AppRoutes.employeeApprovalRejected,
-      builder: (context, state) => EmployeeApprovalRejected(),
-    ),
-    GoRoute(
       path: AppRoutes.heaterEmployeeDetailsPath,
       name: AppRoutes.heaterEmployeeDetails,
       builder: (context, state) {
@@ -316,15 +307,25 @@ final goRouter = GoRouter(
       path: AppRoutes.heaterEmployeeDetailsEditPath,
       name: AppRoutes.heaterEmployeeDetailsEdit,
       builder: (context, state) {
-        final args = state.extra as Map<String, String?>;
+        final extra = state.extra as Map<String, dynamic>;
+
         return HeaterEmployeeDetailsEdit(
-          isActive: true,
-          employeeId: args['employeeId']!,
-          name: args['name'],
-          employeeCode: args['employeeCode'],
-          phoneNumber: args['phoneNumber'],
-          avatarUrl: args['avatarUrl'],
-          totalAmount: args['totalAmount'],
+          employeeId: (extra['employeeId'] ?? '') as String,
+          name: extra['name'] as String?,
+          employeeCode: extra['employeeCode'] as String?,
+          phoneNumber: extra['phoneNumber'] as String?,
+          avatarUrl: extra['avatarUrl'] as String?,
+          totalAmount: extra['totalAmount']?.toString(),
+
+          isActive: (extra['isActive'] as bool?) ?? true,
+
+          email: extra['email'] as String?,
+          emergencyContactName: extra['emergencyContactName'] as String?,
+          emergencyContactRelationship:
+              extra['emergencyContactRelationship'] as String?,
+          emergencyContactPhone: extra['emergencyContactPhone'] as String?,
+          aadharNumber: extra['aadharNumber'] as String?,
+          aadharDocumentUrl: extra['aadharDocumentUrl'] as String?,
         );
       },
     ),

@@ -32,7 +32,9 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
   // final type = RegistrationSession.instance.businessType?.label ?? 'Not set';
 
   final TextEditingController accountNumberController = TextEditingController();
-  final TextEditingController accountNameController = TextEditingController();
+  final TextEditingController bankNameController = TextEditingController();
+  final TextEditingController accountHolderNameController =
+      TextEditingController();
   final TextEditingController accountBranchController = TextEditingController();
   final TextEditingController accountIFSCCodeController =
       TextEditingController();
@@ -60,7 +62,8 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
 
   @override
   void dispose() {
-    accountNameController.dispose();
+    bankNameController.dispose();
+    accountHolderNameController.dispose();
     accountBranchController.dispose();
     accountIFSCCodeController.dispose();
     accountNumberController.dispose();
@@ -102,142 +105,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
   bool _insidePhotoError = false;
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage(int index) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      setState(() {
-        _pickedImages[index] = File(pickedFile.path);
-
-        // clear old server image URL
-        _existingUrls[index] = null;
-
-        if (index == 0) {
-          _hasError[index] = false;
-        }
-      });
-    }
-  }
-
-  Widget _addImageContainer({
-    required int index,
-    bool checkIndividualError = false,
-  }) {
-    final file = _pickedImages[index];
-    final url = _existingUrls[index];
-    final hasImage = file != null || (url != null && url.isNotEmpty);
-    final hasError = checkIndividualError ? _hasError[index] : false;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Stack(
-          children: [
-            GestureDetector(
-              onTap: () => _pickImage(index),
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColor.lowGery1,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color:
-                        hasError
-                            ? Colors.red
-                            : hasImage
-                            ? AppColor.lightSkyBlue
-                            : Colors.transparent,
-                    width: 1.5,
-                  ),
-                ),
-                child:
-                    !hasImage
-                        ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 22.5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(AppImages.addImage, height: 20),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Upload Image',
-                                style: AppTextStyles.mulish(
-                                  color: AppColor.darkGrey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                        : ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child:
-                              file != null
-                                  ? Image.file(
-                                    file,
-                                    fit: BoxFit.cover,
-                                    height: 150,
-                                    width: double.infinity,
-                                  )
-                                  : Image.network(
-                                    url!,
-                                    fit: BoxFit.cover,
-                                    height: 150,
-                                    width: double.infinity,
-                                  ),
-                        ),
-              ),
-            ),
-
-            // CLEAR BUTTON
-            if (hasImage)
-              Positioned(
-                top: 15,
-                right: 16,
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      _pickedImages[index] = null;
-                      _existingUrls[index] = null;
-                      _hasError[index] = false;
-                    });
-                  },
-                  child: Column(
-                    children: [
-                      Image.asset(
-                        AppImages.closeImage,
-                        height: 28,
-                        color: AppColor.white,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Clear',
-                        style: AppTextStyles.mulish(
-                          color: AppColor.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-        if (hasError)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 5),
-            child: Text(
-              'Please add this image',
-              style: AppTextStyles.mulish(
-                color: Colors.red,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -387,7 +255,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                       SizedBox(height: 30),
 
                       Text(
-                        'Bank Account Name',
+                        'Bank Name',
                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
                       ),
                       SizedBox(height: 10),
@@ -396,19 +264,40 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         keyboardType: TextInputType.name,
                         text: '',
                         verticalDivider: false,
-                        controller: accountNameController,
+                        controller: bankNameController,
                         context: context,
                         validator:
                             (v) =>
                                 v == null || v.isEmpty
-                                    ? 'Bank Account Name'
+                                    ? 'Bank Name is required'
                                     : null,
                       ),
 
                       SizedBox(height: 30),
 
                       Text(
-                        'Bank Account Branch',
+                        'Account Holder Name',
+                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                      ),
+                      SizedBox(height: 10),
+
+                      CommonContainer.fillingContainer(
+                        keyboardType: TextInputType.name,
+                        text: '',
+                        verticalDivider: false,
+                        controller: accountHolderNameController,
+                        context: context,
+                        validator:
+                            (v) =>
+                                v == null || v.isEmpty
+                                    ? 'Account Holder Name is required'
+                                    : null,
+                      ),
+
+                      SizedBox(height: 30),
+
+                      Text(
+                        'Account Branch',
                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
                       ),
                       SizedBox(height: 10),
@@ -422,14 +311,14 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         validator:
                             (v) =>
                                 v == null || v.isEmpty
-                                    ? 'Bank Account Branch'
+                                    ? 'Account Branch is required'
                                     : null,
                       ),
 
                       SizedBox(height: 30),
 
                       Text(
-                        'Bank Account IFSC Code',
+                        'Account IFSC Code',
                         style: GoogleFonts.mulish(color: AppColor.mildBlack),
                       ),
                       SizedBox(height: 10),
@@ -443,7 +332,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                         validator:
                             (v) =>
                                 v == null || v.isEmpty
-                                    ? 'Bank Account Name'
+                                    ? 'Account IFSC Code is required'
                                     : null,
                       ),
 
@@ -466,7 +355,9 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
 
                           final accountNumber =
                               accountNumberController.text.trim();
-                          final accountName = accountNameController.text.trim();
+                          final accountName = bankNameController.text.trim();
+                          final accountHolderName =
+                              accountHolderNameController.text.trim();
                           final accountBranch =
                               accountBranchController.text.trim();
                           final accountIFSCCode =
