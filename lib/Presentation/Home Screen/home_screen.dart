@@ -517,85 +517,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // HEADER
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 20,
-                ),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(AppImages.homeScreenTopBCImage),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      AppColor.richNavy.withOpacity(0.4),
-                      BlendMode.srcATop,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await _refreshDashboardByDate(); // your existing refresh method
+          },
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // HEADER
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 20,
+                  ),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(AppImages.homeScreenTopBCImage),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        AppColor.richNavy.withOpacity(0.4),
+                        BlendMode.srcATop,
+                      ),
+                    ),
+                    gradient: LinearGradient(
+                      colors: [AppColor.richNavy, AppColor.richBlack],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(25),
+                      bottomRight: Radius.circular(25),
                     ),
                   ),
-                  gradient: LinearGradient(
-                    colors: [AppColor.richNavy, AppColor.richBlack],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                employee.name.isNotEmpty ? employee.name : '-',
-                                style: AppTextStyles.mulish(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: AppColor.white,
-                                ),
-                              ),
-                              Text(
-                                employee.employeeCode,
-                                style: AppTextStyles.mulish(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12,
-                                  color: AppColor.lightGray1,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Reporting',
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 10,
-                                      color: AppColor.white4,
-                                    ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  employee.name.isNotEmpty
+                                      ? employee.name
+                                      : '-',
+                                  style: AppTextStyles.mulish(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: AppColor.white,
                                   ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    '-',
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 10,
-                                      color: AppColor.white4,
-                                    ),
+                                ),
+                                Text(
+                                  employee.employeeCode,
+                                  style: AppTextStyles.mulish(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                    color: AppColor.lightGray1,
                                   ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    employee.vendorName,
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 10,
-                                      color: AppColor.white4,
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Reporting',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '-',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      employee.vendorName,
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -634,222 +641,229 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         label: 'Total Entry',
                       ),
 
-                      const SizedBox(height: 25),
+                        _TotalEntryDonut(
+                          value:
+                              metrics.totalEntry, // ✅ use API metric directly
+                          label: 'Total Entry',
+                        ),
 
-                      // Date filter button
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: InkWell(
-                          onTap: _showDateFilterSheet,
-                          child: IntrinsicWidth(
-                            child: DottedBorder(
-                              color: AppColor.lightBlueBorder,
-                              dashPattern: const [4, 5],
-                              borderType: BorderType.RRect,
-                              radius: const Radius.circular(18),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    _filterLabel,
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 12,
-                                      color: AppColor.white,
+                        const SizedBox(height: 25),
+
+                        // Date filter button
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: InkWell(
+                            onTap: _showDateFilterSheet,
+                            child: IntrinsicWidth(
+                              child: DottedBorder(
+                                color: AppColor.lightBlueBorder,
+                                dashPattern: const [4, 5],
+                                borderType: BorderType.RRect,
+                                radius: const Radius.circular(18),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _filterLabel,
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 12,
+                                        color: AppColor.white,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 7),
-                                  Image.asset(
-                                    AppImages.drapDownImage,
-                                    height: 14,
-                                    width: 10,
-                                  ),
-                                ],
+                                    const SizedBox(width: 7),
+                                    Image.asset(
+                                      AppImages.drapDownImage,
+                                      height: 14,
+                                      width: 10,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
+                        const SizedBox(height: 15),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // TITLE
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Recent Activity',
+                        style: AppTextStyles.mulish(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      const SizedBox(height: 15),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EmployeeHistory(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColor.black,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Image.asset(
+                            AppImages.rightStickArrow,
+                            height: 19,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 40),
+                // TABS
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 25,
+                  ),
+                  child: Row(
+                    children: List.generate(tabs.length, (index) {
+                      final isSelected = selectedIndex == index;
+                      final tab = tabs[index];
 
-              // TITLE
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Recent Activity',
-                      style: AppTextStyles.mulish(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EmployeeHistory(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColor.black,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Image.asset(
-                          AppImages.rightStickArrow,
-                          height: 19,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // TABS
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 25,
-                ),
-                child: Row(
-                  children: List.generate(tabs.length, (index) {
-                    final isSelected = selectedIndex == index;
-                    final tab = tabs[index];
-
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                       child: InkWell(
-                        borderRadius: BorderRadius.circular(18),
-                        onTap: () => setState(() => selectedIndex = index),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected
-                                    ? AppColor.white
-                                    : AppColor.black.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: InkWell(
+                          onTap: () => setState(() => selectedIndex = index),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
                               color:
                                   isSelected
-                                      ? AppColor.deepTeaBlue
-                                      : Colors.transparent,
+                                      ? AppColor.white
+                                      : AppColor.black.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color:
+                                    isSelected
+                                        ? AppColor.deepTeaBlue
+                                        : Colors.transparent,
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              Image.asset(
-                                tab["image"] ?? '',
-                                height: 18,
-                                width: 18,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                tab["label"] ?? '',
-                                style: AppTextStyles.mulish(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColor.darkBlue,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Center(
-              //   child: Text(
-              //     _filterLabel,
-              //     style: AppTextStyles.mulish(
-              //       fontSize: 12,
-              //       fontWeight: FontWeight.w700,
-              //       color: AppColor.darkGrey,
-              //     ),
-              //   ),
-              // ),
-              //
-              // const SizedBox(height: 20),
-
-              // LIST (Grouped by dateLabel)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child:
-                    (groups.isEmpty || totalItems == 0)
-                        ? _emptyActivityView()
-                        : ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: groups.length,
-                          separatorBuilder:
-                              (_, __) => const SizedBox(height: 18),
-                          itemBuilder: (context, groupIndex) {
-                            final group = groups[groupIndex];
-
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                Center(
-                                  child: Text(
-                                    group.dateLabel.isNotEmpty
-                                        ? group.dateLabel
-                                        : group.dateKey,
-                                    style: AppTextStyles.mulish(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColor.darkGrey,
-                                    ),
+                                Image.asset(
+                                  tab["image"] ?? '',
+                                  height: 18,
+                                  width: 18,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  tab["label"] ?? '',
+                                  style: AppTextStyles.mulish(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColor.darkBlue,
                                   ),
                                 ),
-                                const SizedBox(height: 10),
-                                ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: group.items.length,
-                                  separatorBuilder:
-                                      (_, __) => const SizedBox(height: 15),
-                                  itemBuilder: (context, index) {
-                                    final item = group.items[index];
-                                    final imageUrl = _shopImage(item);
-                                    return _activityCard(item, imageUrl);
-                                  },
-                                ),
                               ],
-                            );
-                          },
+                            ),
+                          ),
                         ),
-              ),
+                      );
+                    }),
+                  ),
+                ),
 
-              const SizedBox(height: 40),
-            ],
+                const SizedBox(height: 10),
+
+                // Center(
+                //   child: Text(
+                //     _filterLabel,
+                //     style: AppTextStyles.mulish(
+                //       fontSize: 12,
+                //       fontWeight: FontWeight.w700,
+                //       color: AppColor.darkGrey,
+                //     ),
+                //   ),
+                // ),
+                //
+                // const SizedBox(height: 20),
+
+                // LIST (Grouped by dateLabel)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child:
+                      (groups.isEmpty || totalItems == 0)
+                          ? _emptyActivityView()
+                          : ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: groups.length,
+                            separatorBuilder:
+                                (_, __) => const SizedBox(height: 18),
+                            itemBuilder: (context, groupIndex) {
+                              final group = groups[groupIndex];
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Center(
+                                    child: Text(
+                                      group.dateLabel.isNotEmpty
+                                          ? group.dateLabel
+                                          : group.dateKey,
+                                      style: AppTextStyles.mulish(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColor.darkGrey,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: group.items.length,
+                                    separatorBuilder:
+                                        (_, __) => const SizedBox(height: 15),
+                                    itemBuilder: (context, index) {
+                                      final item = group.items[index];
+                                      final imageUrl = _shopImage(item);
+                                      return _activityCard(item, imageUrl);
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),

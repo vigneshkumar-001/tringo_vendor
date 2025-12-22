@@ -15,8 +15,13 @@ import '../Model/plan_list_response.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
   final bool showSkip;
+  final String businessProfileId;
 
-  const SubscriptionScreen({super.key, this.showSkip = false});
+  const SubscriptionScreen({
+    super.key,
+    this.showSkip = false,
+    required this.businessProfileId,
+  });
 
   @override
   ConsumerState<SubscriptionScreen> createState() => _SubscriptionScreenState();
@@ -29,9 +34,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //   await ref.read(subscriptionNotifier.notifier).getPlanList();
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(subscriptionNotifier.notifier).getPlanList();
+    });
   }
 
   @override
@@ -300,7 +305,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
                               await ref
                                   .read(subscriptionNotifier.notifier)
-                                  .purchasePlan(planId: planId);
+                                  .purchasePlan(planId: planId,businessProfileId: widget.businessProfileId);
 
                               final subState = ref.read(subscriptionNotifier);
 
