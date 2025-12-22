@@ -318,6 +318,7 @@ final goRouter = GoRouter(
       builder: (context, state) {
         final args = state.extra as Map<String, String?>;
         return HeaterEmployeeDetailsEdit(
+          isActive: true,
           employeeId: args['employeeId']!,
           name: args['name'],
           employeeCode: args['employeeCode'],
@@ -352,7 +353,5 @@ final goRouter = GoRouter(
         return ShopDetailsEdit(shopId: shopId);
       },
     ),
-
-
   ],
 );

@@ -84,4 +84,7 @@ class AppImages {
   static String upgrade = 'Assets/Images/upgrade.png';
   static String product = 'Assets/Images/Product.png';
   static String containerBCImage2 = 'Assets/Images/Container Bc Image 2.png';
+  static String paymentBCImage = 'Assets/Images/PaymentScreenBC.png';
+  static String premiumCancel = 'Assets/Images/PremiumCancel.png';
+  static String shareImage = 'Assets/Images/ShareImage.png';
 }

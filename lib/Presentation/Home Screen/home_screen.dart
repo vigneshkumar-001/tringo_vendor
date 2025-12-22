@@ -195,6 +195,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       initialDate: _customDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors
+                  .blue, // Header background (month/year)
+              onPrimary:
+              Colors.white, // Header text color
+              surface:
+              Colors.white, // Calendar background
+              onSurface:
+              Colors.black, // Calendar text color
+            ),
+            dialogBackgroundColor:
+            Colors.white, // Popup background
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked == null) return;

@@ -32,7 +32,6 @@ class OwnerInfoScreens extends ConsumerStatefulWidget {
   ConsumerState<OwnerInfoScreens> createState() => _OwnerInfoScreensState();
 }
 
-///new///
 class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitted = false;
@@ -192,7 +191,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                 SizedBox(height: 35),
 
-                /// HEADER BLOCK
                 Container(
                   decoration: BoxDecoration(
                     image: DecorationImage(
@@ -246,7 +244,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// USER NAME
                       RichText(
                         text: TextSpan(
                           style: GoogleFonts.mulish(
@@ -268,7 +265,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                       const SizedBox(height: 10),
 
-                      /// ENGLISH NAME
                       CommonContainer.fillingContainer(
                         text: 'English',
                         verticalDivider: true,
@@ -283,7 +279,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                       const SizedBox(height: 10),
 
-                      /// TAMIL NAME
                       CommonContainer.fillingContainer(
                         onChanged: (value) async {
                           setState(() => isTamilNameLoading = true);
@@ -344,7 +339,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                       const SizedBox(height: 30),
 
-                      /// OTP Switcher
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         transitionBuilder:
@@ -373,7 +367,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                       ),
                       const SizedBox(height: 30),
 
-                      /// EMAIL
                       Text(
                         'Email Id',
                         style: GoogleFonts.mulish(color: AppColor.mildBlack),

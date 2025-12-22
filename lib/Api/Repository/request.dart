@@ -231,7 +231,7 @@ class Request {
           return handler.next(response);
         },
         onError: (DioException error, handler) async {
-          final sc = error.response?.statusCode; // ✅ int
+          final sc = error.response?.statusCode; //int
 
           if (sc == 402 || sc == 406 || sc == 401 || sc == 429 || sc == 409) {
             return handler.reject(error);
@@ -252,19 +252,19 @@ class Request {
 
       final response = await dio
           .post(
-        url,
-        data: body,
-        options: Options(
-          headers: headers,
-          validateStatus: (status) => status != null && status < 503,
-        ),
-      )
+            url,
+            data: body,
+            options: Options(
+              headers: headers,
+              validateStatus: (status) => status != null && status < 503,
+            ),
+          )
           .timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException("Request timed out after 10 seconds");
-        },
-      );
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException("Request timed out after 10 seconds");
+            },
+          );
 
       AppLogger.log.i(
         "Method : $method \n RESPONSE \n API: $url \n Token : $token \n session Token : $sessionToken \n Headers : $headers \n RESPONSE: ${response.toString()}",

@@ -32,6 +32,7 @@ class EmployeeUpdateData {
   final String phoneNumber;
   final String email;
   final String? avatarUrl;
+  final String? employeeVerificationToken;
   final bool isActive;
 
   final String emergencyContactName;
@@ -44,6 +45,7 @@ class EmployeeUpdateData {
   EmployeeUpdateData({
     required this.id,
     required this.employeeCode,
+    required this.employeeVerificationToken,
     required this.name,
     required this.phoneNumber,
     required this.email,
@@ -60,6 +62,7 @@ class EmployeeUpdateData {
     return EmployeeUpdateData(
       id: json['id'] as String,
       employeeCode: json['employeeCode'] as String,
+      employeeVerificationToken: json['employeeVerificationToken'] as String,
       name: json['name'] as String,
       phoneNumber: json['phoneNumber'] as String,
       email: json['email'] as String,
@@ -77,6 +80,7 @@ class EmployeeUpdateData {
   Map<String, dynamic> toJson() => {
     'id': id,
     'employeeCode': employeeCode,
+    'employeeVerificationToken': employeeVerificationToken,
     'name': name,
     'phoneNumber': phoneNumber,
     'email': email,

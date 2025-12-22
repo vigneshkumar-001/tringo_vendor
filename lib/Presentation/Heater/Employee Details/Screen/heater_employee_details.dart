@@ -297,245 +297,267 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                   }),
                 ),
               ),
-              SizedBox(height: 0),
-              Center(
-                child: Text(
-                  'Today',
-                  style: AppTextStyles.mulish(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColor.darkGrey,
-                  ),
-                ),
-              ),
+              // SizedBox(height: 0),
+              // Center(
+              //   child: Text(
+              //     'Today',
+              //     style: AppTextStyles.mulish(
+              //       fontSize: 12,
+              //       fontWeight: FontWeight.w700,
+              //       color: AppColor.darkGrey,
+              //     ),
+              //   ),
+              // ),
               SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: shops.length,
-                itemBuilder: (context, index) {
-                  final shop = shops[index];
+              if (shops.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 20,
+                  ),
+                  child: Text(
+                    'No Shops & Services',
+                    style: AppTextStyles.mulish(
+                      fontSize: 14,
+                      color: AppColor.darkGrey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                )
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: shops.length,
+                  itemBuilder: (context, index) {
+                    final shop = shops[index];
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColor.iceGray,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        child: Column(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColor.ivoryGreen,
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            AppColor.black.withOpacity(0.054),
-                                            AppColor.black.withOpacity(0.0),
-                                          ],
-                                          begin: Alignment.centerLeft,
-                                          end: Alignment.centerRight,
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColor.iceGray,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: Column(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppColor.ivoryGreen,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              AppColor.black.withOpacity(0.054),
+                                              AppColor.black.withOpacity(0.0),
+                                            ],
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                         ),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 15,
-                                          vertical: 10,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              shop.breadcrumb,
-                                              style: AppTextStyles.mulish(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColor.darkBlue,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 15,
+                                            vertical: 10,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                shop.breadcrumb,
+                                                style: AppTextStyles.mulish(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColor.darkBlue,
+                                                ),
                                               ),
-                                            ),
-                                            SizedBox(width: 6),
-                                            Image.asset(
-                                              AppImages.rightArrow,
-                                              height: 10,
-                                              color: AppColor.darkGrey,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Text(
-                                              shop.breadcrumb,
-                                              style: AppTextStyles.mulish(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColor.darkBlue,
+                                              SizedBox(width: 6),
+                                              Image.asset(
+                                                AppImages.rightArrow,
+                                                height: 10,
+                                                color: AppColor.darkGrey,
                                               ),
-                                            ),
-                                            SizedBox(width: 6),
-                                            Image.asset(
-                                              AppImages.rightArrow,
-                                              height: 10,
-                                              color: AppColor.darkGrey,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Text(
-                                              shop.breadcrumb,
-                                              style: AppTextStyles.mulish(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColor.darkBlue,
+                                              SizedBox(width: 6),
+                                              Text(
+                                                shop.breadcrumb,
+                                                style: AppTextStyles.mulish(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColor.darkBlue,
+                                                ),
                                               ),
-                                            ),
-                                            SizedBox(width: 6),
-                                            Image.asset(
-                                              AppImages.rightArrow,
-                                              height: 10,
-                                              color: AppColor.darkGrey,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(height: 20),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(15),
-                                      child: AspectRatio(
-                                        aspectRatio:
-                                            328 /
-                                            143, // your original image ratio
-                                        child: Image.network(
-                                          shop.imageUrl ?? '',
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
+                                              SizedBox(width: 6),
+                                              Image.asset(
+                                                AppImages.rightArrow,
+                                                height: 10,
+                                                color: AppColor.darkGrey,
+                                              ),
+                                              SizedBox(width: 6),
+                                              Text(
+                                                shop.breadcrumb,
+                                                style: AppTextStyles.mulish(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColor.darkBlue,
+                                                ),
+                                              ),
+                                              SizedBox(width: 6),
+                                              Image.asset(
+                                                AppImages.rightArrow,
+                                                height: 10,
+                                                color: AppColor.darkGrey,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      SizedBox(height: 20),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: AspectRatio(
+                                          aspectRatio:
+                                              328 /
+                                              143, // your original image ratio
+                                          child: Image.network(
+                                            shop.imageUrl ?? '',
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
 
-                                    SizedBox(height: 20),
-                                    Text(
-                                      shop.englishName,
-                                      style: AppTextStyles.mulish(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 18,
-                                        color: AppColor.darkBlue,
-                                      ),
-                                    ),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
-                                      '77, Nehru St, Sathyamoorthy Nagar, State Bank Supervisors Colony, Madurai, Tamil Nadu 625016',
-                                      style: AppTextStyles.mulish(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 12,
-                                        color: AppColor.lightGray3,
-                                      ),
-                                    ),
-                                    SizedBox(height: 20),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            color: AppColor.white,
-                                            borderRadius: BorderRadius.circular(
-                                              50,
-                                            ),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Image.asset(
-                                              AppImages.premiumImage,
-                                              height: 16,
-                                              width: 17,
-                                            ),
-                                          ),
+                                      SizedBox(height: 20),
+                                      Text(
+                                        shop.englishName,
+                                        style: AppTextStyles.mulish(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 18,
+                                          color: AppColor.darkBlue,
                                         ),
-                                        SizedBox(width: 8),
-                                        DottedBorder(
-                                          color: AppColor.black.withOpacity(
-                                            0.2,
-                                          ),
-                                          dashPattern: [3.0, 2.0],
-                                          borderType: dotted.BorderType.RRect,
-                                          padding: EdgeInsets.all(10),
-                                          radius: Radius.circular(18),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 5,
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  '2Months Pro Premium',
-                                                  style: AppTextStyles.mulish(
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 12,
-                                                    color: AppColor.darkBlue,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 10),
-                                                Text(
-                                                  '10.40Pm',
-                                                  style: AppTextStyles.mulish(
-                                                    fontWeight: FontWeight.w400,
-                                                    fontSize: 12,
-                                                    color: AppColor.lightGray3,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
+                                        shop.addressEn,
+                                        style: AppTextStyles.mulish(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 12,
+                                          color: AppColor.lightGray3,
                                         ),
-                                        Spacer(),
-                                        GestureDetector(
-                                          onTap: () {
-                                            // Navigator.push(
-                                            //   context,
-                                            //   MaterialPageRoute(
-                                            //     builder: (context) =>
-                                            //         CommonBottomNavigation(initialIndex: 1),
-                                            //   ),
-                                            // );
-                                          },
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 13,
-                                              vertical: 7.5,
-                                            ),
+                                      ),
+                                      SizedBox(height: 20),
+                                      Row(
+                                        children: [
+                                          Container(
                                             decoration: BoxDecoration(
-                                              color: AppColor.black,
+                                              color: AppColor.white,
                                               borderRadius:
-                                                  BorderRadius.circular(25),
+                                                  BorderRadius.circular(50),
                                             ),
-                                            child: Image.asset(
-                                              AppImages.rightStickArrow,
-                                              height: 19,
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(10),
+                                              child: Image.asset(
+                                                AppImages.premiumImage,
+                                                height: 16,
+                                                width: 17,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                          SizedBox(width: 8),
+                                          DottedBorder(
+                                            color: AppColor.black.withOpacity(
+                                              0.2,
+                                            ),
+                                            dashPattern: [3.0, 2.0],
+                                            borderType: dotted.BorderType.RRect,
+                                            padding: EdgeInsets.all(10),
+                                            radius: Radius.circular(18),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 5,
+                                                  ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    '2Months Pro Premium',
+                                                    style: AppTextStyles.mulish(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: 12,
+                                                      color: AppColor.darkBlue,
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 10),
+                                                  Text(
+                                                    '10.40Pm',
+                                                    style: AppTextStyles.mulish(
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      fontSize: 12,
+                                                      color:
+                                                          AppColor.lightGray3,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          Spacer(),
+                                          GestureDetector(
+                                            onTap: () {
+                                              // Navigator.push(
+                                              //   context,
+                                              //   MaterialPageRoute(
+                                              //     builder: (context) =>
+                                              //         CommonBottomNavigation(initialIndex: 1),
+                                              //   ),
+                                              // );
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 13,
+                                                vertical: 7.5,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: AppColor.black,
+                                                borderRadius:
+                                                    BorderRadius.circular(25),
+                                              ),
+                                              child: Image.asset(
+                                                AppImages.rightStickArrow,
+                                                height: 19,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
             ],
           ),
         ),
