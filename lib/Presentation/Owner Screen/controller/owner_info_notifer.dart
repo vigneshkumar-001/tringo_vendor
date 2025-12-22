@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:tringo_vendor_new/Api/DataSource/api_data_source.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
@@ -71,22 +72,29 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
 
     state = OwnerInfoState.initial();
   }
-
-  Future<bool> ownerInfoNumberRequest({required String phoneNumber}) async {
-    if (state.isSendingOtp) return false;
+  Future<String?> ownerInfoNumberRequest({
+    required String phoneNumber,
+  }) async {
+    if (state.isSendingOtp) return "OTP_ALREADY_SENDING";
 
     state = state.copyWith(isSendingOtp: true, error: null);
 
     final result = await api.ownerInfoNumberRequest(phone: phoneNumber);
 
     return result.fold(
-      (failure) {
-        state = state.copyWith(isSendingOtp: false, error: failure.message);
-        return false;
+          (failure) {
+        state = state.copyWith(
+          isSendingOtp: false,
+          error: failure.message,
+        );
+        return failure.message; // 🔥 return backend error
       },
-      (response) {
-        state = state.copyWith(isSendingOtp: false, loginResponse: response);
-        return true;
+          (response) {
+        state = state.copyWith(
+          isSendingOtp: false,
+          loginResponse: response,
+        );
+        return null; // ✅ success
       },
     );
   }

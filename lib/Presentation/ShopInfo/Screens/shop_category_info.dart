@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Controller/shop_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_list_response.dart';
+import 'package:tringo_vendor_new/Presentation/ShopInfo/Screens/shop_photo_info.dart';
 
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
@@ -20,8 +21,10 @@ import '../../../Core/Widgets/common_container.dart';
 
 class ShopCategoryInfo extends ConsumerStatefulWidget {
   final String? pages;
+  final bool isEditMode;
   final String? initialShopNameEnglish;
   final String? initialShopNameTamil;
+  final String? businessProfileId;
   final String? shopId;
   final bool? isService;
   final bool? isIndividual;
@@ -44,12 +47,15 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
   final String? initialCloseTimeText;
   final String? initialOwnerImageUrl;
   final String? employeeId;
+  final List<String?>? initialImageUrls;
 
   const ShopCategoryInfo({
     super.key,
     this.pages,
     this.initialShopNameEnglish,
+    this.businessProfileId,
     this.initialShopNameTamil,
+    this.isEditMode = false,
     this.shopId,
     required this.isService,
     required this.isIndividual,
@@ -70,6 +76,7 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
     this.initialCloseTimeText,
     this.initialOwnerImageUrl,
     this.employeeId,
+    this.initialImageUrls,
   });
 
   @override
@@ -91,12 +98,18 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   final TextEditingController _whatsappController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
-  final TextEditingController addressTamilNameController = TextEditingController();
-  final TextEditingController descriptionTamilController = TextEditingController();
-  final TextEditingController _shopNameEnglishController = TextEditingController();
-  final TextEditingController _descriptionEnglishController = TextEditingController();
-  final TextEditingController _addressEnglishController = TextEditingController();
-  final TextEditingController _primaryMobileController = TextEditingController();
+  final TextEditingController addressTamilNameController =
+      TextEditingController();
+  final TextEditingController descriptionTamilController =
+      TextEditingController();
+  final TextEditingController _shopNameEnglishController =
+      TextEditingController();
+  final TextEditingController _descriptionEnglishController =
+      TextEditingController();
+  final TextEditingController _addressEnglishController =
+      TextEditingController();
+  final TextEditingController _primaryMobileController =
+      TextEditingController();
 
   final List<String> doorDelivery = ['Yes', 'No'];
 
@@ -142,66 +155,190 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   @override
   void initState() {
     super.initState();
-
-    // ✅ Show server image in edit mode if available
-    _hasExistingOwnerImage = (widget.initialOwnerImageUrl?.trim().isNotEmpty ?? false);
-
-    // Optional: prefill controllers if you want
-    if ((widget.initialShopNameEnglish ?? '').trim().isNotEmpty) {
-      _shopNameEnglishController.text = widget.initialShopNameEnglish!.trim();
+    if (widget.isEditMode) {
+      _prefillFields();
     }
-    if ((widget.initialShopNameTamil ?? '').trim().isNotEmpty) {
-      tamilNameController.text = widget.initialShopNameTamil!.trim();
+    // // ✅ Show server image in edit mode if available
+    // _hasExistingOwnerImage =
+    //     (widget.initialOwnerImageUrl?.trim().isNotEmpty ?? false);
+    //
+    // // Optional: prefill controllers if you want
+    // if ((widget.initialShopNameEnglish ?? '').trim().isNotEmpty) {
+    //   _shopNameEnglishController.text = widget.initialShopNameEnglish!.trim();
+    // }
+    // if ((widget.initialShopNameTamil ?? '').trim().isNotEmpty) {
+    //   tamilNameController.text = widget.initialShopNameTamil!.trim();
+    //   _tamilPrefilled = true;
+    // }
+    // if ((widget.initialDescriptionEnglish ?? '').trim().isNotEmpty) {
+    //   _descriptionEnglishController.text =
+    //       widget.initialDescriptionEnglish!.trim();
+    // }
+    // if ((widget.initialDescriptionTamil ?? '').trim().isNotEmpty) {
+    //   descriptionTamilController.text = widget.initialDescriptionTamil!.trim();
+    // }
+    // if ((widget.initialAddressEnglish ?? '').trim().isNotEmpty) {
+    //   _addressEnglishController.text = widget.initialAddressEnglish!.trim();
+    // }
+    // if ((widget.initialAddressTamil ?? '').trim().isNotEmpty) {
+    //   addressTamilNameController.text = widget.initialAddressTamil!.trim();
+    // }
+    // if ((widget.initialGps ?? '').trim().isNotEmpty) {
+    //   _gpsController.text = widget.initialGps!.trim();
+    //   _gpsFetched = true;
+    // }
+    // if ((widget.initialPrimaryMobile ?? '').trim().isNotEmpty) {
+    //   _primaryMobileController.text = widget.initialPrimaryMobile!.trim();
+    // }
+    // if ((widget.initialWhatsapp ?? '').trim().isNotEmpty) {
+    //   _whatsappController.text = widget.initialWhatsapp!.trim();
+    // }
+    // if ((widget.initialEmail ?? '').trim().isNotEmpty) {
+    //   _emailController.text = widget.initialEmail!.trim();
+    // }
+    // if ((widget.initialCategoryName ?? '').trim().isNotEmpty) {
+    //   _categoryController.text = widget.initialCategoryName!.trim();
+    // }
+    // if ((widget.initialCategorySlug ?? '').trim().isNotEmpty) {
+    //   categorySlug = widget.initialCategorySlug!.trim();
+    // }
+    // if ((widget.initialSubCategoryName ?? '').trim().isNotEmpty) {
+    //   _subCategoryController.text = widget.initialSubCategoryName!.trim();
+    // }
+    // if ((widget.initialSubCategorySlug ?? '').trim().isNotEmpty) {
+    //   subCategorySlug = widget.initialSubCategorySlug!.trim();
+    // }
+    // if ((widget.initialDoorDeliveryText ?? '').trim().isNotEmpty) {
+    //   _doorDeliveryController.text = widget.initialDoorDeliveryText!.trim();
+    // }
+    // if ((widget.initialOpenTimeText ?? '').trim().isNotEmpty) {
+    //   _openTimeController.text = widget.initialOpenTimeText!.trim();
+    //   _openTod = _parseTimeOfDay(_openTimeController.text);
+    // }
+    // if ((widget.initialCloseTimeText ?? '').trim().isNotEmpty) {
+    //   _closeTimeController.text = widget.initialCloseTimeText!.trim();
+    //   _closeTod = _parseTimeOfDay(_closeTimeController.text);
+    // }
+  }
+
+  void _prefillFields() {
+    // 👉 shop name
+    if (widget.initialShopNameEnglish?.isNotEmpty ?? false) {
+      _shopNameEnglishController.text = widget.initialShopNameEnglish!;
+    }
+
+    if (widget.initialShopNameTamil?.isNotEmpty ?? false) {
+      tamilNameController.text = widget.initialShopNameTamil!;
       _tamilPrefilled = true;
+    } else {
+      _prefillTamilFromEnglishOnce();
     }
-    if ((widget.initialDescriptionEnglish ?? '').trim().isNotEmpty) {
-      _descriptionEnglishController.text = widget.initialDescriptionEnglish!.trim();
+
+    // 👉 description
+    if (widget.initialDescriptionEnglish?.isNotEmpty ?? false) {
+      _descriptionEnglishController.text = widget.initialDescriptionEnglish!;
     }
-    if ((widget.initialDescriptionTamil ?? '').trim().isNotEmpty) {
-      descriptionTamilController.text = widget.initialDescriptionTamil!.trim();
+    if (widget.initialDescriptionTamil?.isNotEmpty ?? false) {
+      descriptionTamilController.text = widget.initialDescriptionTamil!;
     }
-    if ((widget.initialAddressEnglish ?? '').trim().isNotEmpty) {
-      _addressEnglishController.text = widget.initialAddressEnglish!.trim();
+
+    // 👉 address
+    if (widget.initialAddressEnglish?.isNotEmpty ?? false) {
+      _addressEnglishController.text = widget.initialAddressEnglish!;
     }
-    if ((widget.initialAddressTamil ?? '').trim().isNotEmpty) {
-      addressTamilNameController.text = widget.initialAddressTamil!.trim();
+    if (widget.initialAddressTamil?.isNotEmpty ?? false) {
+      addressTamilNameController.text = widget.initialAddressTamil!;
     }
-    if ((widget.initialGps ?? '').trim().isNotEmpty) {
-      _gpsController.text = widget.initialGps!.trim();
+
+    // 👉 GPS
+    if (widget.initialGps?.isNotEmpty ?? false) {
+      _gpsController.text = widget.initialGps!;
       _gpsFetched = true;
     }
-    if ((widget.initialPrimaryMobile ?? '').trim().isNotEmpty) {
-      _primaryMobileController.text = widget.initialPrimaryMobile!.trim();
+
+    // 👉 phones (strip +91 / 91 for edit mode)
+    if (widget.initialPrimaryMobile?.isNotEmpty ?? false) {
+      var phone = widget.initialPrimaryMobile!.trim();
+      phone = _stripIndianCode(phone);
+      _primaryMobileController.text = phone;
     }
-    if ((widget.initialWhatsapp ?? '').trim().isNotEmpty) {
-      _whatsappController.text = widget.initialWhatsapp!.trim();
+
+    if (widget.initialWhatsapp?.isNotEmpty ?? false) {
+      var wa = widget.initialWhatsapp!.trim();
+      wa = _stripIndianCode(wa);
+      _whatsappController.text = wa;
     }
-    if ((widget.initialEmail ?? '').trim().isNotEmpty) {
-      _emailController.text = widget.initialEmail!.trim();
+
+    // 👉 email
+    if (widget.initialEmail?.isNotEmpty ?? false) {
+      _emailController.text = widget.initialEmail!;
     }
-    if ((widget.initialCategoryName ?? '').trim().isNotEmpty) {
-      _categoryController.text = widget.initialCategoryName!.trim();
+
+    // 👉 category / subcategory
+    if (widget.initialCategoryName?.isNotEmpty ?? false) {
+      _categoryController.text = widget.initialCategoryName!;
+      categorySlug = widget.initialCategorySlug ?? '';
     }
-    if ((widget.initialCategorySlug ?? '').trim().isNotEmpty) {
-      categorySlug = widget.initialCategorySlug!.trim();
+    if (widget.initialSubCategoryName?.isNotEmpty ?? false) {
+      _subCategoryController.text = widget.initialSubCategoryName!;
+      subCategorySlug = widget.initialSubCategorySlug ?? '';
     }
-    if ((widget.initialSubCategoryName ?? '').trim().isNotEmpty) {
-      _subCategoryController.text = widget.initialSubCategoryName!.trim();
+
+    // 👉 door delivery (for product flow)
+    if (widget.initialDoorDeliveryText?.isNotEmpty ?? false) {
+      _doorDeliveryController.text = widget.initialDoorDeliveryText!;
     }
-    if ((widget.initialSubCategorySlug ?? '').trim().isNotEmpty) {
-      subCategorySlug = widget.initialSubCategorySlug!.trim();
+
+    // 👉 open / close time – text + parse to TimeOfDay
+    if (widget.initialOpenTimeText?.isNotEmpty ?? false) {
+      final parsedOpen = _parseTimeOfDay(widget.initialOpenTimeText!);
+      if (parsedOpen != null) {
+        _openTod = parsedOpen;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _openTimeController.text = parsedOpen.format(context);
+          }
+        });
+      } else {
+        _openTimeController.text = widget.initialOpenTimeText!;
+      }
     }
-    if ((widget.initialDoorDeliveryText ?? '').trim().isNotEmpty) {
-      _doorDeliveryController.text = widget.initialDoorDeliveryText!.trim();
+
+    if (widget.initialCloseTimeText?.isNotEmpty ?? false) {
+      final parsedClose = _parseTimeOfDay(widget.initialCloseTimeText!);
+      if (parsedClose != null) {
+        _closeTod = parsedClose;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _closeTimeController.text = parsedClose.format(context);
+          }
+        });
+      } else {
+        _closeTimeController.text = widget.initialCloseTimeText!;
+      }
     }
-    if ((widget.initialOpenTimeText ?? '').trim().isNotEmpty) {
-      _openTimeController.text = widget.initialOpenTimeText!.trim();
-      _openTod = _parseTimeOfDay(_openTimeController.text);
+
+    // 👉 owner image
+    if ((widget.initialOwnerImageUrl?.isNotEmpty ?? false) &&
+        (widget.isService == true)) {
+      _hasExistingOwnerImage = true;
     }
-    if ((widget.initialCloseTimeText ?? '').trim().isNotEmpty) {
-      _closeTimeController.text = widget.initialCloseTimeText!.trim();
-      _closeTod = _parseTimeOfDay(_closeTimeController.text);
+  }
+
+  String _stripIndianCode(String number) {
+    var n = number.trim();
+    if (n.isEmpty) return n;
+
+    if (n.startsWith('+91')) {
+      return n.substring(3).trim();
     }
+
+    // e.g. "91XXXXXXXXXX"
+    if (n.startsWith('91') && n.length > 10) {
+      return n.substring(n.length - 10).trim();
+    }
+
+    return n;
   }
 
   @override
@@ -327,7 +464,9 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
       if (permission == LocationPermission.deniedForever) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location permissions are permanently denied.')),
+          const SnackBar(
+            content: Text('Location permissions are permanently denied.'),
+          ),
         );
         return;
       }
@@ -338,7 +477,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
       setState(() {
         _gpsController.text =
-        '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
+            '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
         _gpsFetched = true;
         _gpsErrorText = null;
       });
@@ -372,65 +511,67 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     }
   }
 
-  bool _validateAll() {
-    setState(() {
-      _isSubmitted = true;
-      _categoryErrorText = null;
-      _subCategoryErrorText = null;
-      _timeErrorText = null;
-      _imageErrorText = null;
-      _timetableInvalid = false;
-      _gpsErrorText = null;
-    });
-
-    final baseValid = _formKey.currentState?.validate() ?? false;
-    bool extraValid = true;
-
-    if (_categoryController.text.trim().isEmpty) {
-      _categoryErrorText = 'Please select a category';
-      extraValid = false;
-    }
-
-    if (_subCategoryController.text.trim().isEmpty) {
-      _subCategoryErrorText = 'Please select a subcategory';
-      extraValid = false;
-    }
-
-    if (_openTod != null && _closeTod != null && !validateTimes()) {
-      _timeErrorText = 'Close Time must be after Open Time';
-      extraValid = false;
-    }
-
-    // ✅ Service flow image required: allow either picked image OR existing image
-    if (widget.isService == true && _ownerImage == null && !_hasExistingOwnerImage) {
-      _imageErrorText = 'Please add your Photo';
-      _timetableInvalid = true;
-      extraValid = false;
-    }
-
-    // Product flow GPS required
-    if (widget.isService != true) {
-      if (_gpsController.text.trim().isEmpty) {
-        _gpsErrorText = 'Please get GPS location';
-        extraValid = false;
-      }
-    }
-
-    final allGood = baseValid && extraValid;
-
-    if (!allGood) {
-      AppSnackBar.error(context, 'Please fill all required fields correctly');
-    }
-
-    setState(() {});
-    return allGood;
-  }
+  // bool _validateAll() {
+  //   setState(() {
+  //     _isSubmitted = true;
+  //     _categoryErrorText = null;
+  //     _subCategoryErrorText = null;
+  //     _timeErrorText = null;
+  //     _imageErrorText = null;
+  //     _timetableInvalid = false;
+  //     _gpsErrorText = null;
+  //   });
+  //
+  //   final baseValid = _formKey.currentState?.validate() ?? false;
+  //   bool extraValid = true;
+  //
+  //   if (_categoryController.text.trim().isEmpty) {
+  //     _categoryErrorText = 'Please select a category';
+  //     extraValid = false;
+  //   }
+  //
+  //   if (_subCategoryController.text.trim().isEmpty) {
+  //     _subCategoryErrorText = 'Please select a subcategory';
+  //     extraValid = false;
+  //   }
+  //
+  //   if (_openTod != null && _closeTod != null && !validateTimes()) {
+  //     _timeErrorText = 'Close Time must be after Open Time';
+  //     extraValid = false;
+  //   }
+  //
+  //   // ✅ Service flow image required: allow either picked image OR existing image
+  //   if (widget.isService == true &&
+  //       _ownerImage == null &&
+  //       !_hasExistingOwnerImage) {
+  //     _imageErrorText = 'Please add your Photo';
+  //     _timetableInvalid = true;
+  //     extraValid = false;
+  //   }
+  //
+  //   // Product flow GPS required
+  //   if (widget.isService != true) {
+  //     if (_gpsController.text.trim().isEmpty) {
+  //       _gpsErrorText = 'Please get GPS location';
+  //       extraValid = false;
+  //     }
+  //   }
+  //
+  //   final allGood = baseValid && extraValid;
+  //
+  //   if (!allGood) {
+  //     AppSnackBar.error(context, 'Please fill all required fields correctly');
+  //   }
+  //
+  //   setState(() {});
+  //   return allGood;
+  // }
 
   void _showCategoryBottomSheet(
-      BuildContext context,
-      TextEditingController controller, {
-        void Function(ShopCategoryListData selectedCategory)? onCategorySelected,
-      }) {
+    BuildContext context,
+    TextEditingController controller, {
+    void Function(ShopCategoryListData selectedCategory)? onCategorySelected,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -465,7 +606,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           padding: EdgeInsets.all(20),
                           child: Text(
                             'No categories found',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       );
@@ -480,34 +624,53 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               color: Colors.grey,
-                              borderRadius: BorderRadius.all(Radius.circular(2)),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(2),
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 10),
                         const Text(
                           'Select Category',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 10),
 
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           child: TextField(
                             controller: searchController,
                             onChanged: (value) {
                               setModalState(() {
-                                filtered = categories
-                                    .where((c) => c.name.toLowerCase().contains(value.toLowerCase()))
-                                    .toList();
+                                filtered =
+                                    categories
+                                        .where(
+                                          (c) => c.name.toLowerCase().contains(
+                                            value.toLowerCase(),
+                                          ),
+                                        )
+                                        .toList();
                               });
                             },
                             decoration: InputDecoration(
                               hintText: 'Search category...',
-                              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: Colors.grey,
+                              ),
                               filled: true,
                               fillColor: Colors.grey[100],
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
@@ -517,38 +680,46 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         ),
 
                         Expanded(
-                          child: isLoading
-                              ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: ThreeDotsLoader(dotColor: AppColor.darkBlue),
-                            ),
-                          )
-                              : ListView.builder(
-                            controller: scrollController,
-                            itemCount: filtered.length,
-                            itemBuilder: (context, index) {
-                              final category = filtered[index];
-                              return ListTile(
-                                title: Text(category.name),
-                                trailing: category.children.isNotEmpty
-                                    ? const Icon(Icons.arrow_forward_ios, size: 14)
-                                    : null,
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  setState(() {
-                                    controller.text = category.name;
-                                    categorySlug = category.slug;
-                                    _categoryErrorText = null;
-                                    _selectedCategoryChildren = category.children;
-                                    _subCategoryController.clear();
-                                    _subCategoryErrorText = null;
-                                  });
-                                  onCategorySelected?.call(category);
-                                },
-                              );
-                            },
-                          ),
+                          child:
+                              isLoading
+                                  ? Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: ThreeDotsLoader(
+                                        dotColor: AppColor.darkBlue,
+                                      ),
+                                    ),
+                                  )
+                                  : ListView.builder(
+                                    controller: scrollController,
+                                    itemCount: filtered.length,
+                                    itemBuilder: (context, index) {
+                                      final category = filtered[index];
+                                      return ListTile(
+                                        title: Text(category.name),
+                                        trailing:
+                                            category.children.isNotEmpty
+                                                ? const Icon(
+                                                  Icons.arrow_forward_ios,
+                                                  size: 14,
+                                                )
+                                                : null,
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          setState(() {
+                                            controller.text = category.name;
+                                            categorySlug = category.slug;
+                                            _categoryErrorText = null;
+                                            _selectedCategoryChildren =
+                                                category.children;
+                                            _subCategoryController.clear();
+                                            _subCategoryErrorText = null;
+                                          });
+                                          onCategorySelected?.call(category);
+                                        },
+                                      );
+                                    },
+                                  ),
                         ),
                       ],
                     );
@@ -563,10 +734,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   }
 
   void _showCategoryChildrenBottomSheet(
-      BuildContext context,
-      List<ShopCategoryListData> children,
-      TextEditingController controller,
-      ) {
+    BuildContext context,
+    List<ShopCategoryListData> children,
+    TextEditingController controller,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -602,27 +773,44 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                     const SizedBox(height: 10),
                     const Text(
                       'Select Subcategory',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 10),
 
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: TextField(
                         controller: searchController,
                         onChanged: (value) {
                           setModalState(() {
-                            filtered = children
-                                .where((c) => c.name.toLowerCase().contains(value.toLowerCase()))
-                                .toList();
+                            filtered =
+                                children
+                                    .where(
+                                      (c) => c.name.toLowerCase().contains(
+                                        value.toLowerCase(),
+                                      ),
+                                    )
+                                    .toList();
                           });
                         },
                         decoration: InputDecoration(
                           hintText: 'Search subcategory...',
-                          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.grey,
+                          ),
                           filled: true,
                           fillColor: Colors.grey[100],
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -632,31 +820,35 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                     ),
 
                     Expanded(
-                      child: filtered.isEmpty
-                          ? const Center(
-                        child: Text(
-                          'No subcategories found',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
-                      )
-                          : ListView.builder(
-                        controller: scrollController,
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final child = filtered[index];
-                          return ListTile(
-                            title: Text(child.name),
-                            onTap: () {
-                              Navigator.pop(context);
-                              setState(() {
-                                controller.text = child.name;
-                                subCategorySlug = child.slug;
-                                _subCategoryErrorText = null;
-                              });
-                            },
-                          );
-                        },
-                      ),
+                      child:
+                          filtered.isEmpty
+                              ? const Center(
+                                child: Text(
+                                  'No subcategories found',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              )
+                              : ListView.builder(
+                                controller: scrollController,
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) {
+                                  final child = filtered[index];
+                                  return ListTile(
+                                    title: Text(child.name),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      setState(() {
+                                        controller.text = child.name;
+                                        subCategorySlug = child.slug;
+                                        _subCategoryErrorText = null;
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
                     ),
                   ],
                 );
@@ -673,7 +865,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     final state = ref.watch(shopCategoryNotifierProvider);
     final bool isServiceFlow = widget.isService ?? false;
     final bool isIndividualFlow = widget.isIndividual ?? true;
-    final bool isEditFromAboutMe = widget.pages == "AboutMeScreens";
+    final bool isEditFromAboutMe = widget.pages == "shopDetailsEdit";
 
     return Scaffold(
       body: SafeArea(
@@ -684,13 +876,18 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 16,
+                  ),
                   child: Row(
                     children: [
-                      CommonContainer.topLeftArrow(onTap: () => Navigator.pop(context)),
+                      CommonContainer.topLeftArrow(
+                        onTap: () => Navigator.pop(context),
+                      ),
                       const SizedBox(width: 50),
                       Text(
-                        'Register Vendor',
+                        'Register Shop',
                         style: AppTextStyles.mulish(
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
@@ -733,18 +930,24 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Shop Category', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'Shop Category',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       GestureDetector(
                         onTap: () {
-                          ref.read(shopCategoryNotifierProvider.notifier).fetchCategories();
+                          ref
+                              .read(shopCategoryNotifierProvider.notifier)
+                              .fetchCategories();
                           _showCategoryBottomSheet(
                             context,
                             _categoryController,
                             onCategorySelected: (selectedCategory) {
                               setState(() {
-                                _selectedCategoryChildren = selectedCategory.children;
+                                _selectedCategoryChildren =
+                                    selectedCategory.children;
                                 _subCategoryController.clear();
                                 _categoryErrorText = null;
                                 _subCategoryErrorText = null;
@@ -753,25 +956,35 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 19),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 19,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColor.lowGery1,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Text(
-                                    _categoryController.text.isEmpty ? "" : _categoryController.text,
+                                    _categoryController.text.isEmpty
+                                        ? ""
+                                        : _categoryController.text,
                                     style: AppTextStyles.mulish(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 18,
                                     ),
                                   ),
                                 ),
-                                Image.asset(AppImages.drapDownImage, height: 30),
+                                Image.asset(
+                                  AppImages.drapDownImage,
+                                  height: 30,
+                                ),
                               ],
                             ),
                           ),
@@ -780,40 +993,67 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       if (_categoryErrorText != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 6.0, left: 4),
-                          child: Text(_categoryErrorText!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                          child: Text(
+                            _categoryErrorText!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
 
                       const SizedBox(height: 10),
 
                       GestureDetector(
                         onTap: () {
-                          if (_categoryController.text.isEmpty || _selectedCategoryChildren == null) {
-                            AppSnackBar.info(context, 'Please select a category first');
+                          if (_categoryController.text.isEmpty ||
+                              _selectedCategoryChildren == null) {
+                            AppSnackBar.info(
+                              context,
+                              'Please select a category first',
+                            );
                             return;
                           }
-                          _showCategoryChildrenBottomSheet(context, _selectedCategoryChildren!, _subCategoryController);
+                          _showCategoryChildrenBottomSheet(
+                            context,
+                            _selectedCategoryChildren!,
+                            _subCategoryController,
+                          );
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 19),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 19,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColor.lowGery1,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Text(
-                                    _subCategoryController.text.isEmpty ? " " : _subCategoryController.text,
+                                    _subCategoryController.text.isEmpty
+                                        ? " "
+                                        : _subCategoryController.text,
                                     style: AppTextStyles.mulish(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 18,
-                                      color: _subCategoryController.text.isEmpty ? Colors.grey : Colors.black,
+                                      color:
+                                          _subCategoryController.text.isEmpty
+                                              ? Colors.grey
+                                              : Colors.black,
                                     ),
                                   ),
                                 ),
-                                Image.asset(AppImages.drapDownImage, height: 30),
+                                Image.asset(
+                                  AppImages.drapDownImage,
+                                  height: 30,
+                                ),
                               ],
                             ),
                           ),
@@ -822,16 +1062,32 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       if (_subCategoryErrorText != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 6.0, left: 4),
-                          child: Text(_subCategoryErrorText!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                          child: Text(
+                            _subCategoryErrorText!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
 
                       const SizedBox(height: 25),
 
                       Row(
                         children: [
-                          Text('Shop name', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                          Text(
+                            'Shop name',
+                            style: AppTextStyles.mulish(
+                              color: AppColor.mildBlack,
+                            ),
+                          ),
                           const SizedBox(width: 10),
-                          Text('( As per Govt Certificate )', style: AppTextStyles.mulish(color: AppColor.mediumLightGray)),
+                          Text(
+                            '( As per Govt Certificate )',
+                            style: AppTextStyles.mulish(
+                              color: AppColor.mediumLightGray,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -839,8 +1095,11 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       CommonContainer.fillingContainer(
                         controller: _shopNameEnglishController,
                         text: 'English',
-                        validator: (value) =>
-                        value == null || value.isEmpty ? 'Please Enter Shop Name in English' : null,
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Please Enter Shop Name in English'
+                                    : null,
                         onChanged: (_) => _prefillTamilFromEnglishOnce(),
                       ),
                       const SizedBox(height: 15),
@@ -849,10 +1108,15 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         controller: tamilNameController,
                         text: 'Tamil',
                         isTamil: true,
-                        validator: (v) => (v == null || v.isEmpty) ? 'Please Enter Shop Name in Tamil' : null,
+                        validator:
+                            (v) =>
+                                (v == null || v.isEmpty)
+                                    ? 'Please Enter Shop Name in Tamil'
+                                    : null,
                         onChanged: (value) async {
                           setState(() => isTamilNameLoading = true);
-                          final result = await TanglishTamilHelper.transliterate(value);
+                          final result =
+                              await TanglishTamilHelper.transliterate(value);
                           setState(() {
                             tamilNameSuggestion = result;
                             isTamilNameLoading = false;
@@ -897,14 +1161,21 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                       const SizedBox(height: 25),
 
-                      Text('Describe Shop', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'Describe Shop',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
                         controller: _descriptionEnglishController,
                         maxLine: 4,
                         text: 'English',
-                        validator: (value) => value == null || value.isEmpty ? 'Please Enter Describe in English' : null,
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Please Enter Describe in English'
+                                    : null,
                       ),
                       const SizedBox(height: 15),
 
@@ -913,10 +1184,15 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         maxLine: 4,
                         text: 'Tamil',
                         isTamil: true,
-                        validator: (value) => value == null || value.isEmpty ? 'Please Enter Describe in Tamil' : null,
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Please Enter Describe in Tamil'
+                                    : null,
                         onChanged: (value) async {
                           setState(() => isDescriptionTamilLoading = true);
-                          final result = await TanglishTamilHelper.transliterate(value);
+                          final result =
+                              await TanglishTamilHelper.transliterate(value);
                           setState(() {
                             descriptionTamilSuggestion = result;
                             isDescriptionTamilLoading = false;
@@ -941,7 +1217,8 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             shrinkWrap: true,
                             itemCount: descriptionTamilSuggestion.length,
                             itemBuilder: (context, index) {
-                              final suggestion = descriptionTamilSuggestion[index];
+                              final suggestion =
+                                  descriptionTamilSuggestion[index];
                               return ListTile(
                                 title: Text(suggestion),
                                 onTap: () {
@@ -949,7 +1226,9 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     controller: descriptionTamilController,
                                     suggestion: suggestion,
                                     onSuggestionApplied: () {
-                                      setState(() => descriptionTamilSuggestion = []);
+                                      setState(
+                                        () => descriptionTamilSuggestion = [],
+                                      );
                                     },
                                   );
                                 },
@@ -960,14 +1239,21 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                       const SizedBox(height: 25),
 
-                      Text('Address', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'Address',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
                         controller: _addressEnglishController,
                         maxLine: 4,
                         text: 'English',
-                        validator: (value) => value == null || value.isEmpty ? 'Please Enter Address in English' : null,
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Please Enter Address in English'
+                                    : null,
                       ),
                       const SizedBox(height: 15),
 
@@ -976,10 +1262,15 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         maxLine: 4,
                         text: 'Tamil',
                         isTamil: true,
-                        validator: (value) => value == null || value.isEmpty ? 'Please Enter Address in Tamil' : null,
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Please Enter Address in Tamil'
+                                    : null,
                         onChanged: (value) async {
                           setState(() => isAddressLoading = true);
-                          final result = await TanglishTamilHelper.transliterate(value);
+                          final result =
+                              await TanglishTamilHelper.transliterate(value);
                           setState(() {
                             addressTamilSuggestion = result;
                             isAddressLoading = false;
@@ -1012,7 +1303,9 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     controller: addressTamilNameController,
                                     suggestion: suggestion,
                                     onSuggestionApplied: () {
-                                      setState(() => addressTamilSuggestion = []);
+                                      setState(
+                                        () => addressTamilSuggestion = [],
+                                      );
                                     },
                                   );
                                 },
@@ -1023,7 +1316,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                       const SizedBox(height: 25),
 
-                      Text('GPS Location', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'GPS Location',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       GestureDetector(
@@ -1036,18 +1332,22 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           child: CommonContainer.fillingContainer(
                             controller: _gpsController,
                             text: _isFetchingGps ? '' : 'Get by GPS',
-                            textColor: _gpsController.text.isEmpty ? AppColor.skyBlue : AppColor.mildBlack,
+                            textColor:
+                                _gpsController.text.isEmpty
+                                    ? AppColor.skyBlue
+                                    : AppColor.mildBlack,
                             textFontWeight: FontWeight.w700,
-                            suffixWidget: _isFetchingGps
-                                ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColor.skyBlue,
-                              ),
-                            )
-                                : null,
+                            suffixWidget:
+                                _isFetchingGps
+                                    ? SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColor.skyBlue,
+                                      ),
+                                    )
+                                    : null,
                             validator: (_) => null,
                           ),
                         ),
@@ -1055,12 +1355,21 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       if (_gpsErrorText != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 6.0, left: 4),
-                          child: Text(_gpsErrorText!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                          child: Text(
+                            _gpsErrorText!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
 
                       const SizedBox(height: 25),
 
-                      Text('Primary Mobile Number', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'Primary Mobile Number',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       if (isEditFromAboutMe) ...[
@@ -1080,7 +1389,8 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           text: 'Mobile No',
                           keyboardType: TextInputType.phone,
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please Enter Primary Mobile Number';
+                            if (value == null || value.isEmpty)
+                              return 'Please Enter Primary Mobile Number';
                             return null;
                           },
                         ),
@@ -1088,7 +1398,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                       const SizedBox(height: 25),
 
-                      Text('Whatsapp Number', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'Whatsapp Number',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       if (isEditFromAboutMe) ...[
@@ -1108,7 +1421,8 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           text: 'Mobile No',
                           keyboardType: TextInputType.phone,
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please Enter Whatsapp Number';
+                            if (value == null || value.isEmpty)
+                              return 'Please Enter Whatsapp Number';
                             return null;
                           },
                         ),
@@ -1116,7 +1430,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                       const SizedBox(height: 25),
 
-                      Text('Open Time', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'Open Time',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
@@ -1126,18 +1443,28 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         imageWidth: 25,
                         readOnly: true,
                         onFieldTap: () async {
-                          final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
                           if (picked != null) {
                             _openTimeController.text = picked.format(context);
                             setState(() => _openTod = picked);
                           }
                         },
-                        validator: (v) => (v == null || v.isEmpty) ? 'Please select Open Time' : null,
+                        validator:
+                            (v) =>
+                                (v == null || v.isEmpty)
+                                    ? 'Please select Open Time'
+                                    : null,
                       ),
 
                       const SizedBox(height: 25),
 
-                      Text('Close Time', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'Close Time',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
@@ -1147,23 +1474,39 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         imagePath: AppImages.clock,
                         imageWidth: 25,
                         onFieldTap: () async {
-                          final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
                           if (picked != null) {
                             _closeTimeController.text = picked.format(context);
                             setState(() => _closeTod = picked);
                           }
                         },
-                        validator: (v) => (v == null || v.isEmpty) ? 'Please select Close Time' : null,
+                        validator:
+                            (v) =>
+                                (v == null || v.isEmpty)
+                                    ? 'Please select Close Time'
+                                    : null,
                       ),
                       if (_timeErrorText != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 6.0, left: 4),
-                          child: Text(_timeErrorText!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                          child: Text(
+                            _timeErrorText!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
 
                       const SizedBox(height: 25),
 
-                      Text('Email Id', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                      Text(
+                        'Email Id',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
                       const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
@@ -1173,7 +1516,9 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         text: 'Email Id',
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Email required';
-                          if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v)) {
+                          if (!RegExp(
+                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                          ).hasMatch(v)) {
                             return 'Enter valid email';
                           }
                           return null;
@@ -1183,7 +1528,12 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       const SizedBox(height: 25),
 
                       if (!(widget.isService ?? false)) ...[
-                        Text('Door Delivery', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                        Text(
+                          'Door Delivery',
+                          style: AppTextStyles.mulish(
+                            color: AppColor.mildBlack,
+                          ),
+                        ),
                         const SizedBox(height: 10),
 
                         CommonContainer.fillingContainer(
@@ -1194,11 +1544,19 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           dropdownItems: doorDelivery,
                           imageColor: AppColor.gray84,
                           context: context,
-                          validator: (value) =>
-                          value == null || value.isEmpty ? 'Please select a Door Delivery' : null,
+                          validator:
+                              (value) =>
+                                  value == null || value.isEmpty
+                                      ? 'Please select a Door Delivery'
+                                      : null,
                         ),
                       ] else ...[
-                        Text('Add Your Photo', style: AppTextStyles.mulish(color: AppColor.mildBlack)),
+                        Text(
+                          'Add Your Photo',
+                          style: AppTextStyles.mulish(
+                            color: AppColor.mildBlack,
+                          ),
+                        ),
                         const SizedBox(height: 10),
 
                         GestureDetector(
@@ -1206,13 +1564,18 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           child: DottedBorder(
                             borderType: BorderType.RRect,
                             radius: const Radius.circular(20),
-                            color: _timetableInvalid ? Colors.red : AppColor.mediumLightGray,
+                            color:
+                                _timetableInvalid
+                                    ? Colors.red
+                                    : AppColor.mediumLightGray,
                             strokeWidth: 1.5,
                             dashPattern: const [6, 2],
                             padding: const EdgeInsets.all(1),
                             child: Container(
                               height: 160,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColor.white3,
                                 borderRadius: BorderRadius.circular(20),
@@ -1224,7 +1587,13 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         if (_imageErrorText != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 6.0, left: 4.0),
-                            child: Text(_imageErrorText!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                            child: Text(
+                              _imageErrorText!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
                       ],
 
@@ -1234,10 +1603,11 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         onTap: () async {
                           FocusScope.of(context).unfocus();
 
-                          if (!_validateAll()) return;
+                          // if (!_validateAll()) return;
 
                           final bool isServiceFlow = widget.isService ?? false;
-                          final String type = isServiceFlow ? 'service' : 'product';
+                          final String type =
+                              isServiceFlow ? 'service' : 'product';
 
                           // GPS parsing
                           final gpsText = _gpsController.text.trim();
@@ -1252,66 +1622,109 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           // Door delivery
                           bool isDoorDeliveryEnabled = false;
                           if (!isServiceFlow) {
-                            final doorDeliveryValue = _doorDeliveryController.text.trim();
+                            final doorDeliveryValue =
+                                _doorDeliveryController.text.trim();
                             isDoorDeliveryEnabled = doorDeliveryValue == 'Yes';
                           }
 
                           // ✅ Owner image file (picked)
-                          final File? ownerFile = _ownerImage == null ? null : File(_ownerImage!.path);
+                          final File? ownerFile =
+                              _ownerImage == null
+                                  ? null
+                                  : File(_ownerImage!.path);
 
                           final weeklyHoursText =
                               "${_openTimeController.text.trim()} - ${_closeTimeController.text.trim()}";
 
-                          // Phone values
-                          final String primaryPhoneToSend = isEditFromAboutMe
-                              ? _primaryMobileController.text.trim()
-                              : _withCountryCode(_primaryMobileController.text);
+                          final String primaryPhoneToSend =
+                              isEditFromAboutMe
+                                  ? _primaryMobileController.text.trim()
+                                  : _withCountryCode(
+                                    _primaryMobileController.text,
+                                  );
 
-                          final String alternatePhoneToSend = isEditFromAboutMe
-                              ? _whatsappController.text.trim()
-                              : _withCountryCode(_whatsappController.text);
+                          final String alternatePhoneToSend =
+                              isEditFromAboutMe
+                                  ? _whatsappController.text.trim()
+                                  : _withCountryCode(_whatsappController.text);
 
-                          final response = await ref.read(shopCategoryNotifierProvider.notifier).shopInfoRegister(
-                            businessProfileId: widget.employeeId ?? '',
-                            ownerImageUrl: ownerFile,
-                            type: type,
-                            addressEn: _addressEnglishController.text.trim(),
-                            addressTa: addressTamilNameController.text.trim(),
-                            alternatePhone: alternatePhoneToSend,
-                            primaryPhone: primaryPhoneToSend,
-                            category: categorySlug,
-                            contactEmail: _emailController.text.trim(),
-                            descriptionEn: _descriptionEnglishController.text.trim(),
-                            descriptionTa: descriptionTamilController.text.trim(),
-                            doorDelivery: isDoorDeliveryEnabled,
-                            englishName: _shopNameEnglishController.text.trim(),
-                            gpsLatitude: latitude,
-                            gpsLongitude: longitude,
-                            subCategory: subCategorySlug,
-                            tamilName: tamilNameController.text.trim(),
-                            weeklyHours: weeklyHoursText,
+                          final response = await ref
+                              .read(shopCategoryNotifierProvider.notifier)
+                              .shopInfoRegister(
+                                shopId: widget.shopId,
+                                businessProfileId: widget.employeeId ?? '',
+                                ownerImageUrl: ownerFile,
+                                type: type,
+                                addressEn:
+                                    _addressEnglishController.text.trim(),
+                                addressTa:
+                                    addressTamilNameController.text.trim(),
+                                alternatePhone: alternatePhoneToSend,
+                                primaryPhone: primaryPhoneToSend,
+                                category: categorySlug,
+                                contactEmail: _emailController.text.trim(),
+                                descriptionEn:
+                                    _descriptionEnglishController.text.trim(),
+                                descriptionTa:
+                                    descriptionTamilController.text.trim(),
+                                doorDelivery: isDoorDeliveryEnabled,
+                                englishName:
+                                    _shopNameEnglishController.text.trim(),
+                                gpsLatitude: latitude,
+                                gpsLongitude: longitude,
+                                subCategory: subCategorySlug,
+                                tamilName: tamilNameController.text.trim(),
+                                weeklyHours: weeklyHoursText,
+                              );
+
+                          final newState = ref.read(
+                            shopCategoryNotifierProvider,
                           );
 
-                          final newState = ref.read(shopCategoryNotifierProvider);
-
-                          if (newState.error != null && newState.error!.isNotEmpty) {
+                          if (newState.error != null &&
+                              newState.error!.isNotEmpty) {
                             AppSnackBar.error(context, newState.error!);
                           } else if (response != null) {
-                            context.pushNamed(
-                              AppRoutes.shopPhotoInfo,
-                              extra: 'shopCategory',
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => ShopPhotoInfo(
+                                      pages: widget.pages,
+                                      shopId: widget.shopId,
+                                      initialImageUrls: widget.initialImageUrls,
+                                    ),
+                              ),
                             );
+                            // context.pushNamed(
+                            //   AppRoutes.shopPhotoInfo,
+                            //   extra: {
+                            //     "from": "shopDetailsEdit",
+                            //     "initialImageUrls":
+                            //         widget.initialImageUrls ?? [],
+                            //   },
+                            // );
                           } else {
-                            AppSnackBar.error(context, newState.error ?? 'Something went wrong');
+                            AppSnackBar.error(
+                              context,
+                              newState.error ?? 'Something went wrong',
+                            );
                           }
                         },
-                        text: state.isLoading
-                            ? ThreeDotsLoader()
-                            : Text(
-                          widget.pages == "AboutMeScreens" ? 'Update' : 'Save & Continue',
-                          style: AppTextStyles.mulish(fontSize: 18, fontWeight: FontWeight.w700),
-                        ),
-                        imagePath: state.isLoading ? null : AppImages.rightStickArrow,
+                        text:
+                            state.isLoading
+                                ? ThreeDotsLoader()
+                                : Text(
+                                  widget.pages == "shopDetailsEdit"
+                                      ? 'Update'
+                                      : 'Save & Continue',
+                                  style: AppTextStyles.mulish(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        imagePath:
+                            state.isLoading ? null : AppImages.rightStickArrow,
                       ),
 
                       const SizedBox(height: 36),
@@ -1355,7 +1768,11 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(AppImages.closeImage, height: 26, color: AppColor.mediumGray),
+                  Image.asset(
+                    AppImages.closeImage,
+                    height: 26,
+                    color: AppColor.mediumGray,
+                  ),
                   Text(
                     'Clear',
                     style: AppTextStyles.mulish(
@@ -1417,7 +1834,11 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(AppImages.closeImage, height: 26, color: AppColor.mediumGray),
+                  Image.asset(
+                    AppImages.closeImage,
+                    height: 26,
+                    color: AppColor.mediumGray,
+                  ),
                   Text(
                     'Clear',
                     style: AppTextStyles.mulish(
@@ -1433,7 +1854,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
         ],
       );
     }
-
 
     return Center(
       child: Row(

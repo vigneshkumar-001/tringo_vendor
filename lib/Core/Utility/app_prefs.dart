@@ -61,4 +61,13 @@ class AppPrefs {
     await prefs.remove(_kVerificationToken);
     // _cachedVerificationToken = null;
   }
+
+  static Future<void> clearIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_productId);
+    await prefs.remove(_shopId);
+    await prefs.remove(_serviceId);
+    // _cachedVerificationToken = null;
+  }
+
 }
