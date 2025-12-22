@@ -105,8 +105,6 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
   bool _insidePhotoError = false;
   final ImagePicker _picker = ImagePicker();
 
-
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(heaterRegisterNotifier);
@@ -355,7 +353,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
 
                           final accountNumber =
                               accountNumberController.text.trim();
-                          final accountName = bankNameController.text.trim();
+                          final bankName = bankNameController.text.trim();
                           final accountHolderName =
                               accountHolderNameController.text.trim();
                           final accountBranch =
@@ -374,7 +372,8 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                                 aadharNumber: '',
                                 aadharDocumentUrl: '',
                                 bankAccountNumber: accountNumber,
-                                bankAccountName: accountName,
+                                bankName: bankName,
+                                bankAccountName: accountHolderName,
                                 bankBranch: accountBranch,
                                 bankIfsc: accountIFSCCode,
                                 companyName: '',

@@ -182,32 +182,35 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
               items: [
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.homeImage, height: 26),
-                   activeIcon: Image.asset(AppImages.homeDark, height: 30),
+                  activeIcon: Image.asset(AppImages.homeDark, height: 30),
                   label: 'Home',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.historyImage, height: 26),
-                  activeIcon: Image.asset(AppImages.employeeHistoryDark, height: 30),
+                  activeIcon: Image.asset(
+                    AppImages.employeeHistoryDark,
+                    height: 30,
+                  ),
                   label: 'History',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.registerImage, height: 26),
-                   activeIcon: Image.asset(AppImages.historyDark, height: 30),
+                  activeIcon: Image.asset(AppImages.historyDark, height: 30),
                   label: 'Register',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.aboutMeImage, height: 26),
-                   activeIcon: Image.asset(AppImages.settingDark, height: 30),
+                  activeIcon: Image.asset(AppImages.settingDark, height: 30),
                   label: 'About Me',
                 ),
                 BottomNavigationBarItem(
                   icon: Image.asset(AppImages.menuImage, height: 26),
-                  // activeIcon: Image.asset(
-                  //   AppImages.menu,
-                  //   height: 30,
-                  //   color: AppColor.black,
-                  // ),
-                  label: 'Menu',
+                  activeIcon: Image.asset(
+                    AppImages.moreDarkImage,
+                    height: 30,
+                    color: AppColor.black,
+                  ),
+                  label: 'More',
                 ),
               ],
             ),

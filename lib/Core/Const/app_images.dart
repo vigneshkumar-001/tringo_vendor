@@ -87,4 +87,5 @@ class AppImages {
   static String paymentBCImage = 'Assets/Images/PaymentScreenBC.png';
   static String premiumCancel = 'Assets/Images/PremiumCancel.png';
   static String shareImage = 'Assets/Images/ShareImage.png';
+  static String moreDarkImage = 'Assets/Images/MoreDarkImage.png';
 }

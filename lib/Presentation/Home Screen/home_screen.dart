@@ -630,7 +630,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const SizedBox(height: 40),
 
                       _TotalEntryDonut(
-                        value: metrics.totalEntry, // ✅ use API metric directly
+                        value: metrics.totalEntry,
                         label: 'Total Entry',
                       ),
 
@@ -738,7 +738,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                     return Padding(
                       padding: const EdgeInsets.only(right: 10),
-                      child: InkWell(
+                       child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
                         onTap: () => setState(() => selectedIndex = index),
                         child: Container(
                           padding: const EdgeInsets.symmetric(

@@ -196,7 +196,6 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
     });
   }
 
-
   Widget _addImageContainer({
     required int index,
     bool checkIndividualError = false,
@@ -745,6 +744,7 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                                 aadharDocumentUrl:
                                     aadharDocUrl, //  now sending Aadhaar photo
                                 bankAccountNumber: '',
+                                bankName: '',
                                 bankAccountName: '',
                                 bankBranch: '',
                                 bankIfsc: '',

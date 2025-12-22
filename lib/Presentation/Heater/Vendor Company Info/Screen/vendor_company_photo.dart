@@ -390,6 +390,7 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
                               aadharNumber: '',
                               aadharDocumentUrl: '',
                               bankAccountNumber: '',
+                              bankName: '',
                               bankAccountName: '',
                               bankBranch: '',
                               bankIfsc: '',

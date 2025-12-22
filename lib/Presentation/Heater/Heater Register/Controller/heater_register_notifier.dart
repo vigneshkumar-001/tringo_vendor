@@ -59,6 +59,7 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     required String aadharDocumentUrl, // original URL if already exists
     // Screen 2
     required String bankAccountNumber,
+    required String bankName,
     required String bankAccountName,
     required String bankBranch,
     required String bankIfsc,
@@ -122,6 +123,7 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
         // <-- correct parameter name
         bankAccountNumber: bankAccountNumber,
         bankAccountName: bankAccountName,
+        bankName: bankName,
         bankBranch: bankBranch,
         bankIfsc: bankIfsc,
         companyName: companyName,

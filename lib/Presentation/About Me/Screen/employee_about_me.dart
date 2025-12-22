@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,21 +9,24 @@ import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
+import '../../Home Screen/Contoller/employee_home_notifier.dart';
+import '../../Home Screen/Model/employee_home_response.dart';
 
-class EmployeeAboutMe extends StatefulWidget {
+class EmployeeAboutMe extends ConsumerStatefulWidget {
   const EmployeeAboutMe({super.key});
 
   @override
-  State<EmployeeAboutMe> createState() => _EmployeeAboutMeState();
+  ConsumerState<EmployeeAboutMe> createState() => _EmployeeAboutMeState();
 }
 
-class _EmployeeAboutMeState extends State<EmployeeAboutMe> {
+class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
   void _showLogoutDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: AppColor.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -90,6 +94,11 @@ class _EmployeeAboutMeState extends State<EmployeeAboutMe> {
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(employeeHomeNotifier);
+    final EmployeeHomeResponse? response = state.employeeHomeResponse;
+    final EmployeeData? dashboard = response?.data;
+    final employee = dashboard?.employee;
+    final avatar = (employee?.avatarUrl ?? '').trim();
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -122,7 +131,9 @@ class _EmployeeAboutMeState extends State<EmployeeAboutMe> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Sivan',
+                                  employee!.name.isNotEmpty
+                                      ? employee.name
+                                      : '-',
                                   style: AppTextStyles.mulish(
                                     fontWeight: FontWeight.w900,
                                     fontSize: 24,
@@ -131,7 +142,7 @@ class _EmployeeAboutMeState extends State<EmployeeAboutMe> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'TVH959H9O',
+                                  employee.employeeCode,
                                   style: AppTextStyles.mulish(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 12,
@@ -139,13 +150,35 @@ class _EmployeeAboutMeState extends State<EmployeeAboutMe> {
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
-                                  '8 Employees',
-                                  style: AppTextStyles.mulish(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12,
-                                    color: AppColor.white,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Reporting',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '-',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      employee.vendorName,
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -153,9 +186,29 @@ class _EmployeeAboutMeState extends State<EmployeeAboutMe> {
                             SizedBox(
                               height: 103,
                               width: 103,
-                              child: Image.asset(
-                                AppImages.settingAvatar,
-                                fit: BoxFit.cover,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child:
+                                    avatar.isNotEmpty
+                                        ? Image.network(
+                                          avatar,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (_, __, ___) => Container(
+                                                color:
+                                                    AppColor
+                                                        .gray84, // optional background
+                                                child: const Icon(
+                                                  Icons.person,
+                                                  size: 40,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                        )
+                                        : Image.asset(
+                                          AppImages.profileImage,
+                                          fit: BoxFit.cover,
+                                        ),
                               ),
                             ),
 

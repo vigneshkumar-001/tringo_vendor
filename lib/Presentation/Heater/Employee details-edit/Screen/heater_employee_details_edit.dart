@@ -15,6 +15,7 @@ import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 import '../../../../Core/Widgets/owner_verify_feild.dart';
 import '../../Add Vendor Employee/Controller/add_employee_notifier.dart';
+import '../../Employee Details/Controller/heater_employee_details_notifier.dart';
 import '../Controller/heater_employee_edit_notifier.dart';
 
 String _normalizeIndianPhone(String input) {
@@ -639,550 +640,541 @@ class _HeaterEmployeeDetailsEditState
 
     return Scaffold(
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await ref
-                .read(heaterEmployeeEditNotifier.notifier)
-                .editEmployee(employeeId: widget.employeeId);
-          },
-          child: SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 16,
-                  ),
-                  child: Row(
-                    children: [
-                      CommonContainer.topLeftArrow(
-                        onTap: () => Navigator.pop(context),
-                      ),
-                      SizedBox(width: 80),
-                      Text(
-                        'Employee Details',
-                        style: AppTextStyles.mulish(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: AppColor.mildBlack,
-                        ),
-                      ),
-                    ],
-                  ),
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 16,
                 ),
-                SizedBox(height: 20),
-
-                // employeeHeaderCard(
-                //   name: a.name ?? '',
-                //   employeeCode: a.employeeCode ?? '',
-                //   phoneNumber: a.phoneNumber ?? '',
-                //   avatarUrl: a.avatarUrl,
-                //   totalAmount: a.totalAmount ?? '0',
-                //   onCallTap: () {
-                //     if ((a.phoneNumber ?? '').isNotEmpty)
-                //       _launchDialer(a.phoneNumber!);
-                //   },
-                //   onSecondActionTap:
-                //       state.isBlockLoading ? () {} : _onBlockUnblockTap,
-                //   secondActionChild:
-                //       state.isBlockLoading
-                //           ? const SizedBox(
-                //             height: 16,
-                //             child: Center(
-                //               child: ThreeDotsLoader(dotColor: AppColor.darkBlue),
-                //             ),
-                //           )
-                //           : Image.asset(
-                //             AppImages.personOff,
-                //             color: _isBlocked ? Colors.red : AppColor.darkBlue,
-                //             height: 16,
-                //           ),
-                // ),
-                Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(AppImages.registerBCImage),
-                    ),
-                    gradient: LinearGradient(
-                      colors: [AppColor.white, AppColor.mintCream],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: SizedBox(
-                            height: 115,
-                            width: 92,
-                            child:
-                                (a.avatarUrl != null && a.avatarUrl!.isNotEmpty)
-                                    ? Image.network(
-                                      a.avatarUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (_, __, ___) => const Icon(
-                                            Icons.person,
-                                            size: 40,
-                                          ),
-                                    )
-                                    : const Icon(Icons.person, size: 40),
-                          ),
-                        ),
-
-                        const SizedBox(width: 20),
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              a.name ?? '',
-                              style: AppTextStyles.mulish(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                                color: AppColor.darkBlue,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              a.employeeCode ?? '',
-                              style: AppTextStyles.mulish(
-                                fontSize: 11,
-                                color: AppColor.mildBlack,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              'Today Collection',
-                              style: AppTextStyles.mulish(
-                                fontSize: 10,
-                                color: AppColor.gray84,
-                              ),
-                            ),
-                            Text(
-                              'Rs. ${a.totalAmount}',
-                              style: AppTextStyles.mulish(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 18,
-                                color: AppColor.mildBlack,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const Spacer(),
-
-                        Column(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                if (a.phoneNumber != null &&
-                                    a.phoneNumber!.isNotEmpty) {
-                                  _launchDialer(a.phoneNumber!);
-                                }
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColor.black,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14.5,
-                                    vertical: 15,
-                                  ),
-                                  child: Image.asset(
-                                    AppImages.callImage1,
-                                    height: 12,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 15),
-                            InkWell(
-                              onTap:
-                                  state.isBlockLoading
-                                      ? null
-                                      : _onBlockUnblockTap, //  HERE
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color:
-                                        _isBlocked
-                                            ? Colors.red
-                                            : AppColor.black.withOpacity(0.1),
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12.5,
-                                    vertical: 15.5,
-                                  ),
-                                  child:
-                                      // _isBlockActionLoading
-                                      state.isBlockLoading
-                                          ? SizedBox(
-                                            height: 16,
-                                            child: Center(
-                                              child: ThreeDotsLoader(
-                                                dotColor:
-                                                    _isBlocked
-                                                        ? Colors.red
-                                                        : AppColor.darkBlue,
-                                              ), //  WHAT YOU ASKED FOR
-                                            ),
-                                          )
-                                          : Image.asset(
-                                            AppImages.personOff,
-                                            color:
-                                                _isBlocked
-                                                    ? Colors.red
-                                                    : AppColor.darkBlue,
-                                            height: 16,
-                                          ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 25),
-                Center(
-                  child: Text(
-                    'Edit Employee Details',
-                    style: AppTextStyles.mulish(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColor.darkBlue,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 15),
-                // IgnorePointer(
-                //   ignoring: _isBlocked, //  blocked => no access
-                //   child: Opacity(
-                //     opacity: _isBlocked ? 0.45 : 1.0, //  low color
-                //     child:
-                //   ),
-                // ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 21,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Name',
-                            style: AppTextStyles.mulish(
-                              color: AppColor.mildBlack,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          CommonContainer.fillingContainer(
-                            controller: englishNameController,
-                            context: context,
-                          ),
-                          SizedBox(height: 30),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 400),
-                            transitionBuilder:
-                                (child, animation) => FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                ),
-                            child: OwnerVerifyField(
-                              key: const ValueKey("owner_verify_field"),
-                              controller: mobileController,
-                              isLoading: state.isSendingOtp,
-                              isOtpVerifying: state.isVerifyingOtp,
-                              onSendOtp: (mobile) {
-                                return ref
-                                    .read(heaterEmployeeEditNotifier.notifier)
-                                    .employeeUpdateNumberRequest(
-                                      phoneNumber: mobile,
-                                    );
-                              },
-                              onVerifyOtp: (mobile, otp) {
-                                return ref
-                                    .read(heaterEmployeeEditNotifier.notifier)
-                                    .employeeUpdateOtpRequest(
-                                      phoneNumber: mobile,
-                                      code: otp,
-                                    );
-                              },
-                            ),
-                          ),
-
-                          SizedBox(height: 30),
-
-                          Text(
-                            'Email Id',
-                            style: AppTextStyles.mulish(
-                              color: AppColor.mildBlack,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          CommonContainer.fillingContainer(
-                            controller: emailIdController,
-                            keyboardType: TextInputType.emailAddress,
-                            context: context,
-                          ),
-
-                          SizedBox(height: 30),
-
-                          Text(
-                            'Emergency Contact Details',
-                            style: AppTextStyles.mulish(
-                              color: AppColor.mildBlack,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-
-                          CommonContainer.fillingContainer(
-                            text: 'Name',
-                            verticalDivider: true,
-                            controller: emergencyNameController,
-                            context: context,
-                          ),
-                          SizedBox(height: 10),
-
-                          CommonContainer.fillingContainer(
-                            text: 'Relationship',
-                            verticalDivider: true,
-                            controller: emergencyRelationShipController,
-                            context: context,
-                          ),
-                          SizedBox(height: 10),
-
-                          CommonContainer.fillingContainer(
-                            text: 'Mobile Number',
-                            isMobile: true,
-                            controller: emergencyMobileController,
-                            context: context,
-                          ),
-
-                          SizedBox(height: 30),
-
-                          Text(
-                            'Aadhar No',
-                            style: AppTextStyles.mulish(
-                              color: AppColor.mildBlack,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-
-                          CommonContainer.fillingContainer(
-                            verticalDivider: false,
-                            controller: aadharController,
-                            context: context,
-                            keyboardType: TextInputType.number,
-                            isAadhaar: true,
-                          ),
-
-                          SizedBox(height: 30),
-                          CommonContainer.containerTitle(
-                            context: context,
-                            title: 'Aadhar Photo',
-                            image: AppImages.iImage,
-                            infoMessage:
-                                'Please upload a clear photo of your Aadhar.',
-                          ),
-                          SizedBox(height: 10),
-                          _imageBox(index: 0),
-
-                          SizedBox(height: 30),
-
-                          CommonContainer.containerTitle(
-                            context: context,
-                            title: 'Profile Picture',
-                            image: AppImages.iImage,
-                            infoMessage:
-                                'Please upload a clear profile picture.',
-                          ),
-                          SizedBox(height: 10),
-                          _imageBox(index: 1),
-
-                          SizedBox(height: 30),
-                          CommonContainer.button(
-                            buttonColor: AppColor.darkBlue,
-                            imagePath:
-                                state.isLoading
-                                    ? null
-                                    : AppImages.rightStickArrow,
-                            text:
-                                state.isLoading
-                                    ? ThreeDotsLoader(
-                                      dotColor: AppColor.darkBlue,
-                                    )
-                                    : Text('Save'),
-                            onTap: () async {
-                              if (state.isLoading) return;
-                              final fullName =
-                                  englishNameController.text.trim().isEmpty
-                                      ? (widget.name ?? "")
-                                      : englishNameController.text.trim();
-
-                              // final phone =
-                              //     mobileController.text.trim().isEmpty
-                              //         ? (widget.phoneNumber ?? "")
-                              //         : mobileController.text.trim();
-
-                              final oldPhone = _normalizeIndianPhone(
-                                widget.phoneNumber ?? "",
-                              );
-                              final newPhone = _normalizeIndianPhone(
-                                mobileController.text,
-                              );
-
-                              final bool phoneChanged =
-                                  newPhone.isNotEmpty && newPhone != oldPhone;
-                              final phone = phoneChanged ? newPhone : oldPhone;
-
-                              final email =
-                                  emailIdController.text.trim().isEmpty
-                                      ? (widget.email ?? "")
-                                      : emailIdController.text.trim();
-
-                              final emergencyName =
-                                  emergencyNameController.text.trim().isEmpty
-                                      ? (widget.emergencyContactName ?? "")
-                                      : emergencyNameController.text.trim();
-
-                              final emergencyRel =
-                                  emergencyRelationShipController.text
-                                          .trim()
-                                          .isEmpty
-                                      ? (widget.emergencyContactRelationship ??
-                                          "")
-                                      : emergencyRelationShipController.text
-                                          .trim();
-
-                              final emergencyPhone = _normalizeIndianPhone(
-                                emergencyMobileController.text.trim().isEmpty
-                                    ? (widget.emergencyContactPhone ?? "")
-                                    : emergencyMobileController.text.trim(),
-                              );
-
-                              // final emergencyPhone =
-                              //     emergencyMobileController.text.trim().isEmpty
-                              //         ? (widget.emergencyContactPhone ?? "")
-                              //         : emergencyMobileController.text.trim();
-
-                              final aadhaarNo =
-                                  aadharController.text.trim().isEmpty
-                                      ? (widget.aadharNumber ?? "")
-                                      : aadharController.text.trim();
-
-                              await ref
-                                  .read(heaterEmployeeEditNotifier.notifier)
-                                  .editEmployee(
-                                    employeeId: widget.employeeId,
-                                    phoneNumber: phone,
-                                    // phoneNumber: phoneChanged ? newPhone : oldPhone,
-                                    fullName: fullName,
-                                    email: email,
-                                    emergencyContactName: emergencyName,
-                                    emergencyContactRelationship: emergencyRel,
-                                    emergencyContactPhone: emergencyPhone,
-                                    aadhaarNumber: aadhaarNo,
-
-                                    aadhaarFile: _pickedImages[0],
-                                    ownerImageFile: _pickedImages[1],
-
-                                    existingAvatarUrl: widget.avatarUrl ?? "",
-                                    existingAadhaarUrl:
-                                        widget.aadharDocumentUrl ?? "",
-                                    // existingAadhaarUrl: _existingUrls[0] ?? "",
-                                  );
-
-                              final newState = ref.read(
-                                heaterEmployeeEditNotifier,
-                              );
-
-                              if (newState.error != null) {
-                                AppSnackBar.error(context, newState.error!);
-                                return;
-                              }
-
-                              AppSnackBar.success(
-                                context,
-                                "Employee updated successfully",
-                              );
-                              Navigator.pop(context);
-                            },
-
-                            ///old///
-                            // onTap: () async {
-                            //   if (state.isLoading) return;
-                            //
-                            //   await ref
-                            //       .read(heaterEmployeeEditNotifier.notifier)
-                            //       .editEmployee(
-                            //         employeeId: widget.employeeId,
-                            //         phoneNumber: mobileController.text.trim(),
-                            //         fullName: englishNameController.text.trim(),
-                            //         email: emailIdController.text.trim(),
-                            //         emergencyContactName:
-                            //             emergencyNameController.text.trim(),
-                            //         emergencyContactRelationship:
-                            //             emergencyRelationShipController.text
-                            //                 .trim(),
-                            //         emergencyContactPhone:
-                            //             emergencyMobileController.text.trim(),
-                            //         aadhaarNumber: aadharController.text.trim(),
-                            //
-                            //         aadhaarFile: _pickedImages[0],
-                            //         ownerImageFile: _pickedImages[1],
-                            //
-                            //         // fallback (at least avatar exists)
-                            //         existingAvatarUrl: widget.avatarUrl ?? "",
-                            //         existingAadhaarUrl:
-                            //             _existingUrls[0] ?? "", // if you have it
-                            //       );
-                            //
-                            //   final newState = ref.read(
-                            //     heaterEmployeeEditNotifier,
-                            //   );
-                            //
-                            //   if (newState.error != null) {
-                            //     AppSnackBar.error(context, newState.error!);
-                            //     return;
-                            //   }
-                            //
-                            //   AppSnackBar.success(
-                            //     context,
-                            //     "Employee updated successfully",
-                            //   );
-                            //
-                            //   // Don't push same page again
-                            //   // context.pop();
-                            //   Navigator.pop(context);
-                            // },
-                          ),
-
-                          SizedBox(height: 30),
-                        ],
+                    CommonContainer.topLeftArrow(
+                      onTap: () => Navigator.pop(context),
+                    ),
+                    SizedBox(width: 80),
+                    Text(
+                      'Employee Details',
+                      style: AppTextStyles.mulish(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: AppColor.mildBlack,
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: 20),
+
+              // employeeHeaderCard(
+              //   name: a.name ?? '',
+              //   employeeCode: a.employeeCode ?? '',
+              //   phoneNumber: a.phoneNumber ?? '',
+              //   avatarUrl: a.avatarUrl,
+              //   totalAmount: a.totalAmount ?? '0',
+              //   onCallTap: () {
+              //     if ((a.phoneNumber ?? '').isNotEmpty)
+              //       _launchDialer(a.phoneNumber!);
+              //   },
+              //   onSecondActionTap:
+              //       state.isBlockLoading ? () {} : _onBlockUnblockTap,
+              //   secondActionChild:
+              //       state.isBlockLoading
+              //           ? const SizedBox(
+              //             height: 16,
+              //             child: Center(
+              //               child: ThreeDotsLoader(dotColor: AppColor.darkBlue),
+              //             ),
+              //           )
+              //           : Image.asset(
+              //             AppImages.personOff,
+              //             color: _isBlocked ? Colors.red : AppColor.darkBlue,
+              //             height: 16,
+              //           ),
+              // ),
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(AppImages.registerBCImage),
+                  ),
+                  gradient: LinearGradient(
+                    colors: [AppColor.white, AppColor.mintCream],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: SizedBox(
+                          height: 115,
+                          width: 92,
+                          child:
+                              (a.avatarUrl != null && a.avatarUrl!.isNotEmpty)
+                                  ? Image.network(
+                                    a.avatarUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (_, __, ___) =>
+                                            const Icon(Icons.person, size: 40),
+                                  )
+                                  : const Icon(Icons.person, size: 40),
+                        ),
+                      ),
+
+                      const SizedBox(width: 20),
+
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            a.name ?? '',
+                            style: AppTextStyles.mulish(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: AppColor.darkBlue,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            a.employeeCode ?? '',
+                            style: AppTextStyles.mulish(
+                              fontSize: 11,
+                              color: AppColor.mildBlack,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Today Collection',
+                            style: AppTextStyles.mulish(
+                              fontSize: 10,
+                              color: AppColor.gray84,
+                            ),
+                          ),
+                          Text(
+                            'Rs. ${a.totalAmount}',
+                            style: AppTextStyles.mulish(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18,
+                              color: AppColor.mildBlack,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const Spacer(),
+
+                      Column(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              if (a.phoneNumber != null &&
+                                  a.phoneNumber!.isNotEmpty) {
+                                _launchDialer(a.phoneNumber!);
+                              }
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColor.black,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14.5,
+                                  vertical: 15,
+                                ),
+                                child: Image.asset(
+                                  AppImages.callImage1,
+                                  height: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 15),
+                          InkWell(
+                            onTap:
+                                state.isBlockLoading
+                                    ? null
+                                    : _onBlockUnblockTap, //  HERE
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color:
+                                      _isBlocked
+                                          ? Colors.red
+                                          : AppColor.black.withOpacity(0.1),
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.5,
+                                  vertical: 15.5,
+                                ),
+                                child:
+                                    // _isBlockActionLoading
+                                    state.isBlockLoading
+                                        ? SizedBox(
+                                          height: 16,
+                                          child: Center(
+                                            child: ThreeDotsLoader(
+                                              dotColor:
+                                                  _isBlocked
+                                                      ? Colors.red
+                                                      : AppColor.darkBlue,
+                                            ), //  WHAT YOU ASKED FOR
+                                          ),
+                                        )
+                                        : Image.asset(
+                                          AppImages.personOff,
+                                          color:
+                                              _isBlocked
+                                                  ? Colors.red
+                                                  : AppColor.darkBlue,
+                                          height: 16,
+                                        ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 25),
+              Center(
+                child: Text(
+                  'Edit Employee Details',
+                  style: AppTextStyles.mulish(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: AppColor.darkBlue,
+                  ),
+                ),
+              ),
+              SizedBox(height: 15),
+              // IgnorePointer(
+              //   ignoring: _isBlocked, //  blocked => no access
+              //   child: Opacity(
+              //     opacity: _isBlocked ? 0.45 : 1.0, //  low color
+              //     child:
+              //   ),
+              // ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 21,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Name',
+                          style: AppTextStyles.mulish(
+                            color: AppColor.mildBlack,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        CommonContainer.fillingContainer(
+                          controller: englishNameController,
+                          context: context,
+                        ),
+                        SizedBox(height: 30),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 400),
+                          transitionBuilder:
+                              (child, animation) => FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                          child: OwnerVerifyField(
+                            key: const ValueKey("owner_verify_field"),
+                            controller: mobileController,
+                            isLoading: state.isSendingOtp,
+                            isOtpVerifying: state.isVerifyingOtp,
+                            onSendOtp: (mobile) {
+                              return ref
+                                  .read(heaterEmployeeEditNotifier.notifier)
+                                  .employeeUpdateNumberRequest(
+                                    phoneNumber: mobile,
+                                  );
+                            },
+                            onVerifyOtp: (mobile, otp) {
+                              return ref
+                                  .read(heaterEmployeeEditNotifier.notifier)
+                                  .employeeUpdateOtpRequest(
+                                    phoneNumber: mobile,
+                                    code: otp,
+                                  );
+                            },
+                          ),
+                        ),
+
+                        SizedBox(height: 30),
+
+                        Text(
+                          'Email Id',
+                          style: AppTextStyles.mulish(
+                            color: AppColor.mildBlack,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        CommonContainer.fillingContainer(
+                          controller: emailIdController,
+                          keyboardType: TextInputType.emailAddress,
+                          context: context,
+                        ),
+
+                        SizedBox(height: 30),
+
+                        Text(
+                          'Emergency Contact Details',
+                          style: AppTextStyles.mulish(
+                            color: AppColor.mildBlack,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+
+                        CommonContainer.fillingContainer(
+                          text: 'Name',
+                          verticalDivider: true,
+                          controller: emergencyNameController,
+                          context: context,
+                        ),
+                        SizedBox(height: 10),
+
+                        CommonContainer.fillingContainer(
+                          text: 'Relationship',
+                          verticalDivider: true,
+                          controller: emergencyRelationShipController,
+                          context: context,
+                        ),
+                        SizedBox(height: 10),
+
+                        CommonContainer.fillingContainer(
+                          text: 'Mobile Number',
+                          isMobile: true,
+                          controller: emergencyMobileController,
+                          context: context,
+                        ),
+
+                        SizedBox(height: 30),
+
+                        Text(
+                          'Aadhar No',
+                          style: AppTextStyles.mulish(
+                            color: AppColor.mildBlack,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+
+                        CommonContainer.fillingContainer(
+                          verticalDivider: false,
+                          controller: aadharController,
+                          context: context,
+                          keyboardType: TextInputType.number,
+                          isAadhaar: true,
+                        ),
+
+                        SizedBox(height: 30),
+                        CommonContainer.containerTitle(
+                          context: context,
+                          title: 'Aadhar Photo',
+                          image: AppImages.iImage,
+                          infoMessage:
+                              'Please upload a clear photo of your Aadhar.',
+                        ),
+                        SizedBox(height: 10),
+                        _imageBox(index: 0),
+
+                        SizedBox(height: 30),
+
+                        CommonContainer.containerTitle(
+                          context: context,
+                          title: 'Profile Picture',
+                          image: AppImages.iImage,
+                          infoMessage: 'Please upload a clear profile picture.',
+                        ),
+                        SizedBox(height: 10),
+                        _imageBox(index: 1),
+
+                        SizedBox(height: 30),
+                        CommonContainer.button(
+                          buttonColor: AppColor.darkBlue,
+                          imagePath:
+                              state.isLoading
+                                  ? null
+                                  : AppImages.rightStickArrow,
+                          text:
+                              state.isLoading
+                                  ? ThreeDotsLoader(dotColor: AppColor.darkBlue)
+                                  : Text('Save'),
+                          onTap: () async {
+                            if (state.isLoading) return;
+                            final fullName =
+                                englishNameController.text.trim().isEmpty
+                                    ? (widget.name ?? "")
+                                    : englishNameController.text.trim();
+
+                            // final phone =
+                            //     mobileController.text.trim().isEmpty
+                            //         ? (widget.phoneNumber ?? "")
+                            //         : mobileController.text.trim();
+
+                            final oldPhone = _normalizeIndianPhone(
+                              widget.phoneNumber ?? "",
+                            );
+                            final newPhone = _normalizeIndianPhone(
+                              mobileController.text,
+                            );
+
+                            final bool phoneChanged =
+                                newPhone.isNotEmpty && newPhone != oldPhone;
+                            final phone = phoneChanged ? newPhone : oldPhone;
+
+                            final email =
+                                emailIdController.text.trim().isEmpty
+                                    ? (widget.email ?? "")
+                                    : emailIdController.text.trim();
+
+                            final emergencyName =
+                                emergencyNameController.text.trim().isEmpty
+                                    ? (widget.emergencyContactName ?? "")
+                                    : emergencyNameController.text.trim();
+
+                            final emergencyRel =
+                                emergencyRelationShipController.text
+                                        .trim()
+                                        .isEmpty
+                                    ? (widget.emergencyContactRelationship ??
+                                        "")
+                                    : emergencyRelationShipController.text
+                                        .trim();
+
+                            final emergencyPhone = _normalizeIndianPhone(
+                              emergencyMobileController.text.trim().isEmpty
+                                  ? (widget.emergencyContactPhone ?? "")
+                                  : emergencyMobileController.text.trim(),
+                            );
+
+                            // final emergencyPhone =
+                            //     emergencyMobileController.text.trim().isEmpty
+                            //         ? (widget.emergencyContactPhone ?? "")
+                            //         : emergencyMobileController.text.trim();
+
+                            final aadhaarNo =
+                                aadharController.text.trim().isEmpty
+                                    ? (widget.aadharNumber ?? "")
+                                    : aadharController.text.trim();
+
+                            await ref
+                                .read(heaterEmployeeEditNotifier.notifier)
+                                .editEmployee(
+                                  employeeId: widget.employeeId,
+                                  phoneNumber: phone,
+                                  // phoneNumber: phoneChanged ? newPhone : oldPhone,
+                                  fullName: fullName,
+                                  email: email,
+                                  emergencyContactName: emergencyName,
+                                  emergencyContactRelationship: emergencyRel,
+                                  emergencyContactPhone: emergencyPhone,
+                                  aadhaarNumber: aadhaarNo,
+
+                                  aadhaarFile: _pickedImages[0],
+                                  ownerImageFile: _pickedImages[1],
+
+                                  existingAvatarUrl: widget.avatarUrl ?? "",
+                                  existingAadhaarUrl:
+                                      widget.aadharDocumentUrl ?? "",
+                                  // existingAadhaarUrl: _existingUrls[0] ?? "",
+                                );
+
+                            final newState = ref.read(
+                              heaterEmployeeEditNotifier,
+                            );
+
+                            if (newState.error != null) {
+                              AppSnackBar.error(context, newState.error!);
+                              return;
+                            }
+
+                            AppSnackBar.success(
+                              context,
+                              "Employee updated successfully",
+                            );
+                            Navigator.pop(context);
+                            ref
+                                .read(heaterEmployeeDetailsNotifier.notifier)
+                                .heaterEmployee(employeeId: widget.employeeId);
+                          },
+
+                          ///old///
+                          // onTap: () async {
+                          //   if (state.isLoading) return;
+                          //
+                          //   await ref
+                          //       .read(heaterEmployeeEditNotifier.notifier)
+                          //       .editEmployee(
+                          //         employeeId: widget.employeeId,
+                          //         phoneNumber: mobileController.text.trim(),
+                          //         fullName: englishNameController.text.trim(),
+                          //         email: emailIdController.text.trim(),
+                          //         emergencyContactName:
+                          //             emergencyNameController.text.trim(),
+                          //         emergencyContactRelationship:
+                          //             emergencyRelationShipController.text
+                          //                 .trim(),
+                          //         emergencyContactPhone:
+                          //             emergencyMobileController.text.trim(),
+                          //         aadhaarNumber: aadharController.text.trim(),
+                          //
+                          //         aadhaarFile: _pickedImages[0],
+                          //         ownerImageFile: _pickedImages[1],
+                          //
+                          //         // fallback (at least avatar exists)
+                          //         existingAvatarUrl: widget.avatarUrl ?? "",
+                          //         existingAadhaarUrl:
+                          //             _existingUrls[0] ?? "", // if you have it
+                          //       );
+                          //
+                          //   final newState = ref.read(
+                          //     heaterEmployeeEditNotifier,
+                          //   );
+                          //
+                          //   if (newState.error != null) {
+                          //     AppSnackBar.error(context, newState.error!);
+                          //     return;
+                          //   }
+                          //
+                          //   AppSnackBar.success(
+                          //     context,
+                          //     "Employee updated successfully",
+                          //   );
+                          //
+                          //   // Don't push same page again
+                          //   // context.pop();
+                          //   Navigator.pop(context);
+                          // },
+                        ),
+
+                        SizedBox(height: 30),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
