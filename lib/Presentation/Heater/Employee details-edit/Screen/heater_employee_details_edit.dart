@@ -248,15 +248,32 @@ class _HeaterEmployeeDetailsEditState
   @override
   void initState() {
     super.initState();
-    englishNameController.text = '';
-    mobileController.text = '';
-    emailIdController.text = ''; // populate if you have initial email
-    aadharController.text = ''; // populate if you have initial Aadhar
+
+    englishNameController.text = widget.name ?? '';
+    mobileController.text = widget.phoneNumber ?? '';
+    // employeeNameController / employeeNumberController நீங்கள் use பண்ணல, வேண்டாம் என்றால் remove.
+    emailIdController.text = ''; // if you have in API -> set it
+    aadharController.text = '';  // if you have in API -> set it
     emergencyNameController.text = '';
     emergencyRelationShipController.text = '';
     emergencyMobileController.text = '';
-    _isActiveLocal = widget.isActive ?? true; // default active
+
+    _isActiveLocal = widget.isActive ?? true;
   }
+
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   englishNameController.text = '';
+  //   mobileController.text = '';
+  //   emailIdController.text = ''; // populate if you have initial email
+  //   aadharController.text = ''; // populate if you have initial Aadhar
+  //   emergencyNameController.text = '';
+  //   emergencyRelationShipController.text = '';
+  //   emergencyMobileController.text = '';
+  //   _isActiveLocal = widget.isActive ?? true; // default active
+  // }
 
   bool get _isBlocked => !_isActiveLocal;
 
@@ -606,13 +623,28 @@ class _HeaterEmployeeDetailsEditState
                             controller: mobileController,
                             isLoading: state.isSendingOtp,
                             isOtpVerifying: state.isVerifyingOtp,
-                            onSendOtp: (mobile) {
-                              return ref
+                            onSendOtp: (mobile) async {
+                              final success = await ref
                                   .read(heaterEmployeeEditNotifier.notifier)
                                   .employeeUpdateNumberRequest(
                                     phoneNumber: mobile,
                                   );
+
+                              if (!success) {
+                                return ref
+                                    .read(heaterEmployeeEditNotifier)
+                                    .error;
+                              }
+                              return null;
                             },
+
+                            // onSendOtp: (mobile) {
+                            //   return ref.read(heaterEmployeeEditNotifier.notifier)
+                            //       .employeeUpdateNumberRequest(
+                            //         phoneNumber: mobile,
+                            //       );
+                            // },
+
                             onVerifyOtp: (mobile, otp) {
                               return ref
                                   .read(heaterEmployeeEditNotifier.notifier)
@@ -623,6 +655,7 @@ class _HeaterEmployeeDetailsEditState
                             },
                           ),
                         ),
+
                         // AnimatedSwitcher(
                         //   duration: const Duration(milliseconds: 300),
                         //   child: CommonContainer.mobileNumberField(
@@ -638,6 +671,7 @@ class _HeaterEmployeeDetailsEditState
                         //     // },
                         //   ),
                         // ),
+
                         SizedBox(height: 30),
 
                         Text(

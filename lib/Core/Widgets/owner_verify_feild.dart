@@ -9,7 +9,7 @@ import '../Const/app_color.dart';
 import '../Const/app_images.dart';
 import '../Utility/app_textstyles.dart';
 
-class  OwnerVerifyField  extends StatefulWidget {
+class OwnerVerifyField extends StatefulWidget {
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final FormFieldValidator<String>? validator;
@@ -38,8 +38,10 @@ class  OwnerVerifyField  extends StatefulWidget {
 }
 
 class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
-  final List<TextEditingController> otpControllers =
-  List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> otpControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
 
   bool showOtp = false;
   bool isVerified = false;
@@ -76,7 +78,9 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
     final isTenDigits = textValue.length == 10;
     final hasMobile = textValue.isNotEmpty;
     final last4Digits =
-    hasMobile && textValue.length >= 4 ? textValue.substring(textValue.length - 4) : '';
+        hasMobile && textValue.length >= 4
+            ? textValue.substring(textValue.length - 4)
+            : '';
 
     return FormField<String>(
       validator: widget.validator,
@@ -103,7 +107,10 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -152,7 +159,11 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                                 resendTimer?.cancel();
                               });
                             },
-                            child: const Icon(Icons.close, color: Colors.grey, size: 20),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
                           ),
 
                         const SizedBox(width: 8),
@@ -179,58 +190,73 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                         if (!hasMobile)
                           Text(
                             'Mobile No',
-                            style: AppTextStyles.mulish(color: AppColor.mediumGray),
+                            style: AppTextStyles.mulish(
+                              color: AppColor.mediumGray,
+                            ),
                           ),
 
                         if (isTenDigits && !isVerified && !showOtp)
                           GestureDetector(
-                            onTap: widget.isLoading
-                                ? null
-                                : () async {
-                              if (widget.onSendOtp == null || widget.controller == null) return;
+                            onTap:
+                                widget.isLoading
+                                    ? null
+                                    : () async {
+                                      if (widget.onSendOtp == null ||
+                                          widget.controller == null)
+                                        return;
 
-                              final success = await widget.onSendOtp!(widget.controller!.text);
-                              if (success != null) {
-                                showTopSnackBar(
-                                  Overlay.of(context),
-                                  CustomSnackBar.plainError(
+                                      final success = await widget.onSendOtp!(
+                                        widget.controller!.text,
+                                      );
+                                      if (success != null) {
+                                        showTopSnackBar(
+                                          Overlay.of(context),
+                                          CustomSnackBar.error(
+                                            message: success,
+                                          ),
+                                        );
+                                        return;
+                                      }
 
-                                    message: success,
-                                  ),
-                                );
-                                return;
-                              }
-
-
-                              if (!mounted) return;
-                              setState(() {
-                                showOtp = true; // this now persists
-                                showOtpError = false;
-                                for (final c in otpControllers) {
-                                  c.clear();
-                                }
-                                startResendTimer();
-                              });
-                            },
+                                      if (!mounted) return;
+                                      setState(() {
+                                        showOtp = true; // this now persists
+                                        showOtpError = false;
+                                        for (final c in otpControllers) {
+                                          c.clear();
+                                        }
+                                        startResendTimer();
+                                      });
+                                    },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
-                                color: widget.isLoading ? Colors.grey : const Color(0xFF2196F3),
+                                color:
+                                    widget.isLoading
+                                        ? Colors.grey
+                                        : const Color(0xFF2196F3),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: widget.isLoading
-                                  ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                              )
-                                  : Text(
-                                "Verify",
-                                style: AppTextStyles.mulish(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                              child:
+                                  widget.isLoading
+                                      ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                      : Text(
+                                        "Verify",
+                                        style: AppTextStyles.mulish(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                             ),
                           ),
 
@@ -240,10 +266,17 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                               color: AppColor.green,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 15,
+                              vertical: 5,
+                            ),
                             child: Row(
                               children: [
-                                Image.asset(AppImages.tickImage, height: 11, color: AppColor.white),
+                                Image.asset(
+                                  AppImages.tickImage,
+                                  height: 11,
+                                  color: AppColor.white,
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Verified',
@@ -307,31 +340,41 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                             ),
                             const SizedBox(height: 8),
                             GestureDetector(
-                              onTap: resendSeconds > 0 || widget.isLoading
-                                  ? null
-                                  : () async {
-                                if (widget.onSendOtp == null || widget.controller == null) return;
-                                final success = await widget.onSendOtp!(widget.controller!.text);
-                                if (success != null) {
-                                  CustomSnackBar.error( message: success);
-                                  return;
-                                }
-                                if (!mounted) return;
-                                setState(() {
-                                  for (final c in otpControllers) c.clear();
-                                  showOtpError = false;
-                                  startResendTimer();
-                                });
-                              },
+                              onTap:
+                                  resendSeconds > 0 || widget.isLoading
+                                      ? null
+                                      : () async {
+                                        if (widget.onSendOtp == null ||
+                                            widget.controller == null)
+                                          return;
+                                        final success = await widget.onSendOtp!(
+                                          widget.controller!.text,
+                                        );
+                                        if (success != null) {
+                                          CustomSnackBar.error(
+                                            message: success,
+                                          );
+                                          return;
+                                        }
+                                        if (!mounted) return;
+                                        setState(() {
+                                          for (final c in otpControllers)
+                                            c.clear();
+                                          showOtpError = false;
+                                          startResendTimer();
+                                        });
+                                      },
                               child: Text(
-                                resendSeconds > 0 ? "Resend in ${resendSeconds}s" : "Resend OTP",
+                                resendSeconds > 0
+                                    ? "Resend in ${resendSeconds}s"
+                                    : "Resend OTP",
                                 style: AppTextStyles.mulish(
                                   color: AppColor.blue,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                             SizedBox(height: 16),
+                            SizedBox(height: 16),
 
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -355,27 +398,44 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                                         fillColor: Colors.white,
                                         counterText: '',
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
                                           borderSide: BorderSide(
-                                            color: showOtpError ? Colors.red : Colors.white,
+                                            color:
+                                                showOtpError
+                                                    ? Colors.red
+                                                    : Colors.white,
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
                                           borderSide: BorderSide(
-                                            color: showOtpError ? Colors.red : Colors.white,
+                                            color:
+                                                showOtpError
+                                                    ? Colors.red
+                                                    : Colors.white,
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(15),
-                                          borderSide: const BorderSide(color: Colors.black, width: 2.5),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Colors.black,
+                                            width: 2.5,
+                                          ),
                                         ),
                                       ),
                                       onChanged: (value) {
                                         if (value.isNotEmpty && index < 3) {
                                           FocusScope.of(context).nextFocus();
                                         } else if (value.isEmpty && index > 0) {
-                                          FocusScope.of(context).previousFocus();
+                                          FocusScope.of(
+                                            context,
+                                          ).previousFocus();
                                         }
                                       },
                                     ),
@@ -383,47 +443,68 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                                 }),
 
                                 GestureDetector(
-                                  onTap: widget.isOtpVerifying
-                                      ? null
-                                      : () async {
-                                    if (widget.onVerifyOtp == null || widget.controller == null) return;
+                                  onTap:
+                                      widget.isOtpVerifying
+                                          ? null
+                                          : () async {
+                                            if (widget.onVerifyOtp == null ||
+                                                widget.controller == null)
+                                              return;
 
-                                    final otp = otpControllers.map((c) => c.text).join();
-                                    if (otp.length != 4) {
-                                      setState(() => showOtpError = true);
-                                      return;
-                                    }
+                                            final otp =
+                                                otpControllers
+                                                    .map((c) => c.text)
+                                                    .join();
+                                            if (otp.length != 4) {
+                                              setState(
+                                                () => showOtpError = true,
+                                              );
+                                              return;
+                                            }
 
-                                    final success = await widget.onVerifyOtp!(widget.controller!.text, otp);
-                                    if (!success) {
-                                      setState(() => showOtpError = true);
-                                      return;
-                                    }
+                                            final success = await widget
+                                                .onVerifyOtp!(
+                                              widget.controller!.text,
+                                              otp,
+                                            );
+                                            if (!success) {
+                                              setState(
+                                                () => showOtpError = true,
+                                              );
+                                              return;
+                                            }
 
-                                    if (!mounted) return;
-                                    setState(() {
-                                      isVerified = true;
-                                      showOtp = false;
-                                      showOtpError = false;
-                                      resendTimer?.cancel();
-                                    });
-                                  },
+                                            if (!mounted) return;
+                                            setState(() {
+                                              isVerified = true;
+                                              showOtp = false;
+                                              showOtpError = false;
+                                              resendTimer?.cancel();
+                                            });
+                                          },
                                   child: Container(
                                     width: 53,
                                     height: 52,
                                     decoration: BoxDecoration(
-                                      color: widget.isOtpVerifying ? Colors.grey : Colors.black,
+                                      color:
+                                          widget.isOtpVerifying
+                                              ? Colors.grey
+                                              : Colors.black,
                                       borderRadius: BorderRadius.circular(15),
                                     ),
-                                    child: widget.isOtpVerifying
-                                        ? const Padding(
-                                      padding: EdgeInsets.all(12),
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                        : const Icon(Icons.check, color: Colors.white),
+                                    child:
+                                        widget.isOtpVerifying
+                                            ? const Padding(
+                                              padding: EdgeInsets.all(12),
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                            : const Icon(
+                                              Icons.check,
+                                              color: Colors.white,
+                                            ),
                                   ),
                                 ),
                               ],
