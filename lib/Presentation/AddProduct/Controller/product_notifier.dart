@@ -3,20 +3,24 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 
 import '../../../Api/DataSource/api_data_source.dart';
 import '../../../Api/Repository/failure.dart';
 import '../../Login Screen/Controller/login_notifier.dart';
 import '../../ShopInfo/Model/category_list_response.dart';
+import '../Model/delete_response.dart';
 import '../Model/product_response.dart';
+import '../Model/service_remove_response.dart';
 
 class ProductState {
   final bool isLoading;
   final String? error;
   final ProductResponse? productResponse;
   final CategoryListResponse? shopCategoryListResponse;
-  // final DeleteResponse? DeleteResponses;
-  // final ServiceRemoveResponse? serviceRemoveResponse;
+  final DeleteResponse? deleteResponses;
+  final ServiceRemoveResponse? serviceRemoveResponse;
+
   // final ServiceEditResponse? serviceEditResponse;
 
   const ProductState({
@@ -24,8 +28,8 @@ class ProductState {
     this.error,
     this.productResponse,
     this.shopCategoryListResponse,
-    // this.DeleteResponses,
-    // this.serviceRemoveResponse,
+    this.deleteResponses,
+    this.serviceRemoveResponse,
     // this.serviceEditResponse,
   });
 
@@ -192,61 +196,62 @@ class ProductNotifier extends Notifier<ProductState> {
     return success;
   }
 
-  // Future<bool> deleteProductAction({String? productId}) async {
-  //   if (!ref.mounted) return false;
-  //
-  //   state = const ProductState(isLoading: true, error: null);
-  //
-  //   final result = await api.deleteProduct(productId: productId);
-  //
-  //   if (!ref.mounted) return false;
-  //
-  //   return result.fold(
-  //         (failure) {
-  //       if (!ref.mounted) return false;
-  //       AppLogger.log.e('❌ deleteProduct failure: ${failure.message}');
-  //       state = ProductState(isLoading: false, error: failure.message);
-  //       return false;
-  //     },
-  //         (response) {
-  //       if (!ref.mounted) return false;
-  //       AppLogger.log.i('✅ deleteProduct status: ${response.status}');
-  //       state = ProductState(isLoading: false, DeleteResponses: response);
-  //       return response.status == true;
-  //     },
-  //   );
-  // }
-  //
-  // Future<bool> deleteServiceAction({String? serviceId}) async {
-  //   if (!ref.mounted) return false;
-  //
-  //   state = const ProductState(isLoading: true, error: null);
-  //
-  //   final result = await api.deleteService(serviceId: serviceId);
-  //
-  //   if (!ref.mounted) return false;
-  //
-  //   return result.fold(
-  //         (failure) {
-  //       if (!ref.mounted) return false;
-  //       AppLogger.log.e('❌ deleteService failure: ${failure.message}');
-  //       state = ProductState(isLoading: false, error: failure.message);
-  //       return false;
-  //     },
-  //         (response) {
-  //       if (!ref.mounted) return false;
-  //
-  //       AppLogger.log.i(
-  //         '✅ deleteService status: ${response.status}, success: ${response.data.success}',
-  //       );
-  //
-  //       state = ProductState(isLoading: false, serviceRemoveResponse: response);
-  //
-  //       // both flags must be true
-  //       return response.status && response.data.success;
-  //     },
-  //   );
-  // }
+  Future<bool> deleteProductAction({String? productId}) async {
+    if (!ref.mounted) return false;
+
+    state = const ProductState(isLoading: true, error: null);
+
+    final result = await api.deleteProduct(productId: productId);
+
+    if (!ref.mounted) return false;
+
+    return result.fold(
+      (failure) {
+        if (!ref.mounted) return false;
+        AppLogger.log.e('❌ deleteProduct failure: ${failure.message}');
+        state = ProductState(isLoading: false, error: failure.message);
+        return false;
+      },
+      (response) {
+        if (!ref.mounted) return false;
+        AppLogger.log.i('✅ deleteProduct status: ${response.status}');
+        state = ProductState(isLoading: false, deleteResponses: response);
+        return response.status == true;
+      },
+    );
+  }
+
+  Future<bool> deleteServiceAction({String? serviceId}) async {
+    if (!ref.mounted) return false;
+
+    state = const ProductState(isLoading: true, error: null);
+
+    final result = await api.deleteService(serviceId: serviceId);
+
+    if (!ref.mounted) return false;
+
+    return result.fold(
+      (failure) {
+        if (!ref.mounted) return false;
+        AppLogger.log.e('❌ deleteService failure: ${failure.message}');
+        state = ProductState(isLoading: false, error: failure.message);
+        return false;
+      },
+      (response) {
+        if (!ref.mounted) return false;
+
+        AppLogger.log.i(
+          '✅ deleteService status: ${response.status}, success: ${response.data.success}',
+        );
+
+        state = ProductState(isLoading: false, serviceRemoveResponse: response);
+
+        // both flags must be true
+        return response.status && response.data.success;
+      },
+    );
+  }
+
   void resetState() {
     state = ProductState.initial();
   }

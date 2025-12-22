@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
@@ -8,16 +9,16 @@ import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import 'Core/Const/app_color.dart';
 import 'Core/Const/app_images.dart';
 import 'Core/Widgets/app_go_routes.dart';
+import 'Presentation/Home Screen/Contoller/employee_home_notifier.dart';
 
-
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
@@ -43,6 +44,9 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
+    await ref
+        .read(employeeHomeNotifier.notifier)
+        .employeeHome(date: '', page: '1', limit: '6', q: '');
     //  EMPLOYEE → always home
     if (role == 'EMPLOYEE') {
       context.goNamed(AppRoutes.home);

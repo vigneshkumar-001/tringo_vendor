@@ -950,10 +950,31 @@ class _ProductCategoryScreensState
                           }
 
                           if (success) {
-                            context.pushNamed(
-                              AppRoutes.addProductList,
-                              extra: {'isService': isServiceFlow},
-                            );
+                            // 🎯 Navigation logic (product + service both use this)
+                            if (widget.page == 'AboutMeScreens') {
+                              // EDIT mode (product or service) -> productId / serviceId present
+                              if (widget.productId != null &&
+                                  widget.productId!.isNotEmpty) {
+                                // ✅ Tell AboutMeScreens that something was updated
+                                Navigator.pop(context, true);
+                              } else {
+                                // ADD mode from AboutMe -> go to AddProductList
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (_) => AddProductList(
+                                          isService: isServiceFlow,
+                                        ),
+                                  ),
+                                );
+                              }
+                            } else {
+                              context.pushNamed(
+                                AppRoutes.addProductList,
+                                extra: {'isService': isServiceFlow},
+                              );
+                            }
                           }
                         },
                         text:

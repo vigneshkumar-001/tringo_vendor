@@ -18,7 +18,7 @@ class ApiUrl {
   static const String vendorRegister = "${base}api/v1/vendor/profile";
   static const String addEmployees = "${base}api/v1/vendor/employees";
   static const String heaterHome = "${base}api/v1/vendor/dashboard";
-  static const String employeeHome = "${base}api/v1/employee/dashboard/home";
+
   static const String mobileVerify = "${base}api/v1/auth/login-by-sim";
   static const String heaterEmployee = "${base}api/v1/vendor/employees";
 
@@ -78,7 +78,26 @@ class ApiUrl {
     return "${base}api/v1/services/$serviceId";
   }
 
-  static String getAllShop({required String shopId}) {
-    return "${base}api/v1/shops?mine=true&selectedShopId=$shopId";
+  static String deleteProduct({required String productId}) {
+    return "${base}api/v1/products/$productId";
   }
+
+  static String serviceDelete({required String serviceId}) {
+    return "${base}api/v1/services/delete/$serviceId";
+  }
+
+  static String employeeHome({
+    required String date,
+    required String page,
+    required String limit,
+    required String q,
+  }) {
+    // date must be "yyyy-MM-dd" (example: 2025-12-18)
+    return "${base}api/v1/employee/dashboard/home?dateTo=$date&page=$page&limit=$limit&q=$q&dateFrom=$date";
+  }
+
+  static String updateShop({required String shopId}) {
+    return "${base}api/v1/shops/edit/$shopId";
+  }
+
 }

@@ -169,12 +169,36 @@ final goRouter = GoRouter(
         );
       },
     ),
+    // GoRoute(
+    //   path: AppRoutes.shopPhotoInfoPath,
+    //   name: AppRoutes.shopPhotoInfo,
+    //   builder: (context, state) {
+    //     final pageName = state.extra as String? ?? '';
+    //     return ShopPhotoInfo(pages: pageName);
+    //   },
+    // ),
     GoRoute(
       path: AppRoutes.shopPhotoInfoPath,
       name: AppRoutes.shopPhotoInfo,
       builder: (context, state) {
-        final pageName = state.extra as String? ?? '';
-        return ShopPhotoInfo(pages: pageName);
+        final extra = state.extra;
+
+        String pageName = '';
+        List<String?>? initialImageUrls;
+
+        if (extra is String) {
+          // ✅ Old call: extra: 'shopCategory'
+          pageName = extra;
+        } else if (extra is Map) {
+          // ✅ New call: extra: {"from": "...", "initialImageUrls": [...]}
+          pageName = (extra["from"] as String?) ?? '';
+          initialImageUrls = (extra["initialImageUrls"] as List?)?.cast<String?>();
+        }
+
+        return ShopPhotoInfo(
+          pages: pageName,
+          initialImageUrls: initialImageUrls,
+        );
       },
     ),
 
@@ -183,6 +207,7 @@ final goRouter = GoRouter(
       name: AppRoutes.searchKeyword,
       builder: (context, state) => const SearchKeyword(),
     ),
+
 
     GoRoute(
       path: AppRoutes.productCategoryScreensPath,

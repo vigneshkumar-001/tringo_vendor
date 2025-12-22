@@ -2,6 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Controller/shop_notifier.dart';
 
 import '../../../Core/Const/app_color.dart';
@@ -15,8 +16,9 @@ import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/common_container.dart';
 
 class SearchKeyword extends ConsumerStatefulWidget {
+  final String? page;
   final bool? isIndividual;
-  const SearchKeyword({super.key, this.isIndividual});
+  const SearchKeyword({super.key, this.isIndividual, this.page});
 
   @override
   ConsumerState<SearchKeyword> createState() => _SearchKeywordState();
@@ -75,7 +77,7 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
 
   @override
   Widget build(BuildContext context) {
-   final state = ref.watch(shopCategoryNotifierProvider);
+    final state = ref.watch(shopCategoryNotifierProvider);
     // final bool isIndividualFlow = widget.isIndividual ?? true;
     return Scaffold(
       body: SafeArea(
@@ -359,30 +361,38 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                         );
 
                         if (success) {
-                          context.pushNamed(
-                            AppRoutes.productCategoryScreens,
-                            extra: 'SearchKeyword',
-                          );
+                          final shopId = await AppPrefs.getSopId();
+                          if (widget.page == 'shopDetailsEdit') {
+                            context.goNamed(
+                              AppRoutes.shopDetailsEdit,
+                              extra: shopId,
+                            );
+                          } else {
+                            context.pushNamed(
+                              AppRoutes.productCategoryScreens,
+                              extra: 'SearchKeyword',
+                            );
+                          }
                         } else {
                           // Show error from state if available
                           final errorMsg =
                               state.error ??
-                                  'Failed to save keywords. Try again.';
+                              'Failed to save keywords. Try again.';
                           AppSnackBar.error(context, errorMsg);
                         }
                       },
-                      text: state.isLoading
-                          ? const ThreeDotsLoader()
-                          : Text(
-                        'Save & Continue',
-                        style: AppTextStyles.mulish(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      imagePath: state.isLoading
-                          ? null
-                          : AppImages.rightStickArrow,
+                      text:
+                          state.isLoading
+                              ? const ThreeDotsLoader()
+                              : Text(
+                                'Save & Continue',
+                                style: AppTextStyles.mulish(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                      imagePath:
+                          state.isLoading ? null : AppImages.rightStickArrow,
                       imgHeight: 20,
                     ),
 

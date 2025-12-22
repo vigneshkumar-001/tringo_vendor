@@ -4,10 +4,10 @@ import '../Const/app_color.dart';
 
 class AppLoader {
   static Widget circularLoader({Color color = AppColor.white}) {
-    return const SizedBox(
+    return SizedBox(
       width: 22,
       height: 22,
-      child: CircularProgressIndicator(strokeWidth: 1.8, color: AppColor.white),
+      child: CircularProgressIndicator(strokeWidth: 1.8, color: color),
     );
   }
 }

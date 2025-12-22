@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
@@ -15,7 +17,8 @@ class  OwnerVerifyField  extends StatefulWidget {
   final bool isOtpVerifying;
   final bool readOnly;
 
-  final Future<bool> Function(String mobile)? onSendOtp;
+  final Future<String?> Function(String mobile)? onSendOtp;
+
   final Future<bool> Function(String mobile, String otp)? onVerifyOtp;
 
   const OwnerVerifyField({
@@ -187,7 +190,17 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                               if (widget.onSendOtp == null || widget.controller == null) return;
 
                               final success = await widget.onSendOtp!(widget.controller!.text);
-                              if (!success) return;
+                              if (success != null) {
+                                showTopSnackBar(
+                                  Overlay.of(context),
+                                  CustomSnackBar.plainError(
+
+                                    message: success,
+                                  ),
+                                );
+                                return;
+                              }
+
 
                               if (!mounted) return;
                               setState(() {
@@ -299,7 +312,10 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                                   : () async {
                                 if (widget.onSendOtp == null || widget.controller == null) return;
                                 final success = await widget.onSendOtp!(widget.controller!.text);
-                                if (!success) return;
+                                if (success != null) {
+                                  CustomSnackBar.error( message: success);
+                                  return;
+                                }
                                 if (!mounted) return;
                                 setState(() {
                                   for (final c in otpControllers) c.clear();

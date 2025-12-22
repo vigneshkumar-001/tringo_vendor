@@ -41,10 +41,20 @@ class EmployeeHomeNotifier extends Notifier<employeeHomeState> {
     return employeeHomeState.initial();
   }
 
-  Future<void> employeeHome() async {
+  Future<void> employeeHome({
+    required String date,
+    required String page,
+    required String limit,
+    required String q,
+  }) async {
     state = state.copyWith(isLoading: true, employeeHomeResponse: null);
 
-    final result = await api.employeeHome();
+    final result = await api.employeeHome(
+      date: date,
+      page: page,
+      limit: limit,
+      q: q,
+    );
 
     result.fold(
       (failure) {
