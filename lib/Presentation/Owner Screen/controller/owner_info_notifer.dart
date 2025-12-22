@@ -87,14 +87,14 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
           isSendingOtp: false,
           error: failure.message,
         );
-        return failure.message; // 🔥 return backend error
+        return failure.message;
       },
           (response) {
         state = state.copyWith(
           isSendingOtp: false,
           loginResponse: response,
         );
-        return null; // ✅ success
+        return null; //  success
       },
     );
   }

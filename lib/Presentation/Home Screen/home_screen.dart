@@ -287,7 +287,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ✅ Cached image with error icon
+            //  Cached image with error icon
             ClipRRect(
               borderRadius: BorderRadius.circular(15),
               child: SizedBox(
@@ -460,7 +460,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final groupsRaw = _groupsByTab(recentActivity, _currentTab);
     final groups = _filterGroupsBySelectedDate(
       groupsRaw,
-    ); // ✅ show only selected day group(s)
+    ); //  show only selected day group(s)
     final totalItems = _totalItems(groups);
 
     final avatar = (employee.avatarUrl ?? '').trim();

@@ -45,7 +45,7 @@ class EmployeeUpdateData {
   EmployeeUpdateData({
     required this.id,
     required this.employeeCode,
-    required this.employeeVerificationToken,
+    this.employeeVerificationToken,
     required this.name,
     required this.phoneNumber,
     required this.email,
@@ -62,11 +62,11 @@ class EmployeeUpdateData {
     return EmployeeUpdateData(
       id: json['id'] as String,
       employeeCode: json['employeeCode'] as String,
-      employeeVerificationToken: json['employeeVerificationToken'] as String,
+      employeeVerificationToken: json['employeeVerificationToken'] as String?,
       name: json['name'] as String,
       phoneNumber: json['phoneNumber'] as String,
       email: json['email'] as String,
-      avatarUrl: json['avatarUrl'] ??"",
+      avatarUrl: json['avatarUrl'] as String?,
       isActive: json['isActive'] as bool,
       emergencyContactName: json['emergencyContactName'] as String,
       emergencyContactRelationship:

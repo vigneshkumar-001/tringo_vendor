@@ -47,6 +47,15 @@ import '../Repository/request.dart';
 
 enum VendorRegisterScreen { screen1, screen2, screen3, screen4 }
 
+String normalizeIndianPhone(String input) {
+  var p = input.trim();
+  p = p.replaceAll(RegExp(r'[^0-9]'), '');
+  if (p.startsWith('91') && p.length == 12) {
+    p = p.substring(2);
+  }
+  return p;
+}
+
 abstract class BaseApiDataSource {
   Future<Either<Failure, LoginResponse>> mobileNumberLogin(
     String mobileNumber,
@@ -1395,13 +1404,13 @@ class ApiDataSource {
   Future<Either<Failure, EmployeeUpdateResponse>> heaterEmployeeEdit({
     required String employeeId,
     String? employeeVerificationToken,
-    required String phoneNumber,
-    required String fullName,
-    required String email,
-    required String emergencyContactName,
-    required String emergencyContactRelationship,
-    required String emergencyContactPhone,
-    required String aadhaarNumber,
+    String? phoneNumber,
+    String? fullName,
+    String? email,
+    String? emergencyContactName,
+    String? emergencyContactRelationship,
+    String? emergencyContactPhone,
+    String? aadhaarNumber,
     String? aadhaarDocumentUrl,
     String? avatarUrl,
   }) async {
@@ -1409,13 +1418,23 @@ class ApiDataSource {
       final url = ApiUrl.heaterEmployeeEdit(employeeId: employeeId);
       final verification = await AppPrefs.getVerificationToken();
       final payload = {
-        "phoneNumber": '+91${phoneNumber}',
+        // "phoneNumber": '+91${phoneNumber}',
+        "phoneNumber":
+            phoneNumber == null || phoneNumber.trim().isEmpty
+                ? null
+                : '+91${normalizeIndianPhone(phoneNumber)}',
         "employeeVerificationToken": verification,
         "fullName": fullName,
         "email": email,
         "emergencyContactName": emergencyContactName,
         "emergencyContactRelationship": emergencyContactRelationship,
-        "emergencyContactPhone": emergencyContactPhone,
+        // "emergencyContactPhone": '+91${emergencyContactPhone}',
+        "emergencyContactPhone":
+            emergencyContactPhone == null ||
+                    emergencyContactPhone.trim().isEmpty
+                ? null
+                : '+91${normalizeIndianPhone(emergencyContactPhone)}',
+
         "aadharNumber": aadhaarNumber,
         "aadharDocumentUrl": aadhaarDocumentUrl,
         "avatarUrl": avatarUrl,

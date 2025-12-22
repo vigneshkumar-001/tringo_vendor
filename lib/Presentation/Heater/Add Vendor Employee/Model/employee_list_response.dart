@@ -1,11 +1,8 @@
-class  EmployeeListResponse  {
+class EmployeeListResponse {
   final bool status;
   final VendorData data;
 
-  EmployeeListResponse({
-    required this.status,
-    required this.data,
-  });
+  EmployeeListResponse({required this.status, required this.data});
 
   factory EmployeeListResponse.fromJson(Map<String, dynamic> json) {
     return EmployeeListResponse(
@@ -14,6 +11,7 @@ class  EmployeeListResponse  {
     );
   }
 }
+
 class VendorData {
   final String vendorId;
   final String vendorCode;
@@ -44,12 +42,14 @@ class VendorData {
       avatarUrl: json['avatarUrl'] ?? '',
       approvalStatus: json['approvalStatus'] ?? '',
       employeesCount: json['employeesCount'] ?? 0,
-      employees: (json['employees'] as List<dynamic>)
-          .map((e) => Employee.fromJson(e))
-          .toList(),
+      employees:
+          (json['employees'] as List<dynamic>)
+              .map((e) => Employee.fromJson(e))
+              .toList(),
     );
   }
 }
+
 class Employee {
   final String id;
   final String name;
@@ -58,6 +58,7 @@ class Employee {
   final String avatarUrl;
   final String employeeCode;
   final bool isActive;
+  final String status;
 
   Employee({
     required this.id,
@@ -67,6 +68,7 @@ class Employee {
     required this.avatarUrl,
     required this.employeeCode,
     required this.isActive,
+    required this.status,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {
@@ -78,6 +80,7 @@ class Employee {
       avatarUrl: json['avatarUrl'] ?? '',
       employeeCode: json['employeeCode'] ?? '',
       isActive: json['isActive'] ?? false,
+      status: (json['status'] ?? '').toString(),
     );
   }
 }

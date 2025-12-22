@@ -16,6 +16,7 @@ import '../Model/phone_verification_response.dart';
 
 class heaterEmployeeEditState {
   final bool isLoading;
+  final bool isPageLoading;
   final bool isBlockLoading;
   final bool isSendingOtp;
   final bool isVerifyingOtp;
@@ -28,6 +29,7 @@ class heaterEmployeeEditState {
 
   const heaterEmployeeEditState({
     this.isLoading = false,
+    this.isPageLoading = false,
     this.isBlockLoading = false,
     this.isSendingOtp = false,
     this.isVerifyingOtp = false,
@@ -43,6 +45,7 @@ class heaterEmployeeEditState {
 
   heaterEmployeeEditState copyWith({
     bool? isLoading,
+    bool? isPageLoading,
     bool? isBlockLoading,
     bool? isSendingOtp,
     bool? isVerifyingOtp,
@@ -57,6 +60,7 @@ class heaterEmployeeEditState {
   }) {
     return heaterEmployeeEditState(
       isLoading: isLoading ?? this.isLoading,
+      isPageLoading: isPageLoading ?? this.isPageLoading,
       isBlockLoading: isBlockLoading ?? this.isBlockLoading,
       isSendingOtp: isSendingOtp ?? this.isSendingOtp,
       isVerifyingOtp: isVerifyingOtp ?? this.isVerifyingOtp,
@@ -84,13 +88,13 @@ class HeaterEmployeeEditNotifier extends Notifier<heaterEmployeeEditState> {
 
   Future<void> editEmployee({
     required String employeeId,
-    required String phoneNumber,
-    required String fullName,
-    required String email,
-    required String emergencyContactName,
-    required String emergencyContactRelationship,
-    required String emergencyContactPhone,
-    required String aadhaarNumber,
+    String? phoneNumber,
+    String? fullName,
+    String? email,
+    String? emergencyContactName,
+    String? emergencyContactRelationship,
+    String? emergencyContactPhone,
+    String? aadhaarNumber,
 
     File? aadhaarFile,
     File? ownerImageFile,
@@ -242,60 +246,29 @@ class HeaterEmployeeEditNotifier extends Notifier<heaterEmployeeEditState> {
     );
   }
 
-  Future<bool> employeeUpdateNumberRequest({
+  Future<String?> employeeUpdateNumberRequest({
     required String phoneNumber,
   }) async {
-    if (state.isSendingOtp) return false;
+    if (state.isSendingOtp) return "OTP_ALREADY_SENDING";
 
     state = state.copyWith(isSendingOtp: true, error: null);
 
-    try {
-      final result = await api.employeeUpdateNumberRequest(phone: phoneNumber);
+    final result = await api.employeeUpdateNumberRequest(phone: phoneNumber);
 
-      return result.fold(
-        (failure) {
-          state = state.copyWith(isSendingOtp: false, error: failure.message);
-          return false;
-        },
-        (response) {
-          state = state.copyWith(
-            isSendingOtp: false,
-            employeeChangeNumber: response,
-          );
-          return true;
-        },
-      );
-    } catch (e) {
-      state = state.copyWith(isSendingOtp: false, error: e.toString()); // reset
-      return false;
-    }
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isSendingOtp: false, error: failure.message);
+        return failure.message;
+      },
+      (response) {
+        state = state.copyWith(
+          isSendingOtp: false,
+          employeeChangeNumber: response,
+        );
+        return null;
+      },
+    );
   }
-
-  // Future<bool> employeeUpdateNumberRequest({
-  //   required String phoneNumber,
-  // }) async {
-  //   if (state.isSendingOtp) return false;
-  //
-  //   state = state.copyWith(isSendingOtp: true, error: null);
-  //
-  //   final result = await api.employeeUpdateNumberRequest(phone: phoneNumber);
-  //
-  //   return result.fold(
-  //     (failure) {
-  //       state = state.copyWith(isSendingOtp: false, error: failure.message);
-  //       return false;
-  //     },
-  //     (response) {
-  //       state = state.copyWith(
-  //         isSendingOtp: false,
-  //         employeeChangeNumber: response,
-  //       );
-  //       return true;
-  //     },
-  //   );
-  //
-  // }
-  //
 
   Future<bool> employeeUpdateOtpRequest({
     required String phoneNumber,

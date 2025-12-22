@@ -52,6 +52,35 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
     }
   }
 
+  Widget _shopImage(String? url) {
+    final u = (url ?? '').trim();
+    if (u.isEmpty) {
+      return Container(
+        color: AppColor.black.withOpacity(0.05),
+        child: const Center(child: Icon(Icons.store, size: 40)),
+      );
+    }
+
+    return Image.network(
+      u,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) {
+        return Container(
+          color: AppColor.black.withOpacity(0.05),
+          child: const Center(child: Icon(Icons.broken_image, size: 40)),
+        );
+      },
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          color: AppColor.black.withOpacity(0.03),
+          child: const Center(child: CircularProgressIndicator()),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(heaterEmployeeDetailsNotifier);
@@ -206,19 +235,6 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                           ),
                           SizedBox(height: 15),
                           InkWell(
-                            // onTap: () {
-                            //   context.push(
-                            //     AppRoutes.heaterEmployeeDetailsEditPath,
-                            //     extra: {
-                            //       'employeeId': employee.id,
-                            //       'name': employee.name,
-                            //       'employeeCode': employee.employeeCode,
-                            //       'phoneNumber': employee.phoneNumber,
-                            //       'avatarUrl': employee.avatarUrl,
-                            //       'totalAmount': summary.totalAmount.toString(),
-                            //     },
-                            //   );
-                            // },
                             onTap: () {
                               context.push(
                                 AppRoutes.heaterEmployeeDetailsEditPath,
@@ -228,8 +244,20 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                                   'employeeCode': employee.employeeCode,
                                   'phoneNumber': employee.phoneNumber,
                                   'avatarUrl': employee.avatarUrl,
+                                  'email': employee.email.toString(),
+                                  'emergencyContactName':
+                                      employee.emergencyContactName.toString(),
+                                  'emergencyContactRelationship':
+                                      employee.emergencyContactRelationship
+                                          .toString(),
+                                  'emergencyContactPhone':
+                                      employee.emergencyContactPhone.toString(),
+                                  'aadharNumber':
+                                      employee.aadharNumber.toString(),
+                                  'aadharDocumentUrl':
+                                      employee.aadharDocumentUrl.toString(),
                                   'totalAmount': summary.totalAmount.toString(),
-                                  'isActive': employee.isActive, //  add this
+                                  // 'isActive': employee.isActive,
                                 },
                               );
                             },
@@ -276,41 +304,42 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                 ),
               ),
               SizedBox(height: 0),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 25,
-                ),
-                child: Row(
-                  children: List.generate(categoryTabs.length, (index) {
-                    final isSelected = selectedIndex == index;
-                    final category = categoryTabs[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: CommonContainer.premiumCategory(
-                        appImage: category["image"],
-                        ContainerColor:
-                            isSelected
-                                ? AppColor.white
-                                : AppColor.black.withOpacity(0.05),
-                        BorderColor:
-                            isSelected
-                                ? AppColor.deepTeaBlue
-                                : Colors.transparent,
-                        TextColor:
-                            isSelected ? AppColor.darkBlue : AppColor.darkBlue,
-                        categoryTabs[index]["label"],
-                        isSelected: isSelected,
-                        onTap: () {
-                          setState(() => selectedIndex = index);
-                        },
-                      ),
-                    );
-                  }),
-                ),
-              ),
+              // SingleChildScrollView(
+              //   scrollDirection: Axis.horizontal,
+              //   physics: const BouncingScrollPhysics(),
+              //   padding: const EdgeInsets.symmetric(
+              //     horizontal: 15,
+              //     vertical: 25,
+              //   ),
+              //   child: Row(
+              //     children: List.generate(categoryTabs.length, (index) {
+              //       final isSelected = selectedIndex == index;
+              //       final category = categoryTabs[index];
+              //       return Padding(
+              //         padding: const EdgeInsets.only(right: 10),
+              //         child: CommonContainer.premiumCategory(
+              //           appImage: category["image"],
+              //           ContainerColor:
+              //               isSelected
+              //                   ? AppColor.white
+              //                   : AppColor.black.withOpacity(0.05),
+              //           BorderColor:
+              //               isSelected
+              //                   ? AppColor.deepTeaBlue
+              //                   : Colors.transparent,
+              //           TextColor:
+              //               isSelected ? AppColor.darkBlue : AppColor.darkBlue,
+              //           categoryTabs[index]["label"],
+              //           isSelected: isSelected,
+              //           onTap: () {
+              //             setState(() => selectedIndex = index);
+              //           },
+              //         ),
+              //       );
+              //     }),
+              //   ),
+              // ),
+
               // SizedBox(height: 0),
               // Center(
               //   child: Text(
@@ -327,7 +356,7 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15,
-                    vertical: 20,
+                    vertical: 140,
                   ),
                   child: Text(
                     'No Shops & Services',
@@ -345,7 +374,6 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                   itemCount: shops.length,
                   itemBuilder: (context, index) {
                     final shop = shops[index];
-
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Container(
@@ -441,17 +469,24 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(15),
                                         child: AspectRatio(
-                                          aspectRatio:
-                                              328 /
-                                              143, // your original image ratio
-                                          child: Image.network(
-                                            shop.imageUrl ?? '',
-                                            width: double.infinity,
-                                            fit: BoxFit.cover,
-                                          ),
+                                          aspectRatio: 328 / 143,
+                                          child: _shopImage(shop.imageUrl),
                                         ),
                                       ),
 
+                                      // ClipRRect(
+                                      //   borderRadius: BorderRadius.circular(15),
+                                      //   child: AspectRatio(
+                                      //     aspectRatio:
+                                      //         328 /
+                                      //         143, // your original image ratio
+                                      //     child: Image.network(
+                                      //       shop.imageUrl ?? '',
+                                      //       width: double.infinity,
+                                      //       fit: BoxFit.cover,
+                                      //     ),
+                                      //   ),
+                                      // ),
                                       SizedBox(height: 20),
                                       Text(
                                         shop.englishName,

@@ -5,10 +5,14 @@ class ApiUrl {
   static const String verifyOtp = "${base}api/v1/auth/verify-otp";
   static const String whatsAppVerify = "${base}api/v1/auth/check-whatsapp";
   static const String resendOtp = "${base}api/v1/auth/resend-otp";
-  static const String employeeAddNumber = "${base}api/v1/vendor/employees/request-otp";
-  static const String employeeAddOtp = "${base}api/v1/vendor/employees/verify-otp";
-  static const String employeeUpdateNumber = "${base}api/v1/vendor/employees/phone-change/request-otp";
-  static const String employeeUpdateOtp = "${base}api/v1/vendor/employees/phone-change/verify-otp";
+  static const String employeeAddNumber =
+      "${base}api/v1/vendor/employees/request-otp";
+  static const String employeeAddOtp =
+      "${base}api/v1/vendor/employees/verify-otp";
+  static const String employeeUpdateNumber =
+      "${base}api/v1/vendor/employees/phone-change/request-otp";
+  static const String employeeUpdateOtp =
+      "${base}api/v1/vendor/employees/phone-change/verify-otp";
   static const String ownerInfoNumberRequest =
       "${base}api/v1/auth/verify-owner-phone/request-otp";
   static const String ownerInfoNumberOtpRequest =
@@ -99,5 +103,4 @@ class ApiUrl {
   static String updateShop({required String shopId}) {
     return "${base}api/v1/shops/edit/$shopId";
   }
-
 }

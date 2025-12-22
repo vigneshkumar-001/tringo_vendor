@@ -172,8 +172,10 @@ class AddEmployeeNotifier extends Notifier<AddEmployeeState> {
     }
   }
 
-  Future<bool> employeeAddNumberRequest({required String phoneNumber}) async {
-    if (state.isSendingOtp) return false;
+  Future<String?> employeeAddNumberRequest({
+    required String phoneNumber,
+  }) async {
+    if (state.isSendingOtp) return "OTP_ALREADY_SENDING";
 
     state = state.copyWith(isSendingOtp: true, error: null);
 
@@ -182,14 +184,14 @@ class AddEmployeeNotifier extends Notifier<AddEmployeeState> {
     return result.fold(
       (failure) {
         state = state.copyWith(isSendingOtp: false, error: failure.message);
-        return false;
+        return failure.message;
       },
       (response) {
         state = state.copyWith(
           isSendingOtp: false,
           maskedContactResponse: response,
         );
-        return true;
+        return null;
       },
     );
   }
