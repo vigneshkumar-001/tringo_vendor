@@ -292,6 +292,7 @@ class ApiDataSource {
 
     // 2nd screen
     String? bankAccountNumber,
+    String? bankName,
     String? bankAccountName,
     String? bankBranch,
     String? bankIfsc,
@@ -340,6 +341,7 @@ class ApiDataSource {
         case VendorRegisterScreen.screen2:
           // Screen 2 – bank details only
           addIfNotEmpty("bankAccountNumber", bankAccountNumber);
+          addIfNotEmpty("bankName", bankAccountNumber);
           addIfNotEmpty("bankAccountName", bankAccountName);
           addIfNotEmpty("bankBranch", bankBranch);
           addIfNotEmpty("bankIfsc", bankIfsc);
@@ -1420,28 +1422,42 @@ class ApiDataSource {
     try {
       final url = ApiUrl.heaterEmployeeEdit(employeeId: employeeId);
       final verification = await AppPrefs.getVerificationToken();
-      final payload = {
-        // "phoneNumber": '+91${phoneNumber}',
-        "phoneNumber":
-            phoneNumber == null || phoneNumber.trim().isEmpty
-                ? null
-                : '+91${normalizeIndianPhone(phoneNumber)}',
-        "employeeVerificationToken": verification,
-        "fullName": fullName,
-        "email": email,
-        "emergencyContactName": emergencyContactName,
-        "emergencyContactRelationship": emergencyContactRelationship,
-        // "emergencyContactPhone": '+91${emergencyContactPhone}',
-        "emergencyContactPhone":
-            emergencyContactPhone == null ||
-                    emergencyContactPhone.trim().isEmpty
-                ? null
-                : '+91${normalizeIndianPhone(emergencyContactPhone)}',
 
-        "aadharNumber": aadhaarNumber,
-        "aadharDocumentUrl": aadhaarDocumentUrl,
-        "avatarUrl": avatarUrl,
+      // ✅ start with only required key(s)
+      final Map<String, dynamic> payload = {
+        "employeeVerificationToken": verification,
       };
+
+      // ✅ helper: add only if not null & not empty
+      void put(String key, String? value) {
+        if (value == null) return;
+        final v = value.trim();
+        if (v.isEmpty) return;
+        payload[key] = v;
+      }
+
+      // ✅ phone number: add only if present
+      if (phoneNumber != null && phoneNumber.trim().isNotEmpty) {
+        payload["phoneNumber"] = '+91${normalizeIndianPhone(phoneNumber)}';
+      }
+
+      // ✅ normal fields
+      put("fullName", fullName);
+      put("email", email);
+
+      put("emergencyContactName", emergencyContactName);
+      put("emergencyContactRelationship", emergencyContactRelationship);
+
+      // ✅ emergency phone: add only if present
+      if (emergencyContactPhone != null &&
+          emergencyContactPhone.trim().isNotEmpty) {
+        payload["emergencyContactPhone"] =
+            '+91${normalizeIndianPhone(emergencyContactPhone)}';
+      }
+
+      put("aadharNumber", aadhaarNumber);
+      put("aadharDocumentUrl", aadhaarDocumentUrl);
+      put("avatarUrl", avatarUrl);
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
 
@@ -1453,11 +1469,10 @@ class ApiDataSource {
             return Right(EmployeeUpdateResponse.fromJson(response.data));
           } else {
             return Left(
-              ServerFailure(response.data['message'] ?? "Login failed"),
+              ServerFailure(response.data['message'] ?? "Update failed"),
             );
           }
         } else {
-          // ❗ API returned non-success code but has JSON error message
           return Left(
             ServerFailure(response.data['message'] ?? "Something went wrong"),
           );
@@ -1474,6 +1489,79 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  // Future<Either<Failure, EmployeeUpdateResponse>> heaterEmployeeEdit({
+  //   required String employeeId,
+  //   String? employeeVerificationToken,
+  //   String? phoneNumber,
+  //   String? fullName,
+  //   String? email,
+  //   String? emergencyContactName,
+  //   String? emergencyContactRelationship,
+  //   String? emergencyContactPhone,
+  //   String? aadhaarNumber,
+  //   String? aadhaarDocumentUrl,
+  //   String? avatarUrl,
+  // }) async {
+  //   try {
+  //     final url = ApiUrl.heaterEmployeeEdit(employeeId: employeeId);
+  //     final verification = await AppPrefs.getVerificationToken();
+  //
+  //     final payload = {
+  //       // "phoneNumber": '+91${phoneNumber}',
+  //       "phoneNumber":
+  //           phoneNumber == null || phoneNumber.trim().isEmpty
+  //               ? null
+  //               : '+91${normalizeIndianPhone(phoneNumber)}',
+  //       "employeeVerificationToken": verification,
+  //       "fullName": fullName,
+  //       "email": email,
+  //       "emergencyContactName": emergencyContactName,
+  //       "emergencyContactRelationship": emergencyContactRelationship,
+  //       // "emergencyContactPhone": '+91${emergencyContactPhone}',
+  //       "emergencyContactPhone":
+  //           emergencyContactPhone == null ||
+  //                   emergencyContactPhone.trim().isEmpty
+  //               ? null
+  //               : '+91${normalizeIndianPhone(emergencyContactPhone)}',
+  //
+  //       "aadharNumber": aadhaarNumber,
+  //       "aadharDocumentUrl": aadhaarDocumentUrl,
+  //       "avatarUrl": avatarUrl,
+  //     };
+  //
+  //
+  //     final response = await Request.sendRequest(url, payload, 'Post', true);
+  //
+  //     AppLogger.log.i(response);
+  //
+  //     if (response is! DioException) {
+  //       if (response.statusCode == 200 || response.statusCode == 201) {
+  //         if (response.data['status'] == true) {
+  //           return Right(EmployeeUpdateResponse.fromJson(response.data));
+  //         } else {
+  //           return Left(
+  //             ServerFailure(response.data['message'] ?? "Login failed"),
+  //           );
+  //         }
+  //       } else {
+  //         // ❗ API returned non-success code but has JSON error message
+  //         return Left(
+  //           ServerFailure(response.data['message'] ?? "Something went wrong"),
+  //         );
+  //       }
+  //     } else {
+  //       final errorData = response.response?.data;
+  //       if (errorData is Map && errorData.containsKey('message')) {
+  //         return Left(ServerFailure(errorData['message']));
+  //       }
+  //       return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+  //     }
+  //   } catch (e) {
+  //     AppLogger.log.e(e);
+  //     return Left(ServerFailure(e.toString()));
+  //   }
+  // }
 
   Future<Either<Failure, HeaterEmployeeResponse>> heaterEmployee() async {
     try {

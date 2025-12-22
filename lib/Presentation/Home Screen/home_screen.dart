@@ -604,36 +604,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         color: AppColor.white4,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            ClipOval(
-                              child:
-                                  avatar.isNotEmpty
-                                      ? Image.network(
-                                        avatar,
-                                        height: 52,
-                                        width: 52,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (_, __, ___) => Icon(
-                                              Icons.person,
-                                              size: 40,
-                                              color: AppColor.white,
-                                            ),
-                                      )
-                                      : Image.asset(
-                                        AppImages.profileImage,
-                                        height: 52,
-                                        width: 52,
-                                        fit: BoxFit.cover,
-                                      ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 40),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          ClipOval(
+                            child:
+                                avatar.isNotEmpty
+                                    ? Image.network(
+                                      avatar,
+                                      height: 52,
+                                      width: 52,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (_, __, ___) => Icon(
+                                            Icons.person,
+                                            size: 40,
+                                            color: AppColor.white,
+                                          ),
+                                    )
+                                    : Image.asset(
+                                      AppImages.profileImage,
+                                      height: 52,
+                                      width: 52,
+                                      fit: BoxFit.cover,
+                                    ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+
+                      _TotalEntryDonut(
+                        value: metrics.totalEntry,
+                        label: 'Total Entry',
+                      ),
 
                         _TotalEntryDonut(
                           value:

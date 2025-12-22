@@ -678,6 +678,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                                 aadharNumber: '',
                                 aadharDocumentUrl: '',
                                 bankAccountNumber: '',
+                            bankName: '',
                                 bankAccountName: '',
                                 bankBranch: '',
                                 bankIfsc: '',

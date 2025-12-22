@@ -16,144 +16,7 @@ class VendorResponse {
   }
 }
 
-// class VendorData {
-//   final String id;
-//   final DateTime createdAt;
-//   final DateTime updatedAt;
-//   final VendorUser user;
-//
-//   // make these nullable
-//   final String? displayName;
-//   final String? ownerNameTamil;
-//   final String? companyName;
-//   final String? primaryCity;
-//   final String? primaryState;
-//   final String? avatarUrl;
-//
-//   final String gender;
-//   final DateTime? dateOfBirth;
-//   final bool isActive;
-//   final String? addressLine1;
-//   final double? gpsLatitude;
-//   final double? gpsLongitude;
-//
-//   final String aadharNumber;
-//   final String aadharDocumentUrl;
-//
-//   // bank & contact also nullable
-//   final String? bankAccountNumber;
-//   final String? bankAccountName;
-//   final String? bankBranch;
-//   final String? bankIfsc;
-//   final String? companyContactNumber;
-//   final String? alternatePhone;
-//   final String? companyEmail;
-//   final String? gstNumber;
-//
-//   VendorData({
-//     required this.id,
-//     required this.createdAt,
-//     required this.updatedAt,
-//     required this.user,
-//     this.displayName,
-//     this.ownerNameTamil,
-//     this.companyName,
-//     this.primaryCity,
-//     this.primaryState,
-//     this.avatarUrl,
-//     required this.gender,
-//     required this.dateOfBirth,
-//     required this.isActive,
-//     this.addressLine1,
-//     this.gpsLatitude,
-//     this.gpsLongitude,
-//     required this.aadharNumber,
-//     required this.aadharDocumentUrl,
-//     this.bankAccountNumber,
-//     this.bankAccountName,
-//     this.bankBranch,
-//     this.bankIfsc,
-//     this.companyContactNumber,
-//     this.alternatePhone,
-//     this.companyEmail,
-//     this.gstNumber,
-//   });
-//
-//   factory VendorData.fromJson(Map<String, dynamic> json) {
-//     return VendorData(
-//       id: json['id'] as String,
-//       createdAt: DateTime.parse(json['createdAt'] as String),
-//       updatedAt: DateTime.parse(json['updatedAt'] as String),
-//       user: VendorUser.fromJson(json['user'] as Map<String, dynamic>),
-//
-//       displayName: json['displayName'] as String?,
-//       ownerNameTamil: json['ownerNameTamil'] as String?,
-//       companyName: json['companyName'] as String?,
-//       primaryCity: json['primaryCity'] as String?,
-//       primaryState: json['primaryState'] as String?,
-//       avatarUrl: json['avatarUrl'] as String?,
-//
-//       gender: json['gender'] as String,
-//       dateOfBirth:
-//           json['dateOfBirth'] != null
-//               ? DateTime.parse(json['dateOfBirth'] as String)
-//               : null,
-//       isActive: (json['isActive'] as int) == 1,
-//       addressLine1: json['addressLine1'] as String?,
-//       gpsLatitude:
-//           json['gpsLatitude'] != null
-//               ? double.tryParse(json['gpsLatitude'].toString())
-//               : null,
-//       gpsLongitude:
-//           json['gpsLongitude'] != null
-//               ? double.tryParse(json['gpsLongitude'].toString())
-//               : null,
-//
-//       aadharNumber: json['aadharNumber'] as String,
-//       aadharDocumentUrl: json['aadharDocumentUrl'] as String,
-//
-//       bankAccountNumber: json['bankAccountNumber'] as String?,
-//       bankAccountName: json['bankAccountName'] as String?,
-//       bankBranch: json['bankBranch'] as String?,
-//       bankIfsc: json['bankIfsc'] as String?,
-//       companyContactNumber: json['companyContactNumber'] as String?,
-//       alternatePhone: json['alternatePhone'] as String?,
-//       companyEmail: json['companyEmail'] as String?,
-//       gstNumber: json['gstNumber'] as String?,
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'id': id,
-//       'createdAt': createdAt.toIso8601String(),
-//       'updatedAt': updatedAt.toIso8601String(),
-//       'user': user.toJson(),
-//       'displayName': displayName,
-//       'ownerNameTamil': ownerNameTamil,
-//       'companyName': companyName,
-//       'primaryCity': primaryCity,
-//       'primaryState': primaryState,
-//       'avatarUrl': avatarUrl,
-//       'gender': gender,
-//       'dateOfBirth': dateOfBirth?.toIso8601String().substring(0, 10),
-//       'isActive': isActive ? 1 : 0,
-//       'addressLine1': addressLine1,
-//       'gpsLatitude': gpsLatitude?.toString(),
-//       'gpsLongitude': gpsLongitude?.toString(),
-//       'aadharNumber': aadharNumber,
-//       'aadharDocumentUrl': aadharDocumentUrl,
-//       'bankAccountNumber': bankAccountNumber,
-//       'bankAccountName': bankAccountName,
-//       'bankBranch': bankBranch,
-//       'bankIfsc': bankIfsc,
-//       'companyContactNumber': companyContactNumber,
-//       'alternatePhone': alternatePhone,
-//       'companyEmail': companyEmail,
-//       'gstNumber': gstNumber,
-//     };
-//   }
-// }
+
 
 class VendorData {
   final String id;
@@ -180,6 +43,7 @@ class VendorData {
   final String? aadharDocumentUrl;      // 🔄 made nullable
 
   final String? bankAccountNumber;
+  final String? bankName;
   final String? bankAccountName;
   final String? bankBranch;
   final String? bankIfsc;
@@ -208,6 +72,7 @@ class VendorData {
     this.aadharNumber,
     this.aadharDocumentUrl,
     this.bankAccountNumber,
+    this.bankName,
     this.bankAccountName,
     this.bankBranch,
     this.bankIfsc,
@@ -265,6 +130,7 @@ class VendorData {
       aadharDocumentUrl: json['aadharDocumentUrl'] as String?, // ✅ safe
 
       bankAccountNumber: json['bankAccountNumber'] as String?,
+      bankName: json['bankName'] as String?,
       bankAccountName: json['bankAccountName'] as String?,
       bankBranch: json['bankBranch'] as String?,
       bankIfsc: json['bankIfsc'] as String?,
@@ -296,6 +162,7 @@ class VendorData {
       'aadharNumber': aadharNumber,
       'aadharDocumentUrl': aadharDocumentUrl,
       'bankAccountNumber': bankAccountNumber,
+      'bankName': bankName,
       'bankAccountName': bankAccountName,
       'bankBranch': bankBranch,
       'bankIfsc': bankIfsc,
