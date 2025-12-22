@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Screen/subscription_history.dart';
 
 import '../../../Core/Const/app_color.dart';
@@ -8,22 +10,36 @@ import '../../../Core/Session/registration_product_seivice.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
 import '../../pay_success_and_cancel.dart';
+import '../Controller/subscription_notifier.dart';
+import '../Model/plan_list_response.dart';
 
-class SubscriptionScreen extends StatefulWidget {
+class SubscriptionScreen extends ConsumerStatefulWidget {
   final bool showSkip;
 
   const SubscriptionScreen({super.key, this.showSkip = false});
 
   @override
-  State<SubscriptionScreen> createState() => _SubscriptionScreenState();
+  ConsumerState<SubscriptionScreen> createState() => _SubscriptionScreenState();
 }
 
-class _SubscriptionScreenState extends State<SubscriptionScreen> {
+class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   // Selected billing index: 0 = 1 Year, 1 = 6 Month, 2 = 3 Month
   int _selectedBilling = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // WidgetsBinding.instance.addPostFrameCallback((_) async {
+    //   await ref.read(subscriptionNotifier.notifier).getPlanList();
+    // });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = ref.watch(subscriptionNotifier);
+
+    final planAmount = state.planListResponse?.data;
+
     return Scaffold(
       backgroundColor: Color(0xFFF3F3F3),
       body: SafeArea(
@@ -31,7 +47,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           constraints: const BoxConstraints(maxWidth: 420),
           child: Column(
             children: [
-              // Scrollable top part
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -193,11 +208,66 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
               ),
               SizedBox(height: 15),
-              // Fixed bottom part
-              _BillingOptions(
-                selected: _selectedBilling,
-                onChanged: (i) => setState(() => _selectedBilling = i),
+
+              // SizedBox(
+              //   height: 90,
+              //   child: Padding(
+              //     padding: const EdgeInsets.symmetric(
+              //       vertical: 8.0,
+              //       horizontal: 5,
+              //     ),
+              //     child: ListView.builder(
+              //       scrollDirection: Axis.horizontal,
+              //       itemCount: planAmount?.length ?? 0,
+              //       itemBuilder: (context, index) {
+              //         final data = planAmount?[index];
+              //         return Padding(
+              //           padding: const EdgeInsets.symmetric(horizontal: 5),
+              //           child: _BillingChip(
+              //             labelTop: '₹ ${data?.price}',
+              //             labelBottom: data?.type.toString() ?? '',
+              //             selected: _selectedBilling == 0,
+              //             onTap: () {},
+              //             highlight: true,
+              //           ),
+              //         );
+              //       },
+              //     ),
+              //   ),
+              // ),
+              SizedBox(
+                height: 90,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 5,
+                  ),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: planAmount?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final data = planAmount![index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: _BillingOptions(
+                          index: index, // ✅ add this
+                          price: data.price.toString(),
+
+                          type:
+                              data.type
+                                  .toString(), // better: show duration text
+                          selectedIndex: _selectedBilling,
+                          onChanged:
+                              (i) => setState(() {
+                                _selectedBilling = i;
+                              }),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
+
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -216,14 +286,49 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PaySuccessAndCancel(),
-                        ),
-                      );
-                    },
+                    onPressed:
+                        state.isInsertLoading
+                            ? null
+                            : () async {
+                              if (planAmount == null || planAmount.isEmpty)
+                                return;
+
+                              final selectedPlan = planAmount[_selectedBilling];
+                              final planId = selectedPlan.id.toString();
+
+                              debugPrint('Selected planId: $planId');
+
+                              await ref
+                                  .read(subscriptionNotifier.notifier)
+                                  .purchasePlan(planId: planId);
+
+                              final subState = ref.read(subscriptionNotifier);
+
+                              // ✅ SUCCESS → navigate
+                              if (subState.purchaseResponse != null &&
+                                  subState.purchaseResponse!.status == true) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) =>
+                                            PaySuccessAndCancel(planId: planId),
+                                  ),
+                                );
+                              }
+                              // ❌ ERROR → show snackbar
+                              else {
+                                showTopSnackBar(
+                                  context,
+                                  CustomSnackBar.error(
+                                    message:
+                                        subState.error ??
+                                        "Something went wrong",
+                                  ),
+                                );
+                              }
+                            },
+
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
                       backgroundColor: Colors.transparent,
@@ -239,16 +344,30 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Pay for Premium',
-                          style: AppTextStyles.mulish(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
+                        state.isInsertLoading
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : Text(
+                              'Pay for Premium',
+                              style: AppTextStyles.mulish(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
                         SizedBox(width: 10),
-                        Icon(Icons.arrow_forward_rounded, color: Colors.white),
+                        state.isInsertLoading
+                            ? SizedBox.shrink()
+                            : Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                            ),
                       ],
                     ),
                   ),
@@ -260,9 +379,31 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ),
       ),
     );
-
-
   }
+}
+
+void showTopSnackBar(
+  BuildContext context,
+  Widget snackBar, {
+  Duration duration = const Duration(seconds: 3),
+}) {
+  final overlay = Overlay.of(context);
+
+  final overlayEntry = OverlayEntry(
+    builder:
+        (context) => Positioned(
+          top: MediaQuery.of(context).padding.top + 12,
+          left: 16,
+          right: 16,
+          child: Material(color: Colors.transparent, child: snackBar),
+        ),
+  );
+
+  overlay.insert(overlayEntry);
+
+  Future.delayed(duration, () {
+    overlayEntry.remove();
+  });
 }
 
 class _ComparisonCard extends StatelessWidget {
@@ -429,51 +570,29 @@ Widget star({Color? color = AppColor.white}) {
 }
 
 class _BillingOptions extends StatelessWidget {
-  const _BillingOptions({required this.selected, required this.onChanged});
+  const _BillingOptions({
+    required this.index,
+    required this.selectedIndex,
+    required this.type,
+    required this.onChanged,
+    required this.price,
+  });
 
-  final int selected;
+  final int index; // ✅ current item index
+  final int selectedIndex; // ✅ selected index in parent
   final ValueChanged<int> onChanged;
+
+  final String type;
+  final String price;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 10),
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _BillingChip(
-            labelTop: '₹ 999',
-            labelBottom: '1 Year',
-            selected: selected == 0,
-            onTap: () => onChanged(0),
-            highlight: true,
-          ),
-          SizedBox(width: 10),
-          _BillingChip(
-            labelTop: '₹ 759',
-            labelBottom: '6 Month',
-            selected: selected == 1,
-            onTap: () => onChanged(1),
-          ),
-          SizedBox(width: 10),
-          _BillingChip(
-            labelTop: '₹ 569',
-            labelBottom: '3 Month',
-            selected: selected == 2,
-            onTap: () => onChanged(2),
-          ),
-          SizedBox(width: 10),
-          _BillingChip(
-            labelTop: '₹ 456',
-            labelBottom: '1 Month',
-            selected: selected == 3,
-            onTap: () => onChanged(3),
-          ),
-        ],
-      ),
+    return _BillingChip(
+      labelTop: '₹ $price',
+      labelBottom: type,
+      selected: selectedIndex == index, // ✅ compare with index
+      onTap: () => onChanged(index), // ✅ send index
+      highlight: index == 0, // optional
     );
   }
 }
@@ -488,6 +607,7 @@ class _BillingChip extends StatelessWidget {
   });
 
   final String labelTop;
+
   final String labelBottom;
   final bool selected;
   final bool highlight;
@@ -543,6 +663,7 @@ class _BillingChip extends StatelessWidget {
     );
   }
 }
+
 /// old///
 //   Scaffold(
 //   backgroundColor: Color(0xFFF3F3F3),

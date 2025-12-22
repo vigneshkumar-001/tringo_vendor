@@ -25,6 +25,8 @@ class ApiUrl {
 
   static const String mobileVerify = "${base}api/v1/auth/login-by-sim";
   static const String heaterEmployee = "${base}api/v1/vendor/employees";
+  static const String plans = "${base}api/v1/subscriptions/plans";
+  static const String purchase = "${base}api/v1/subscriptions/purchase";
 
   static const String categoriesShop =
       "${base}api/v1/public/categories?type=shop";
@@ -102,5 +104,16 @@ class ApiUrl {
 
   static String updateShop({required String shopId}) {
     return "${base}api/v1/shops/edit/$shopId";
+  }
+
+  static String vendorHistory({
+    required String limit,
+    required String page,
+    String? search,
+    String? categories,
+    String? dateFrom,
+    String? dateTo,
+  }) {
+    return "${base}api/v1/vendor/dashboard/history?page=$page&limit=$limit&q=$search&categories=$categories&dateFrom=$dateFrom&dateTo=$dateTo";
   }
 }

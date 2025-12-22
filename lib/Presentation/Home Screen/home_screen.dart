@@ -11,9 +11,11 @@ import 'package:tringo_vendor_new/Core/Const/app_color.dart';
 import 'package:tringo_vendor_new/Core/Const/app_images.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import 'package:tringo_vendor_new/Core/Widgets/app_go_routes.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Employees/Screen/heater_employees_list.dart';
 import 'package:tringo_vendor_new/Presentation/Home%20Screen/Contoller/employee_home_notifier.dart';
 
 import '../../Core/Utility/app_loader.dart';
+import '../Employee History/Screen/employee_history.dart';
 import 'Model/employee_home_response.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -52,7 +54,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final dateFrom = _apiDate(
       _selectedDate(),
     ); // ✅ always yyyy-MM-dd (2025-12-01)
-    await ref.read(employeeHomeNotifier.notifier).employeeHome(date: dateFrom, page: '1', limit: '6', q: '');
+    await ref
+        .read(employeeHomeNotifier.notifier)
+        .employeeHome(date: dateFrom, page: '1', limit: '6', q: '');
   }
 
   @override
@@ -199,17 +203,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Colors
-                  .blue, // Header background (month/year)
-              onPrimary:
-              Colors.white, // Header text color
-              surface:
-              Colors.white, // Calendar background
-              onSurface:
-              Colors.black, // Calendar text color
+              primary: Colors.blue, // Header background (month/year)
+              onPrimary: Colors.white, // Header text color
+              surface: Colors.white, // Calendar background
+              onSurface: Colors.black, // Calendar text color
             ),
-            dialogBackgroundColor:
-            Colors.white, // Popup background
+            dialogBackgroundColor: Colors.white, // Popup background
           ),
           child: child!,
         );
@@ -275,16 +274,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              item.breadcrumb.isNotEmpty
-                  ? item.breadcrumb
-                  : "${item.categoryLabel} > ${item.subCategoryLabel}",
-              style: AppTextStyles.mulish(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: AppColor.darkBlue,
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColor.black.withOpacity(0.054),
+                    AppColor.black.withOpacity(0.0),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 10,
+                ),
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    _breadcrumbText(item.typeLabel),
+                    _breadcrumbArrow(),
+                    _breadcrumbText(item.categoryLabel),
+                    _breadcrumbArrow(),
+                    _breadcrumbText(item.subCategoryLabel),
+                  ],
+                ),
               ),
             ),
+            // Text(
+            //   /*item.breadcrumb.isNotEmpty
+            //       ? item.breadcrumb
+            //       :*/
+            //   "${item.categoryLabel} > ${item.subCategoryLabel}",
+            //   style: AppTextStyles.mulish(
+            //     fontSize: 12,
+            //     fontWeight: FontWeight.bold,
+            //     color: AppColor.darkBlue,
+            //   ),
+            // ),
             const SizedBox(height: 12),
 
             //  Cached image with error icon
@@ -397,6 +428,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _breadcrumbText(String text) {
+    return Text(
+      text,
+      style: AppTextStyles.mulish(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: AppColor.darkBlue,
+      ),
+    );
+  }
+
+  Widget _breadcrumbArrow() {
+    return Image.asset(
+      AppImages.rightArrow,
+      height: 10,
+      color: AppColor.darkGrey,
     );
   }
 
@@ -645,16 +695,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 5,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EmployeeHistory(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColor.black,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Image.asset(
+                          AppImages.rightStickArrow,
+                          height: 19,
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: AppColor.black,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Image.asset(AppImages.rightStickArrow, height: 19),
                     ),
                   ],
                 ),
