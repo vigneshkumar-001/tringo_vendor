@@ -5,10 +5,14 @@ class ApiUrl {
   static const String verifyOtp = "${base}api/v1/auth/verify-otp";
   static const String whatsAppVerify = "${base}api/v1/auth/check-whatsapp";
   static const String resendOtp = "${base}api/v1/auth/resend-otp";
-  static const String employeeAddNumber = "${base}api/v1/vendor/employees/request-otp";
-  static const String employeeAddOtp = "${base}api/v1/vendor/employees/verify-otp";
-  static const String employeeUpdateNumber = "${base}api/v1/vendor/employees/phone-change/request-otp";
-  static const String employeeUpdateOtp = "${base}api/v1/vendor/employees/phone-change/verify-otp";
+  static const String employeeAddNumber =
+      "${base}api/v1/vendor/employees/request-otp";
+  static const String employeeAddOtp =
+      "${base}api/v1/vendor/employees/verify-otp";
+  static const String employeeUpdateNumber =
+      "${base}api/v1/vendor/employees/phone-change/request-otp";
+  static const String employeeUpdateOtp =
+      "${base}api/v1/vendor/employees/phone-change/verify-otp";
   static const String ownerInfoNumberRequest =
       "${base}api/v1/auth/verify-owner-phone/request-otp";
   static const String ownerInfoNumberOtpRequest =
@@ -21,6 +25,8 @@ class ApiUrl {
 
   static const String mobileVerify = "${base}api/v1/auth/login-by-sim";
   static const String heaterEmployee = "${base}api/v1/vendor/employees";
+  static const String plans = "${base}api/v1/subscriptions/plans";
+  static const String purchase = "${base}api/v1/subscriptions/purchase";
 
   static const String categoriesShop =
       "${base}api/v1/public/categories?type=shop";
@@ -100,4 +106,14 @@ class ApiUrl {
     return "${base}api/v1/shops/edit/$shopId";
   }
 
+  static String vendorHistory({
+    required String limit,
+    required String page,
+    String? search,
+    String? categories,
+    String? dateFrom,
+    String? dateTo,
+  }) {
+    return "${base}api/v1/vendor/dashboard/history?page=$page&limit=$limit&q=$search&categories=$categories&dateFrom=$dateFrom&dateTo=$dateTo";
+  }
 }

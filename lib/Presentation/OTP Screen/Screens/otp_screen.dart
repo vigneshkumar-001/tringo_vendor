@@ -14,6 +14,7 @@ import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/heater_bottom_navigation_bar.dart';
 import '../../Home Screen/Contoller/employee_home_notifier.dart';
 import '../../Login Screen/Controller/login_notifier.dart';
+import '../../subscription/Controller/subscription_notifier.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
@@ -102,11 +103,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
             context.goNamed(AppRoutes.heaterHomeScreen);
             await ref.read(employeeHomeNotifier.notifier).employeeHome(date: '', page: '1', limit: '6', q: '');
+            await ref.read(subscriptionNotifier.notifier).getPlanList();
           }
         } else if (role == 'EMPLOYEE') {
 
           context.goNamed(AppRoutes.home);
           await ref.read(employeeHomeNotifier.notifier).employeeHome(date: '', page: '1', limit: '6', q: '');
+          await ref.read(subscriptionNotifier.notifier).getPlanList();
         } else {
           AppSnackBar.error(context, 'Unknown role: $role');
         }

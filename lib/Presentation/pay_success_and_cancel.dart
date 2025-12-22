@@ -6,7 +6,8 @@ import 'package:tringo_vendor_new/Core/Const/app_images.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 
 class PaySuccessAndCancel extends StatefulWidget {
-  const PaySuccessAndCancel({super.key});
+  final String planId;
+  const PaySuccessAndCancel({super.key, required this.planId});
 
   @override
   State<PaySuccessAndCancel> createState() => _PaySuccessAndCancelState();
@@ -103,15 +104,15 @@ class _PaySuccessAndCancelState extends State<PaySuccessAndCancel> {
                                       color: AppColor.white,
                                     ),
                                   ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    'TXN Id: HGH8J9G8HGU',
-                                    style: AppTextStyles.mulish(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColor.white,
-                                    ),
-                                  ),
+                                  // SizedBox(height: 6),
+                                  // Text(
+                                  //   'TXN Id: HGH8J9G8HGU',
+                                  //   style: AppTextStyles.mulish(
+                                  //     fontSize: 14,
+                                  //     fontWeight: FontWeight.w700,
+                                  //     color: AppColor.white,
+                                  //   ),
+                                  // ),
                                 ],
                               ),
                             ),

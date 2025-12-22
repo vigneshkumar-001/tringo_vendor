@@ -586,7 +586,7 @@ class Request {
         ) {
           AppLogger.log.i(queryParams);
           AppLogger.log.i(
-            "GET Request \n API: $url \n Token: $token \n RESPONSE: ${response.toString()}",
+            "GET Request \n API: $url \n Token: $token \n Session Token : $sessionToken \n RESPONSE: ${response.toString()}",
           );
           return handler.next(response);
         },
