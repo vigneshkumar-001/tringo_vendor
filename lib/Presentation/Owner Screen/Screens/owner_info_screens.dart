@@ -161,7 +161,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                       ),
                       SizedBox(width: 50),
                       Text(
-                        'Register Vendor',
+                        'Register Shop',
                         style: AppTextStyles.mulish(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,

@@ -12,6 +12,7 @@ import '../../../Core/Utility/app_loader.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/heater_bottom_navigation_bar.dart';
+import '../../Home Screen/Contoller/employee_home_notifier.dart';
 import '../../Login Screen/Controller/login_notifier.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
@@ -81,7 +82,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final state = ref.watch(loginNotifierProvider);
     final notifier = ref.read(loginNotifierProvider.notifier);
 
-    ref.listen<LoginState>(loginNotifierProvider, (previous, next) {
+    ref.listen<LoginState>(loginNotifierProvider, (previous, next) async {
       final notifier = ref.read(loginNotifierProvider.notifier);
 
       if (next.error != null) {
@@ -98,10 +99,14 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           if (isNewOwner) {
             context.goNamed(AppRoutes.privacyPolicy);
           } else {
+
             context.goNamed(AppRoutes.heaterHomeScreen);
+            await ref.read(employeeHomeNotifier.notifier).employeeHome(date: '', page: '1', limit: '6', q: '');
           }
         } else if (role == 'EMPLOYEE') {
+
           context.goNamed(AppRoutes.home);
+          await ref.read(employeeHomeNotifier.notifier).employeeHome(date: '', page: '1', limit: '6', q: '');
         } else {
           AppSnackBar.error(context, 'Unknown role: $role');
         }

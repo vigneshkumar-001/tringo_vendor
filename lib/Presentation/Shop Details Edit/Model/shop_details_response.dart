@@ -1,19 +1,18 @@
 // -----------------------------------------------------------------------------
 // ROOT RESPONSE
 // -----------------------------------------------------------------------------
-class ShopDetailsResponse {
+class ShopDetailssResponse {
   final bool status;
   final ShopData? data;
 
-  ShopDetailsResponse({required this.status, required this.data});
+  ShopDetailssResponse({required this.status, required this.data});
 
-  factory ShopDetailsResponse.fromJson(Map<String, dynamic> json) {
-    return ShopDetailsResponse(
+  factory ShopDetailssResponse.fromJson(Map<String, dynamic> json) {
+    return ShopDetailssResponse(
       status: json['status'] as bool? ?? false,
-      data:
-          json['data'] != null
-              ? ShopData.fromJson(json['data'] as Map<String, dynamic>)
-              : null,
+      data: json['data'] != null
+          ? ShopData.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -23,9 +22,6 @@ class ShopDetailsResponse {
 // -----------------------------------------------------------------------------
 class ShopData {
   final String? shopId;
-  final String? businessProfileId;
-  final String? opensAt;
-  final String? closesAt;
   final String? shopEnglishName;
   final String? shopTamilName;
   final String? shopDescriptionEn;
@@ -43,7 +39,6 @@ class ShopData {
   final String? subCategory;
 
   final String? shopKind;
-  final String? ownershipType;
   final String? shopPhone;
   final String? shopWhatsapp;
   final String? shopContactEmail;
@@ -72,7 +67,6 @@ class ShopData {
     this.shopCountry,
     this.shopPostalCode,
     this.shopGpsLatitude,
-    this.ownershipType,
     this.shopGpsLongitude,
     this.category,
     this.subCategory,
@@ -84,9 +78,6 @@ class ShopData {
     this.shopIsTrusted,
     this.shopRating,
     this.shopReviewCount,
-    this.businessProfileId,
-    this.closesAt,
-    this.opensAt,
     required this.shopImages,
     required this.products,
     required this.services,
@@ -96,10 +87,6 @@ class ShopData {
   factory ShopData.fromJson(Map<String, dynamic> json) {
     return ShopData(
       shopId: json['shopId'],
-      businessProfileId: json['businessProfileId'],
-      ownershipType: json['ownershipType'],
-      closesAt: json['closesAt'],
-      opensAt: json['opensAt'],
       shopEnglishName: json['shopEnglishName'],
       shopTamilName: json['shopTamilName'],
       shopDescriptionEn: json['shopDescriptionEn'],
@@ -127,20 +114,17 @@ class ShopData {
       shopRating: (json['shopRating'] as num?)?.toDouble(),
       shopReviewCount: (json['shopReviewCount'] as num?)?.toInt() ?? 0,
 
-      shopImages:
-          (json['shopImages'] as List<dynamic>? ?? [])
-              .map((e) => ShopImage.fromJson(e))
-              .toList(),
+      shopImages: (json['shopImages'] as List<dynamic>? ?? [])
+          .map((e) => ShopImage.fromJson(e))
+          .toList(),
 
-      products:
-          (json['products'] as List<dynamic>? ?? [])
-              .map((e) => Product.fromJson(e))
-              .toList(),
+      products: (json['products'] as List<dynamic>? ?? [])
+          .map((e) => Product.fromJson(e))
+          .toList(),
 
-      services:
-          (json['services'] as List<dynamic>? ?? [])
-              .map((e) => ServiceItem.fromJson(e))
-              .toList(),
+      services: (json['services'] as List<dynamic>? ?? [])
+          .map((e) => ServiceItem.fromJson(e))
+          .toList(),
 
       reviews: json['reviews'] ?? [],
     );
@@ -229,10 +213,9 @@ class Product {
       rating: (json['rating'] as num?)?.toInt(),
       ratingCount: (json['ratingCount'] as num?)?.toInt(),
 
-      media:
-          (json['media'] as List<dynamic>? ?? [])
-              .map((e) => ProductMedia.fromJson(e))
-              .toList(),
+      media: (json['media'] as List<dynamic>? ?? [])
+          .map((e) => ProductMedia.fromJson(e))
+          .toList(),
     );
   }
 }
@@ -267,7 +250,7 @@ class ServiceItem {
   final String? subCategory;
   final String? englishName;
   final String? tamilName;
-  final double? startsAt; // 👈 changed to double?
+  final double? startsAt;       // 👈 changed to double?
   final double? offerPrice;
   final int? durationMinutes;
   final String? offerLabel;
@@ -320,15 +303,13 @@ class ServiceItem {
       ratingCount: (json['ratingCount'] as num?)?.toInt(),
       status: json['status'],
 
-      features:
-          (json['features'] as List<dynamic>? ?? [])
-              .map((e) => ServiceFeature.fromJson(e))
-              .toList(),
+      features: (json['features'] as List<dynamic>? ?? [])
+          .map((e) => ServiceFeature.fromJson(e))
+          .toList(),
 
-      media:
-          (json['media'] as List<dynamic>? ?? [])
-              .map((e) => ServiceMedia.fromJson(e))
-              .toList(),
+      media: (json['media'] as List<dynamic>? ?? [])
+          .map((e) => ServiceMedia.fromJson(e))
+          .toList(),
     );
   }
 }
