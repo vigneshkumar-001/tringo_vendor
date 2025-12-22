@@ -14,6 +14,7 @@ import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/common_container.dart';
 import '../../AddProduct/Screens/product_category_screens.dart';
+import '../../subscription/Screen/subscription_screen.dart';
 import '../Controller/service_info_notifier.dart';
 import 'add_product_list.dart';
 
@@ -93,13 +94,11 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
     final isProduct = !isService;
     final bool isCompany = widget.isCompanyResolved;
 
-  final serviceState = ref.watch(serviceInfoNotifierProvider);
+    final serviceState = ref.watch(serviceInfoNotifierProvider);
     final productState = ref.watch(productNotifierProvider);
 
-    final bool isLoading = isService
-          ? serviceState.isLoading
-          :
-        productState.isLoading;
+    final bool isLoading =
+        isService ? serviceState.isLoading : productState.isLoading;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -349,7 +348,6 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                     SizedBox(height: 30),
 
                     CommonContainer.button(
-
                       onTap: () async {
                         FocusScope.of(context).unfocus();
 
@@ -403,10 +401,18 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                         // Company + Non-premium → Subscription Screen
                         if (regSession.isCompanyBusiness &&
                             productSession.isNonPremium) {
-                          context.goNamed(
-                            AppRoutes.subscriptionScreen,
-                            extra: true,
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      SubscriptionScreen(businessProfileId: ''),
+                            ),
                           );
+                          // context.goNamed(
+                          //   AppRoutes.subscriptionScreen,
+                          //   extra: true,
+                          // );
                           return;
                         }
 
@@ -423,7 +429,7 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                               'backDisabled': true,
                               'fromSubscriptionSkip': false,
                               'shopId':
-                              serviceState.serviceInfoResponse?.data.shopId,
+                                  serviceState.serviceInfoResponse?.data.shopId,
                             },
                           );
                         } else {
@@ -433,20 +439,21 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                               'backDisabled': true,
                               'fromSubscriptionSkip': false,
                               'shopId':
-                              productState.productResponse?.data.shopId,
+                                  productState.productResponse?.data.shopId,
                             },
                           );
                         }
                       },
-                      text: isLoading
-                          ? ThreeDotsLoader()
-                          : Text(
-                        'Preview Shop',
-                        style: AppTextStyles.mulish(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      text:
+                          isLoading
+                              ? ThreeDotsLoader()
+                              : Text(
+                                'Preview Shop',
+                                style: AppTextStyles.mulish(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                       imagePath: isLoading ? null : AppImages.rightStickArrow,
                       imgHeight: 20,
                     ),

@@ -51,7 +51,7 @@ class AppRoutes {
   static const String privacyPolicy = 'privacyPolicy';
   static const String heaterEmployeeDetails = 'HeaterEmployeeDetails';
   static const String heaterEmployeeDetailsEdit = 'HeaterEmployeeDetailsEdit';
-  static const String subscriptionScreen = 'SubscriptionScreen';
+  // static const String subscriptionScreen = 'SubscriptionScreen';
   static const String shopDetailsEdit = 'ShopDetailsEdit';
 
   static const String splashScreenPath = '/splashScreen';
@@ -75,7 +75,7 @@ class AppRoutes {
   static const String mobileNumberVerifyPath = '/MobileNumberVerify';
   static const String privacyPolicyPath = '/privacyPolicy';
   static const String heaterEmployeeDetailsPath = '/HeaterEmployeeDetails';
-  static const String subscriptionScreenPath = '/SubscriptionScreen';
+  // static const String subscriptionScreenPath = '/SubscriptionScreen';
   static const String shopDetailsEditPath = '/ShopDetailsEdit';
 
   static const String heaterEmployeeDetailsEditPath =
@@ -329,23 +329,23 @@ final goRouter = GoRouter(
         );
       },
     ),
-
-    GoRoute(
-      path: AppRoutes.subscriptionScreenPath,
-      name: AppRoutes.subscriptionScreen,
-      builder: (context, state) {
-        final extra = state.extra;
-
-        bool showSkip = false;
-        if (extra is bool) {
-          showSkip = extra;
-        } else if (extra is Map<String, dynamic>) {
-          showSkip = extra['showSkip'] as bool? ?? false;
-        }
-
-        return SubscriptionScreen(showSkip: showSkip);
-      },
-    ),
+    //
+    // GoRoute(
+    //   path: AppRoutes.subscriptionScreenPath,
+    //   name: AppRoutes.subscriptionScreen,
+    //   builder: (context, state) {
+    //     final extra = state.extra;
+    //
+    //     bool showSkip = false;
+    //     if (extra is bool) {
+    //       showSkip = extra;
+    //     } else if (extra is Map<String, dynamic>) {
+    //       showSkip = extra['showSkip'] as bool? ?? false;
+    //     }
+    //
+    //     return SubscriptionScreen(showSkip: showSkip);
+    //   },
+    // ),
     GoRoute(
       path: AppRoutes.shopDetailsEditPath,
       name: AppRoutes.shopDetailsEdit,

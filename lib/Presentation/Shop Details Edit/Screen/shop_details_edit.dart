@@ -133,6 +133,7 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                           children: [
                             CommonContainer.topLeftArrow(
                               onTap: () {
+                                Navigator.of(context).pop();
                                 // if (widget.backDisabled) {
                                 //   ScaffoldMessenger.of(context).showSnackBar(
                                 //     const SnackBar(
@@ -1325,7 +1326,11 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => SubscriptionScreen(),
+                              builder:
+                                  (context) => SubscriptionScreen(
+                                    businessProfileId:
+                                        shop?.businessProfileId ?? '',
+                                  ),
                             ),
                           );
                         },

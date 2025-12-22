@@ -1100,7 +1100,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                 value == null || value.isEmpty
                                     ? 'Please Enter Shop Name in English'
                                     : null,
-                        onChanged: (_) => _prefillTamilFromEnglishOnce(),
+                        // onChanged: (_) => _prefillTamilFromEnglishOnce(),
                       ),
                       const SizedBox(height: 15),
 

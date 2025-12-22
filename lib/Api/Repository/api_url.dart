@@ -89,7 +89,7 @@ class ApiUrl {
   }
 
   static String serviceDelete({required String serviceId}) {
-    return "${base}api/v1/services/delete/$serviceId";
+    return "${base}api/v1/services/$serviceId";
   }
 
   static String employeeHome({

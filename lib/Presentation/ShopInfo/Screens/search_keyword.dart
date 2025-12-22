@@ -94,7 +94,7 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                     ),
                     SizedBox(width: 50),
                     Text(
-                      'Register Vendor',
+                      'Register Shop',
                       style: AppTextStyles.mulish(
                         fontSize: 16,
                         fontWeight: FontWeight.w400,
