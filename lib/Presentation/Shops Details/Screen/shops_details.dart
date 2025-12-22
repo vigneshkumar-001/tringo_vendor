@@ -20,6 +20,7 @@ import '../../../Core/Widgets/bottom_navigation_bar.dart';
 import '../../AddProduct/Screens/product_category_screens.dart';
 import '../../AddProduct/Screens/product_search_keyword.dart';
 
+import '../../Home Screen/Contoller/employee_home_notifier.dart';
 import '../../No Data Screen/Screen/no_data_screen.dart';
 import '../../ShopInfo/Screens/shop_category_info.dart';
 import '../../subscription/Screen/subscription_screen.dart';
@@ -740,81 +741,9 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                               },
                             ),
 
-                            // ListView.builder(
-                            //   shrinkWrap: true,
-                            //   physics: const NeverScrollableScrollPhysics(),
-                            //   itemCount: shop?.services.length,
-                            //   itemBuilder: (context, index) {
-                            //     final data = shop?.services[index];
-                            //
-                            //     final imageUrl =
-                            //         (data?.media != null &&
-                            //             data!.media.isNotEmpty)
-                            //         ? (data?.media.first.url ?? '')
-                            //         : '';
-                            //
-                            //     return Padding(
-                            //       padding: const EdgeInsets.only(right: 10),
-                            //       child: CommonContainer.foodList(
-                            //         fontSize: 14,
-                            //         doorDelivery: false,
-                            //         titleWeight: FontWeight.w700,
-                            //         onTap: () {},
-                            //         imageWidth: 130,
-                            //         image: imageUrl,
-                            //         foodName: data?.englishName ?? '',
-                            //         ratingStar: data?.rating?.toString() ?? '0',
-                            //         ratingCount:
-                            //             data?.ratingCount?.toString() ?? '0',
-                            //         offAmound: '₹${data?.offerPrice ?? 0}',
-                            //         oldAmound:'₹${data?.startsAt ?? 0}',
-                            //         km: '',
-                            //         location: '',
-                            //         Verify: false,
-                            //         locations: false,
-                            //         weight: false,
-                            //         horizontalDivider: false,
-                            //       ),
-                            //     );
-                            //   },
-                            // ),
+
                             SizedBox(height: 10),
-                            // InkWell(
-                            //   onTap: () {
-                            //     Navigator.push(
-                            //       context,
-                            //       MaterialPageRoute(
-                            //         builder: (context) =>
-                            //             ProductCategoryScreens(),
-                            //       ),
-                            //     );
-                            //   },
-                            //   child: Container(
-                            //     width: double.infinity,
-                            //     decoration: BoxDecoration(
-                            //       color: AppColor.lightGray,
-                            //       borderRadius: BorderRadius.circular(15),
-                            //     ),
-                            //     padding: EdgeInsets.symmetric(vertical: 22.5),
-                            //     child: Row(
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Image.asset(
-                            //           AppImages.addListImage,
-                            //           height: 22,
-                            //           color: AppColor.darkBlue,
-                            //         ),
-                            //         const SizedBox(width: 9),
-                            //         Text(
-                            //           'Add Service',
-                            //           style: AppTextStyles.mulish(
-                            //             color: AppColor.darkBlue,
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   ),
-                            // ),
+
                           ],
                         ],
                       ),
@@ -867,7 +796,8 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) => const SubscriptionScreen(
+                                    (context) =>   SubscriptionScreen(
+                                      businessProfileId: shop?.businessProfileId?? '',
                                       showSkip: false,
                                     ),
                               ),
@@ -991,6 +921,9 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                   onPressed: () async {
                     // 1️⃣ Always navigate immediately
                     context.goNamed(AppRoutes.home);
+                    await ref
+                        .read(employeeHomeNotifier.notifier)
+                        .employeeHome(date: '', page: '1', limit: '6', q: '');
                     // await ref
                     //     .read(selectedShopProvider.notifier)
                     //     .switchShop('');

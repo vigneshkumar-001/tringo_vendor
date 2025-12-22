@@ -2129,12 +2129,13 @@ class ApiDataSource {
   }
 
 
-  Future<Either<Failure, PurchaseResponse>> purchasePlan({required String planId}) async {
+  Future<Either<Failure, PurchaseResponse>> purchasePlan({required String planId,required String businessProfileId}) async {
     try {
       final url = ApiUrl.purchase;
 
       dynamic response = await Request.sendRequest(url, {
-        "planId": planId
+        "planId": planId,
+        "businessProfileId" : businessProfileId
       }, 'POST', true);
 
       AppLogger.log.i(response);

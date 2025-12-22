@@ -77,10 +77,16 @@ class SubscriptionNotifier extends Notifier<SubscriptionState> {
     );
   }
 
-  Future<void> purchasePlan({required String planId}) async {
+  Future<void> purchasePlan({
+    required String planId,
+    required String businessProfileId,
+  }) async {
     state = state.copyWith(isInsertLoading: true, purchaseResponse: null);
 
-    final result = await api.purchasePlan(planId: planId);
+    final result = await api.purchasePlan(
+      planId: planId,
+      businessProfileId: businessProfileId,
+    );
 
     result.fold(
       (failure) {

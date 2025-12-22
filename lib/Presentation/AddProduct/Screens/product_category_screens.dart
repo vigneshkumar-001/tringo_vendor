@@ -499,7 +499,7 @@ class _ProductCategoryScreensState
                       ),
                       const SizedBox(width: 50),
                       Text(
-                        'Register Vendor',
+                        'Register Shop',
                         style: AppTextStyles.mulish(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
