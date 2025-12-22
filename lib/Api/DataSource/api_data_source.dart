@@ -436,77 +436,6 @@ class ApiDataSource {
     }
   }
 
-  Future<Either<Failure, UserImageResponse>> userProfileUpload({
-    required File imageFile,
-  }) async {
-    try {
-      if (!await imageFile.exists()) {
-        return Left(ServerFailure('Image file does not exist.'));
-      }
-
-      final url = ApiUrl.imageUrl;
-
-      final formData = FormData.fromMap({
-        // ✅ backend may expect "image" not "images"
-        // keep your key if backend requires it
-        'images': await MultipartFile.fromFile(
-          imageFile.path,
-          filename: imageFile.path.split('/').last,
-        ),
-      });
-
-      final res = await Request.formData(url, formData, 'POST', true);
-
-      // ✅ If Request.formData returned DioException
-      if (res is DioException) {
-        final msg =
-            res.response?.data?.toString() ??
-            res.message ??
-            res.error?.toString() ??
-            "Upload failed (network error)";
-        return Left(ServerFailure(msg));
-      }
-
-      // ✅ If Request.formData returned something unexpected
-      if (res is! Response) {
-        return Left(ServerFailure("Unexpected error"));
-      }
-
-      final response = res;
-
-      // ✅ response.data could be String or Map
-      final dynamic raw = response.data;
-      Map<String, dynamic> responseData;
-
-      if (raw is String) {
-        responseData = jsonDecode(raw) as Map<String, dynamic>;
-      } else if (raw is Map<String, dynamic>) {
-        responseData = raw;
-      } else {
-        return Left(ServerFailure("Invalid server response"));
-      }
-
-      if (response.statusCode == 200) {
-        if (responseData['status'] == true) {
-          return Right(UserImageResponse.fromJson(responseData));
-        } else {
-          return Left(
-            ServerFailure(responseData['message']?.toString() ?? "Failed"),
-          );
-        }
-      }
-
-      return Left(
-        ServerFailure(
-          responseData['message']?.toString() ??
-              "Upload failed (${response.statusCode})",
-        ),
-      );
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
   // Future<Either<Failure, UserImageResponse>> userProfileUpload({
   //   required File imageFile,
   // }) async {
@@ -515,36 +444,107 @@ class ApiDataSource {
   //       return Left(ServerFailure('Image file does not exist.'));
   //     }
   //
-  //     String url = ApiUrl.imageUrl;
-  //     FormData formData = FormData.fromMap({
+  //     final url = ApiUrl.imageUrl;
+  //
+  //     final formData = FormData.fromMap({
+  //       // ✅ backend may expect "image" not "images"
+  //       // keep your key if backend requires it
   //       'images': await MultipartFile.fromFile(
   //         imageFile.path,
   //         filename: imageFile.path.split('/').last,
   //       ),
   //     });
   //
-  //     final response = await Request.formData(url, formData, 'POST', true);
-  //     Map<String, dynamic> responseData =
-  //         jsonDecode(response.data) as Map<String, dynamic>;
+  //     final res = await Request.formData(url, formData, 'POST', true);
+  //
+  //     // ✅ If Request.formData returned DioException
+  //     if (res is DioException) {
+  //       final msg =
+  //           res.response?.data?.toString() ??
+  //           res.message ??
+  //           res.error?.toString() ??
+  //           "Upload failed (network error)";
+  //       return Left(ServerFailure(msg));
+  //     }
+  //
+  //     // ✅ If Request.formData returned something unexpected
+  //     if (res is! Response) {
+  //       return Left(ServerFailure("Unexpected error"));
+  //     }
+  //
+  //     final response = res;
+  //
+  //     // ✅ response.data could be String or Map
+  //     final dynamic raw = response.data;
+  //     Map<String, dynamic> responseData;
+  //
+  //     if (raw is String) {
+  //       responseData = jsonDecode(raw) as Map<String, dynamic>;
+  //     } else if (raw is Map<String, dynamic>) {
+  //       responseData = raw;
+  //     } else {
+  //       return Left(ServerFailure("Invalid server response"));
+  //     }
+  //
   //     if (response.statusCode == 200) {
   //       if (responseData['status'] == true) {
   //         return Right(UserImageResponse.fromJson(responseData));
   //       } else {
-  //         return Left(ServerFailure(responseData['message']));
+  //         return Left(
+  //           ServerFailure(responseData['message']?.toString() ?? "Failed"),
+  //         );
   //       }
-  //     } else if (response is Response && response.statusCode == 409) {
-  //       return Left(ServerFailure(responseData['message']));
-  //     } else if (response is Response) {
-  //       return Left(ServerFailure(responseData['message'] ?? "Unknown error"));
-  //     } else {
-  //       return Left(ServerFailure("Unexpected error"));
   //     }
+  //
+  //     return Left(
+  //       ServerFailure(
+  //         responseData['message']?.toString() ??
+  //             "Upload failed (${response.statusCode})",
+  //       ),
+  //     );
   //   } catch (e) {
-  //     // CommonLogger.log.e(e);
-  //     print(e);
-  //     return Left(ServerFailure('Something went wrong'));
+  //     return Left(ServerFailure(e.toString()));
   //   }
   // }
+
+  Future<Either<Failure, UserImageResponse>> userProfileUpload({
+    required File imageFile,
+  }) async {
+    try {
+      if (!await imageFile.exists()) {
+        return Left(ServerFailure('Image file does not exist.'));
+      }
+
+      String url = ApiUrl.imageUrl;
+      FormData formData = FormData.fromMap({
+        'images': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+      });
+
+      final response = await Request.formData(url, formData, 'POST', true);
+      Map<String, dynamic> responseData =
+          jsonDecode(response.data) as Map<String, dynamic>;
+      if (response.statusCode == 200) {
+        if (responseData['status'] == true) {
+          return Right(UserImageResponse.fromJson(responseData));
+        } else {
+          return Left(ServerFailure(responseData['message']));
+        }
+      } else if (response is Response && response.statusCode == 409) {
+        return Left(ServerFailure(responseData['message']));
+      } else if (response is Response) {
+        return Left(ServerFailure(responseData['message'] ?? "Unknown error"));
+      } else {
+        return Left(ServerFailure("Unexpected error"));
+      }
+    } catch (e) {
+      // CommonLogger.log.e(e);
+      print(e);
+      return Left(ServerFailure('Something went wrong'));
+    }
+  }
 
   Future<Either<Failure, EmployeeListResponse>> getEmployeeList() async {
     try {
@@ -709,9 +709,7 @@ class ApiDataSource {
         if (response.data['status'] == true) {
           return Right(LoginResponse.fromJson(response.data));
         } else {
-          return Left(
-            ServerFailure(response.data['message']  ),
-          );
+          return Left(ServerFailure(response.data['message']));
         }
       }
 
@@ -719,14 +717,10 @@ class ApiDataSource {
         ServerFailure(response.data['message'] ?? 'Something went wrong'),
       );
     }
-
     // 🔴 TIMEOUT
     on TimeoutException {
-      return Left(
-        ServerFailure('Request timed out. Please try again.'),
-      );
+      return Left(ServerFailure('Request timed out. Please try again.'));
     }
-
     // 🔴 DIO ERRORS (4xx, 5xx, cancel, etc.)
     on DioException catch (e) {
       final data = e.response?.data;
@@ -735,19 +729,13 @@ class ApiDataSource {
       }
       return Left(ServerFailure(e.message ?? 'Network error'));
     }
-
     // 🔴 INTERNET OFF / SOCKET
     on SocketException {
-      return Left(
-        ServerFailure('No internet connection'),
-      );
+      return Left(ServerFailure('No internet connection'));
     }
-
     // 🔴 ANYTHING ELSE
     catch (e) {
-      return Left(
-        ServerFailure(e.toString()),
-      );
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -1059,7 +1047,9 @@ class ApiDataSource {
         return Left(ServerFailure(response.data['message'] ?? "Upload failed"));
       }
 
-      return Left(ServerFailure(response.data['message'] ?? "Something went wrong"));
+      return Left(
+        ServerFailure(response.data['message'] ?? "Something went wrong"),
+      );
     } on DioException catch (e) {
       final errorData = e.response?.data;
       if (errorData is Map && errorData['message'] != null) {

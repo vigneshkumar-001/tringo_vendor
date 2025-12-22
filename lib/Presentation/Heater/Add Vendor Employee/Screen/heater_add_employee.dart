@@ -376,13 +376,25 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                             controller: mobileController,
                             isLoading: state.isSendingOtp,
                             isOtpVerifying: state.isVerifyingOtp,
-                            onSendOtp: (mobile) {
-                              return ref
+                            onSendOtp: (mobile) async {
+                              final success = await ref
                                   .read(addEmployeeNotifier.notifier)
                                   .employeeAddNumberRequest(
                                     phoneNumber: mobile,
                                   );
+
+                              if (!success) {
+                                return ref.read(addEmployeeNotifier).error;
+                              }
+                              return null;
                             },
+
+                            // onSendOtp: (mobile) {
+                            //   return ref.read(addEmployeeNotifier.notifier)
+                            //       .employeeAddNumberRequest(
+                            //         phoneNumber: mobile,
+                            //       );
+                            // },
                             onVerifyOtp: (mobile, otp) {
                               return ref
                                   .read(addEmployeeNotifier.notifier)

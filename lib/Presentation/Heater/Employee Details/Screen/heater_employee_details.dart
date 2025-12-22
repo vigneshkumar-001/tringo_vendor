@@ -206,6 +206,19 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                           ),
                           SizedBox(height: 15),
                           InkWell(
+                            // onTap: () {
+                            //   context.push(
+                            //     AppRoutes.heaterEmployeeDetailsEditPath,
+                            //     extra: {
+                            //       'employeeId': employee.id,
+                            //       'name': employee.name,
+                            //       'employeeCode': employee.employeeCode,
+                            //       'phoneNumber': employee.phoneNumber,
+                            //       'avatarUrl': employee.avatarUrl,
+                            //       'totalAmount': summary.totalAmount.toString(),
+                            //     },
+                            //   );
+                            // },
                             onTap: () {
                               context.push(
                                 AppRoutes.heaterEmployeeDetailsEditPath,
@@ -216,6 +229,7 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
                                   'phoneNumber': employee.phoneNumber,
                                   'avatarUrl': employee.avatarUrl,
                                   'totalAmount': summary.totalAmount.toString(),
+                                  'isActive': employee.isActive, //  add this
                                 },
                               );
                             },
