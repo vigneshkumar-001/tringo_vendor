@@ -10,6 +10,7 @@ import 'Core/Const/app_color.dart';
 import 'Core/Const/app_images.dart';
 import 'Core/Widgets/app_go_routes.dart';
 import 'Presentation/Home Screen/Contoller/employee_home_notifier.dart';
+import 'Presentation/subscription/Controller/subscription_notifier.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -47,6 +48,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await ref
         .read(employeeHomeNotifier.notifier)
         .employeeHome(date: '', page: '1', limit: '6', q: '');
+    await ref.read(subscriptionNotifier.notifier).getPlanList();
     //  EMPLOYEE → always home
     if (role == 'EMPLOYEE') {
       context.goNamed(AppRoutes.home);
