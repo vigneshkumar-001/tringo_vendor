@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,15 +9,17 @@ import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
+import '../../Heater Home Screen/Controller/heater_home_notifier.dart';
+import '../../Heater Home Screen/Model/heater_home_response.dart';
 
-class HeaterSetting extends StatefulWidget {
+class HeaterSetting extends ConsumerStatefulWidget {
   const HeaterSetting({super.key});
 
   @override
-  State<HeaterSetting> createState() => _HeaterSettingState();
+  ConsumerState<HeaterSetting> createState() => _HeaterSettingState();
 }
 
-class _HeaterSettingState extends State<HeaterSetting> {
+class _HeaterSettingState extends ConsumerState<HeaterSetting> {
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -91,6 +94,14 @@ class _HeaterSettingState extends State<HeaterSetting> {
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(heaterHomeNotifier);
+    final VendorDashboardResponse? response = state.vendorDashboardResponse;
+    final VendorDashboardData? dashboard = response?.data;
+
+    final header = dashboard?.header;
+    final planCards = dashboard?.planCards;
+    final todayTotalCount = dashboard?.todayTotalCount;
+    final todayActivity = dashboard?.todayActivity;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -123,7 +134,7 @@ class _HeaterSettingState extends State<HeaterSetting> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Sivan',
+                                  header?.displayName ?? '-',
                                   style: AppTextStyles.mulish(
                                     fontWeight: FontWeight.w900,
                                     fontSize: 24,
@@ -132,7 +143,7 @@ class _HeaterSettingState extends State<HeaterSetting> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'TVH959H9O',
+                                  header?.vendorCode ?? '',
                                   style: AppTextStyles.mulish(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 12,
@@ -141,7 +152,7 @@ class _HeaterSettingState extends State<HeaterSetting> {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  '8 Employees',
+                                  '${header?.employeesCount ?? 0} Employees',
                                   style: AppTextStyles.mulish(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 12,
@@ -154,9 +165,35 @@ class _HeaterSettingState extends State<HeaterSetting> {
                             SizedBox(
                               height: 103,
                               width: 103,
-                              child: Image.asset(
-                                AppImages.settingAvatar,
-                                fit: BoxFit.cover,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                clipBehavior: Clip.hardEdge, // 👈 important
+                                child:
+                                    (header != null &&
+                                            header!.avatarUrl != null &&
+                                            header!.avatarUrl!.isNotEmpty)
+                                        ? Image.network(
+                                          header!.avatarUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) {
+                                            return const Center(
+                                              child: Icon(
+                                                Icons.person,
+                                                size: 40,
+                                                color: Colors.white,
+                                              ),
+                                            );
+                                          },
+                                        )
+                                        : Image.asset(
+                                          AppImages.profileImage,
+                                          fit: BoxFit.cover,
+                                        ),
                               ),
                             ),
 

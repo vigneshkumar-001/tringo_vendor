@@ -26,6 +26,7 @@ class heaterEmployeeEditState {
   final EmployeeUnblockResponse? employeeUnblockResponse;
   final EmployeeChangeNumber? employeeChangeNumber;
   final PhoneVerificationResponse? phoneVerificationResponse;
+  final bool? latestIsActive;
 
   const heaterEmployeeEditState({
     this.isLoading = false,
@@ -39,6 +40,7 @@ class heaterEmployeeEditState {
     this.employeeUnblockResponse,
     this.employeeChangeNumber,
     this.phoneVerificationResponse,
+    this.latestIsActive,
   });
 
   factory heaterEmployeeEditState.initial() => const heaterEmployeeEditState();
@@ -49,6 +51,7 @@ class heaterEmployeeEditState {
     bool? isBlockLoading,
     bool? isSendingOtp,
     bool? isVerifyingOtp,
+    bool? latestIsActive,
 
     String? error,
     EmployeeUpdateResponse? data,
@@ -65,6 +68,7 @@ class heaterEmployeeEditState {
       isSendingOtp: isSendingOtp ?? this.isSendingOtp,
       isVerifyingOtp: isVerifyingOtp ?? this.isVerifyingOtp,
       error: clearError ? null : (error ?? this.error),
+      latestIsActive: latestIsActive ?? this.latestIsActive,
       data: data ?? this.data,
       employeeUpdateResponse:
           employeeUpdateResponse ?? this.employeeUpdateResponse,
@@ -212,13 +216,14 @@ class HeaterEmployeeEditNotifier extends Notifier<heaterEmployeeEditState> {
     final result = await api.employeeUnblock(employeeId: employeeId);
 
     result.fold(
-      (failure) {
+          (failure) {
         state = state.copyWith(isBlockLoading: false, error: failure.message);
       },
-      (response) {
+          (response) {
         state = state.copyWith(
           isBlockLoading: false,
           employeeUnblockResponse: response,
+          latestIsActive: response.data.isActive,
         );
       },
     );
@@ -230,21 +235,22 @@ class HeaterEmployeeEditNotifier extends Notifier<heaterEmployeeEditState> {
   }) async {
     state = state.copyWith(isBlockLoading: true, clearError: true);
 
-    final result = await api.employeeBlock(
-      employeeId: employeeId,
-      reason: reason,
-    );
+    final result = await api.employeeBlock(employeeId: employeeId, reason: reason);
 
     result.fold(
-      (failure) =>
-          state = state.copyWith(isBlockLoading: false, error: failure.message),
-      (response) =>
-          state = state.copyWith(
-            isBlockLoading: false,
-            employeeUnblockResponse: response,
-          ),
+          (failure) {
+        state = state.copyWith(isBlockLoading: false, error: failure.message);
+      },
+          (response) {
+        state = state.copyWith(
+          isBlockLoading: false,
+          employeeUnblockResponse: response,
+          latestIsActive: response.data.isActive,
+        );
+      },
     );
   }
+
 
   Future<String?> employeeUpdateNumberRequest({
     required String phoneNumber,

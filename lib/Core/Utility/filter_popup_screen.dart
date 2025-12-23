@@ -29,20 +29,24 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
 
   bool _isFocused = false;
 
-  DateTimeRange? _selectedRange;
+  // DateTimeRange? _selectedRange;
+  DateTime? _selectedDate;
+
   final _df = DateFormat('dd MMM yyyy');
 
-  final List<String> allCategories = ['Premium', 'Premium Pro', 'Freemium'];
+  final List<String> allCategories = ['Premium', 'Freemium'];
   late final Set<String> selectedCategories;
 
   @override
   void initState() {
     super.initState();
 
-    // ✅ NO DEFAULT CATEGORY!
+    // NO DEFAULT CATEGORY!
     selectedCategories = {...?widget.initialSelectedCategories};
 
-    _selectedRange = widget.initialDateRange;
+    // _selectedRange = widget.initialDateRange;
+    _selectedDate = widget.initialDateRange?.start;
+
     _syncDateText();
 
     _searchFocus.addListener(() {
@@ -68,14 +72,18 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
     });
   }
 
+  // void _syncDateText() {
+  //   if (_selectedRange == null) {
+  //     _dateText.text = "";
+  //   } else {
+  //     _dateText.text =
+  //     "${_df.format(_selectedRange!.start)}  →  ${_df.format(_selectedRange!.end)}";
+  //   }
+  //   if (mounted) setState(() {});
+  // }
+
   void _syncDateText() {
-    if (_selectedRange == null) {
-      _dateText.text = "";
-    } else {
-      _dateText.text =
-      "${_df.format(_selectedRange!.start)}  →  ${_df.format(_selectedRange!.end)}";
-    }
-    if (mounted) setState(() {});
+    _dateText.text = _selectedDate == null ? "" : _df.format(_selectedDate!);
   }
 
   @override
@@ -99,48 +107,102 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
     }
 
     // ✅ date range mapping
-    String? dateFrom;
-    String? dateTo;
-    if (_selectedRange != null) {
-      dateFrom = DateFormat('yyyy-MM-dd').format(_selectedRange!.start);
-      dateTo = DateFormat('yyyy-MM-dd').format(_selectedRange!.end);
+    String? date;
+    if (_selectedDate != null) {
+      date = DateFormat('yyyy-MM-dd').format(_selectedDate!);
     }
 
     return {
       "filters": {"plan": plan},
-      "dateFrom": dateFrom,
-      "dateTo": dateTo,
+      "date": date,
     };
+
+    // String? dateFrom;
+    // String? dateTo;
+    // if (_selectedRange != null) {
+    //   dateFrom = DateFormat('yyyy-MM-dd').format(_selectedRange!.start);
+    //   dateTo = DateFormat('yyyy-MM-dd').format(_selectedRange!.end);
+    // }
+
+    // return {
+    //   "filters": {"plan": plan},
+    //   "dateFrom": dateFrom,
+    //   "dateTo": dateTo,
+    // };
   }
 
-  Future<void> _pickDateRange() async {
+  // Future<void> _pickDateRange() async {
+  //   _dateRange.unfocus();
+  //
+  //   final now = DateTime.now();
+  //   final picked = await showDateRangePicker(
+  //     context: context,
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(2100),
+  //     initialDateRange: _selectedRange ??
+  //         DateTimeRange(
+  //           start: now,
+  //           end: now,
+  //         ),
+  //   );
+  //
+  //   if (picked == null) return;
+  //
+  //   setState(() {
+  //     _selectedRange = picked;
+  //   });
+  //
+  //   _syncDateText();
+  // }
+  Future<void> _pickDate() async {
     _dateRange.unfocus();
 
-    final now = DateTime.now();
-    final picked = await showDateRangePicker(
+    final picked = await showDatePicker(
       context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      initialDateRange: _selectedRange ??
-          DateTimeRange(
-            start: now,
-            end: now,
+
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColor.blue, // header + selected date
+              onPrimary: Colors.white, // text on header
+              surface: AppColor.white, // dialog background
+              onSurface: AppColor.darkBlue, // normal text
+            ),
+            dialogBackgroundColor: AppColor.white,
           ),
+          child: child!,
+        );
+      },
     );
 
     if (picked == null) return;
 
     setState(() {
-      _selectedRange = picked;
+      _selectedDate = picked;
     });
 
     _syncDateText();
   }
 
+  // void _resetAndReturn() {
+  //   setState(() {
+  //     selectedCategories.clear();
+  //     _selectedRange = null;
+  //     _controller.clear();
+  //     _dateText.clear();
+  //   });
+  //
+  //   Navigator.pop(context, {"reset": true});
+  // }
+
   void _resetAndReturn() {
     setState(() {
       selectedCategories.clear();
-      _selectedRange = null;
+      _selectedDate = null; // correct
       _controller.clear();
       _dateText.clear();
     });
@@ -152,9 +214,15 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
     setState(() => selectedCategories.clear());
   }
 
-  void clearDateRange() {
+  // void clearDateRange() {
+  //   setState(() {
+  //     _selectedRange = null;
+  //     _dateText.clear();
+  //   });
+  // }
+  void clearDate() {
     setState(() {
-      _selectedRange = null;
+      _selectedDate = null;
       _dateText.clear();
     });
   }
@@ -181,8 +249,10 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
               top: false,
               child: ListView(
                 controller: scrollController,
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 children: [
                   // Header
                   Row(
@@ -216,7 +286,9 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
                             borderRadius: BorderRadius.circular(50),
                           ),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 17, vertical: 10),
+                            horizontal: 17,
+                            vertical: 10,
+                          ),
                           child: Image.asset(AppImages.closeImage, height: 9),
                         ),
                       ),
@@ -255,22 +327,24 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
 
                   // Search categories
                   Focus(
-                    onFocusChange: (hasFocus) =>
-                        setState(() => _isFocused = hasFocus),
+                    onFocusChange:
+                        (hasFocus) => setState(() => _isFocused = hasFocus),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
                         color: AppColor.white,
                         borderRadius: BorderRadius.circular(40),
                         border: Border.all(
-                          color: _isFocused ? AppColor.blue : AppColor.lightGray1,
+                          color:
+                              _isFocused ? AppColor.blue : AppColor.lightGray1,
                           width: 2.5,
                         ),
                         boxShadow: const [
                           BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 6,
-                              offset: Offset(0, 3)),
+                            color: Colors.black12,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          ),
                         ],
                       ),
                       child: Row(
@@ -285,25 +359,33 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
                               decoration: InputDecoration(
                                 isCollapsed: true,
                                 contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 10),
+                                  vertical: 12,
+                                  horizontal: 10,
+                                ),
                                 hintText: 'Search Categories',
                                 border: InputBorder.none,
                                 hintStyle: AppTextStyles.mulish(
                                   color: AppColor.lightGray,
                                   fontSize: 14,
                                 ),
-                                suffixIcon: _controller.text.isNotEmpty
-                                    ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 18),
-                                  onPressed: () {
-                                    _controller.clear();
-                                    setState(() {});
-                                  },
-                                )
-                                    : null,
+                                suffixIcon:
+                                    _controller.text.isNotEmpty
+                                        ? IconButton(
+                                          icon: const Icon(
+                                            Icons.clear,
+                                            size: 18,
+                                          ),
+                                          onPressed: () {
+                                            _controller.clear();
+                                            setState(() {});
+                                          },
+                                        )
+                                        : null,
                               ),
                               style: AppTextStyles.mulish(
-                                  fontSize: 14, color: AppColor.black),
+                                fontSize: 14,
+                                color: AppColor.black,
+                              ),
                             ),
                           ),
                         ],
@@ -317,52 +399,66 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
-                    children: allCategories.map((category) {
-                      final isSelected = selectedCategories.contains(category);
+                    children:
+                        allCategories.map((category) {
+                          final isSelected = selectedCategories.contains(
+                            category,
+                          );
 
-                      final searchText = _controller.text.trim().toLowerCase();
-                      if (searchText.isNotEmpty &&
-                          !category.toLowerCase().contains(searchText)) {
-                        return const SizedBox.shrink();
-                      }
+                          final searchText =
+                              _controller.text.trim().toLowerCase();
+                          if (searchText.isNotEmpty &&
+                              !category.toLowerCase().contains(searchText)) {
+                            return const SizedBox.shrink();
+                          }
 
-                      return ChoiceChip(
-                        label: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(category),
-                            if (isSelected) const SizedBox(width: 8),
-                            if (isSelected)
-                              Icon(Icons.close, size: 16, color: AppColor.blue),
-                          ],
-                        ),
-                        selected: isSelected,
-                        onSelected: (_) {
-                          setState(() {
-                            if (isSelected) {
-                              selectedCategories.remove(category);
-                            } else {
-                              selectedCategories.add(category);
-                            }
-                          });
-                        },
-                        selectedColor: AppColor.white,
-                        backgroundColor: AppColor.white,
-                        showCheckmark: false,
-                        shape: StadiumBorder(
-                          side: BorderSide(
-                            color: isSelected ? Colors.blue : AppColor.borderGray,
-                          ),
-                        ),
-                        labelStyle: AppTextStyles.mulish(
-                          color: isSelected
-                              ? AppColor.blue
-                              : AppColor.lightGray2,
-                          fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w400,
-                        ),
-                      );
-                    }).toList(),
+                          return ChoiceChip(
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(category),
+                                if (isSelected) const SizedBox(width: 8),
+                                if (isSelected)
+                                  Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: AppColor.blue,
+                                  ),
+                              ],
+                            ),
+                            selected: isSelected,
+                            onSelected: (_) {
+                              setState(() {
+                                if (isSelected) {
+                                  selectedCategories.remove(category);
+                                } else {
+                                  selectedCategories.add(category);
+                                }
+                              });
+                            },
+                            selectedColor: AppColor.white,
+                            backgroundColor: AppColor.white,
+                            showCheckmark: false,
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color:
+                                    isSelected
+                                        ? Colors.blue
+                                        : AppColor.borderGray,
+                              ),
+                            ),
+                            labelStyle: AppTextStyles.mulish(
+                              color:
+                                  isSelected
+                                      ? AppColor.blue
+                                      : AppColor.lightGray2,
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                            ),
+                          );
+                        }).toList(),
                   ),
 
                   const SizedBox(height: 24),
@@ -380,7 +476,7 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: clearDateRange,
+                        onTap: clearDate,
                         child: Text(
                           'Clear All',
                           style: AppTextStyles.mulish(
@@ -400,12 +496,16 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
                     decoration: BoxDecoration(
                       color: AppColor.white,
                       borderRadius: BorderRadius.circular(40),
-                      border: Border.all(color: AppColor.lightGray1, width: 2.5),
+                      border: Border.all(
+                        color: AppColor.lightGray1,
+                        width: 2.5,
+                      ),
                       boxShadow: const [
                         BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: Offset(0, 3)),
+                          color: Colors.black12,
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
+                        ),
                       ],
                     ),
                     child: Row(
@@ -417,11 +517,15 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
                             controller: _dateText,
                             focusNode: _dateRange,
                             readOnly: true,
-                            onTap: _pickDateRange,
+                            // onTap: _pickDateRange,
+                            onTap: _pickDate,
+
                             decoration: InputDecoration(
                               isCollapsed: true,
                               contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 10),
+                                vertical: 12,
+                                horizontal: 10,
+                              ),
                               hintText: 'Date Range',
                               border: InputBorder.none,
                               hintStyle: AppTextStyles.mulish(
@@ -447,13 +551,25 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: _resetAndReturn,
-                          child: const Text("Reset"),
+                          style: OutlinedButton.styleFrom(
+                            // backgroundColor: Colors.grey.shade200,
+                            side: const BorderSide(color: Colors.grey),
+                          ),
+                          child: const Text(
+                            "Reset",
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context, _buildResult()),
+                          onPressed:
+                              () => Navigator.pop(context, _buildResult()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
                           child: const Text("Apply"),
                         ),
                       ),
@@ -942,7 +1058,6 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
 //     );
 //   }
 // }
-
 
 // import 'package:flutter/material.dart';
 // import 'package:intl/intl.dart';

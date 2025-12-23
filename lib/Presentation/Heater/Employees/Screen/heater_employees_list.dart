@@ -29,7 +29,6 @@ class HeaterEmployeesList extends ConsumerStatefulWidget {
 }
 
 class _HeaterEmployeesListState extends ConsumerState<HeaterEmployeesList> {
-
   bool _showSearch = false;
   final TextEditingController _searchController = TextEditingController();
 
@@ -349,138 +348,296 @@ class _HeaterEmployeesListState extends ConsumerState<HeaterEmployeesList> {
   }
 
   Widget _employeeCard(BuildContext context, EmployeeItem data) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColor.ivoryGreen,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      padding: EdgeInsets.all(20),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: SizedBox(
-              height: 115,
-              width: 92,
-              child: Image.network(
-                data.avatarUrl ?? '',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) {
-                  return Container(
-                    width: 92,
-                    height: 115,
-                    color: Colors.grey[300],
-                    child: Icon(Icons.broken_image, color: Colors.grey),
-                  );
-                },
+    final bool isBlocked = data.isActive == false;
+
+    return Opacity(
+      opacity: isBlocked ? 0.45 : 1.0,
+      child: Container(
+        decoration: BoxDecoration(
+          color:
+              isBlocked
+                  ? AppColor.ivoryGreen.withOpacity(0.4)
+                  : AppColor.ivoryGreen,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: SizedBox(
+                height: 115,
+                width: 92,
+                child: Image.network(
+                  data.avatarUrl ?? '',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) {
+                    return Container(
+                      width: 92,
+                      height: 115,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-          SizedBox(width: 20),
+            const SizedBox(width: 20),
 
-          // Left info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          data.name,
+                          style: AppTextStyles.mulish(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: AppColor.darkBlue,
+                          ),
+                        ),
+                      ),
+                      if (isBlocked)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            'Blocked',
+                            style: AppTextStyles.mulish(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.mildBlack,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    data.employeeCode,
+                    style: AppTextStyles.mulish(
+                      fontSize: 11,
+                      color: AppColor.mildBlack,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Collections',
+                    style: AppTextStyles.mulish(
+                      fontSize: 10,
+                      color: AppColor.gray84,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${data.totalAmount}',
+                    style: AppTextStyles.mulish(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: AppColor.mildBlack,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Column(
               children: [
-                Text(
-                  data.name,
-                  style: AppTextStyles.mulish(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: AppColor.darkBlue,
+                InkWell(
+                  onTap: () {
+                    if (data.phoneNumber.trim().isNotEmpty) {
+                      _launchDialer(data.phoneNumber);
+                    }
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColor.black,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14.5,
+                      vertical: 19.5,
+                    ),
+                    child: Image.asset(AppImages.callImage1, height: 12),
                   ),
                 ),
-                SizedBox(height: 3),
-                Text(
-                  data.employeeCode,
-                  style: AppTextStyles.mulish(
-                    fontSize: 11,
-                    color: AppColor.mildBlack,
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                Text(
-                  'Collections',
-                  style: AppTextStyles.mulish(
-                    fontSize: 10,
-                    color: AppColor.gray84,
-                  ),
-                ),
-                SizedBox(height: 3),
-                Text(
-                  '${data.collectionCount}',
-                  style: AppTextStyles.mulish(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: AppColor.mildBlack,
+                const SizedBox(height: 15),
+                InkWell(
+                  onTap: () {
+                    context.push(
+                      AppRoutes.heaterEmployeeDetailsPath,
+                      extra: data.id,
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColor.black.withOpacity(0.5),
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14.5,
+                      vertical: 14.5,
+                    ),
+                    child: Image.asset(
+                      AppImages.rightArrow,
+                      color: AppColor.darkBlue,
+                      height: 12,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-
-          // Right actions
-          Column(
-            children: [
-              InkWell(
-                onTap: () {
-                  if (data.phoneNumber.trim().isNotEmpty) {
-                    _launchDialer(data.phoneNumber);
-                  }
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColor.black,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 14.5,
-                    vertical: 19.5,
-                  ),
-                  child: Image.asset(AppImages.callImage1, height: 12),
-                ),
-              ),
-              SizedBox(height: 15),
-              InkWell(
-                // onTap: () {
-                //   final id = employee.id;
-                //   context.push('${AppRoutes.heaterEmployeeDetailsEditPath}/$id');
-                // },
-                onTap: () {
-                  // Pass employee id if needed
-                  // context.push(
-                  //   '${AppRoutes.heaterEmployeeDetailsPath}/${data.id}',
-                  // );
-                  context.push(
-                    AppRoutes.heaterEmployeeDetailsPath,
-                    extra: data.id,
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColor.black.withOpacity(0.5)),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 14.5,
-                    vertical: 14.5,
-                  ),
-                  child: Image.asset(
-                    AppImages.rightArrow,
-                    color: AppColor.darkBlue,
-                    height: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
+  // Widget _employeeCard(BuildContext context, EmployeeItem data) {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       color: AppColor.ivoryGreen,
+  //       borderRadius: BorderRadius.circular(15),
+  //     ),
+  //     padding: EdgeInsets.all(20),
+  //     child: Row(
+  //       children: [
+  //         ClipRRect(
+  //           borderRadius: BorderRadius.circular(15),
+  //           child: SizedBox(
+  //             height: 115,
+  //             width: 92,
+  //             child: Image.network(
+  //               data.avatarUrl ?? '',
+  //               fit: BoxFit.cover,
+  //               errorBuilder: (_, __, ___) {
+  //                 return Container(
+  //                   width: 92,
+  //                   height: 115,
+  //                   color: Colors.grey[300],
+  //                   child: Icon(Icons.broken_image, color: Colors.grey),
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //         ),
+  //         SizedBox(width: 20),
+  //
+  //         // Left info
+  //         Expanded(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Text(
+  //                 data.name,
+  //                 style: AppTextStyles.mulish(
+  //                   fontWeight: FontWeight.w700,
+  //                   fontSize: 16,
+  //                   color: AppColor.darkBlue,
+  //                 ),
+  //               ),
+  //               SizedBox(height: 3),
+  //               Text(
+  //                 data.employeeCode,
+  //                 style: AppTextStyles.mulish(
+  //                   fontSize: 11,
+  //                   color: AppColor.mildBlack,
+  //                 ),
+  //               ),
+  //               SizedBox(height: 20),
+  //
+  //               Text(
+  //                 'Collections',
+  //                 style: AppTextStyles.mulish(
+  //                   fontSize: 10,
+  //                   color: AppColor.gray84,
+  //                 ),
+  //               ),
+  //               SizedBox(height: 3),
+  //               Text(
+  //                 '${data.totalAmount}',
+  //                 style: AppTextStyles.mulish(
+  //                   fontWeight: FontWeight.w700,
+  //                   fontSize: 16,
+  //                   color: AppColor.mildBlack,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //
+  //         // Right actions
+  //         Column(
+  //           children: [
+  //             InkWell(
+  //               onTap: () {
+  //                 if (data.phoneNumber.trim().isNotEmpty) {
+  //                   _launchDialer(data.phoneNumber);
+  //                 }
+  //               },
+  //               child: Container(
+  //                 decoration: BoxDecoration(
+  //                   color: AppColor.black,
+  //                   borderRadius: BorderRadius.circular(10),
+  //                 ),
+  //                 padding: EdgeInsets.symmetric(
+  //                   horizontal: 14.5,
+  //                   vertical: 19.5,
+  //                 ),
+  //                 child: Image.asset(AppImages.callImage1, height: 12),
+  //               ),
+  //             ),
+  //             SizedBox(height: 15),
+  //             InkWell(
+  //               // onTap: () {
+  //               //   final id = employee.id;
+  //               //   context.push('${AppRoutes.heaterEmployeeDetailsEditPath}/$id');
+  //               // },
+  //               onTap: () {
+  //                 // Pass employee id if needed
+  //                 // context.push(
+  //                 //   '${AppRoutes.heaterEmployeeDetailsPath}/${data.id}',
+  //                 // );
+  //                 context.push(
+  //                   AppRoutes.heaterEmployeeDetailsPath,
+  //                   extra: data.id,
+  //                 );
+  //               },
+  //               child: Container(
+  //                 decoration: BoxDecoration(
+  //                   border: Border.all(color: AppColor.black.withOpacity(0.5)),
+  //                   borderRadius: BorderRadius.circular(10),
+  //                 ),
+  //                 padding: EdgeInsets.symmetric(
+  //                   horizontal: 14.5,
+  //                   vertical: 14.5,
+  //                 ),
+  //                 child: Image.asset(
+  //                   AppImages.rightArrow,
+  //                   color: AppColor.darkBlue,
+  //                   height: 12,
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 /*

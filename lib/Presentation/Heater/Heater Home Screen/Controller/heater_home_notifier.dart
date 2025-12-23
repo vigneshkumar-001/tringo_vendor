@@ -5,6 +5,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
 
 import '../../../../Api/DataSource/api_data_source.dart';
+import '../../../Home Screen/home_screen.dart';
 import '../../../Login Screen/Controller/login_notifier.dart';
 import '../Model/heater_home_response.dart';
 
@@ -45,10 +46,13 @@ class HeaterHomeNotifier extends Notifier<heaterHomeState> {
     return heaterHomeState.initial();
   }
 
-  Future<void> heaterHome() async {
+  Future<void> heaterHome({
+    required String dateFrom,
+    required String dateTo,
+  }) async {
     state = state.copyWith(isLoading: true, vendorDashboardResponse: null);
 
-    final result = await api.heaterHome();
+    final result = await api.heaterHome(dateTo: dateTo, dateFrom: dateFrom);
 
     result.fold(
       (failure) {
@@ -63,40 +67,12 @@ class HeaterHomeNotifier extends Notifier<heaterHomeState> {
     );
   }
 
-  // Future<void> fetchHeaterHome() async {
-  //   // Start loading, clear old data + error
-  //   state = state.copyWith(
-  //     isLoading: true,
-  //     vendorDashboardResponse: null,
-  //     clearError: true,
-  //   );
-  //
-  //   final result = await api.heaterHome();
-  //
-  //   result.fold(
-  //     (failure) {
-  //       state = state.copyWith(
-  //         isLoading: false,
-  //         error: failure.message,
-  //         vendorDashboardResponse: null,
-  //       );
-  //     },
-  //     (response) {
-  //       state = state.copyWith(
-  //         isLoading: false,
-  //         vendorDashboardResponse: response,
-  //         clearError: true,
-  //       );
-  //     },
-  //   );
-  // }
-
   void resetState() {
     state = heaterHomeState.initial();
   }
 }
 
 final heaterHomeNotifier =
-NotifierProvider<HeaterHomeNotifier, heaterHomeState>(HeaterHomeNotifier.new);
-
-
+    NotifierProvider<HeaterHomeNotifier, heaterHomeState>(
+      HeaterHomeNotifier.new,
+    );

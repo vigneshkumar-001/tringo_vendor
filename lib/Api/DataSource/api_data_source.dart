@@ -591,9 +591,12 @@ class ApiDataSource {
     }
   }
 
-  Future<Either<Failure, VendorDashboardResponse>> heaterHome() async {
+  Future<Either<Failure, VendorDashboardResponse>> heaterHome({
+    required String dateFrom,
+    required String dateTo,
+  }) async {
     try {
-      final url = ApiUrl.heaterHome;
+      final url = ApiUrl.heaterHome(dateFrom: dateFrom, dateTo: dateFrom);
 
       dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
 
@@ -2218,15 +2221,19 @@ class ApiDataSource {
     }
   }
 
-
-  Future<Either<Failure, PurchaseResponse>> purchasePlan({required String planId,required String businessProfileId}) async {
+  Future<Either<Failure, PurchaseResponse>> purchasePlan({
+    required String planId,
+    required String businessProfileId,
+  }) async {
     try {
       final url = ApiUrl.purchase;
 
-      dynamic response = await Request.sendRequest(url, {
-        "planId": planId,
-        "businessProfileId" : businessProfileId
-      }, 'POST', true);
+      dynamic response = await Request.sendRequest(
+        url,
+        {"planId": planId},
+        'POST',
+        true,
+      );
 
       AppLogger.log.i(response);
 
