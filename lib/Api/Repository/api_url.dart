@@ -1,6 +1,7 @@
 class ApiUrl {
-  static const String base =
-      "https://fenizo-tringo-backend-12ebb106711d.herokuapp.com/";
+  // static const String base =
+  //     "https://fenizo-tringo-backend-12ebb106711d.herokuapp.com/";
+  static const String base = "https://bknd.tringobiz.com/";
   static const String register = "${base}api/v1/auth/request-otp";
   static const String verifyOtp = "${base}api/v1/auth/verify-otp";
   static const String whatsAppVerify = "${base}api/v1/auth/check-whatsapp";
@@ -21,7 +22,7 @@ class ApiUrl {
   static const String shops = "${base}api/v1/shops";
   static const String vendorRegister = "${base}api/v1/vendor/profile";
   static const String addEmployees = "${base}api/v1/vendor/employees";
-  static const String heaterHome = "${base}api/v1/vendor/dashboard";
+  // static const String heaterHome = "${base}api/v1/vendor/dashboard";
 
   static const String mobileVerify = "${base}api/v1/auth/login-by-sim";
   static const String heaterEmployee = "${base}api/v1/vendor/employees";
@@ -100,6 +101,11 @@ class ApiUrl {
   }) {
     // date must be "yyyy-MM-dd" (example: 2025-12-18)
     return "${base}api/v1/employee/dashboard/home?dateTo=$date&page=$page&limit=$limit&q=$q&dateFrom=$date";
+  }
+
+  static String heaterHome({required String dateFrom, required String dateTo}) {
+    // date must be "yyyy-MM-dd" (example: 2025-12-18)
+    return "${base}api/v1/vendor/dashboard?dateFrom=$dateFrom&dateTo=$dateTo";
   }
 
   static String updateShop({required String shopId}) {

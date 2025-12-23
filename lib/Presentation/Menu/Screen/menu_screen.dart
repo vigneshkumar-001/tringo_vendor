@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,15 +9,17 @@ import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
+import '../../Home Screen/Contoller/employee_home_notifier.dart';
+import '../../Home Screen/Model/employee_home_response.dart';
 
-class MenuScreen extends StatefulWidget {
+class MenuScreen extends ConsumerStatefulWidget {
   const MenuScreen({super.key});
 
   @override
-  State<MenuScreen> createState() => _MenuScreenState();
+  ConsumerState<MenuScreen> createState() => _MenuScreenState();
 }
 
-class _MenuScreenState extends State<MenuScreen> {
+class _MenuScreenState extends ConsumerState<MenuScreen> {
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -65,9 +68,9 @@ class _MenuScreenState extends State<MenuScreen> {
                 //   (route) => false,
                 // );
                 final prefs = await SharedPreferences.getInstance();
-                  prefs.remove('token');
-                  prefs.remove('isProfileCompleted');
-                  prefs.remove('isNewOwner');
+                prefs.remove('token');
+                prefs.remove('isProfileCompleted');
+                prefs.remove('isNewOwner');
                 await prefs.clear();
 
                 // Then navigate
@@ -90,6 +93,12 @@ class _MenuScreenState extends State<MenuScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(employeeHomeNotifier);
+    final EmployeeHomeResponse? response = state.employeeHomeResponse;
+    final EmployeeData? dashboard = response?.data;
+    final employee = dashboard?.employee;
+    final metrics = dashboard?.metrics;
+    final recentActivity = dashboard?.recentActivity;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -122,7 +131,9 @@ class _MenuScreenState extends State<MenuScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Sivan',
+                                  employee!.name.isNotEmpty
+                                      ? employee.name
+                                      : '-',
                                   style: AppTextStyles.mulish(
                                     fontWeight: FontWeight.w900,
                                     fontSize: 24,
@@ -131,7 +142,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'TVH959H9O',
+                                  employee.employeeCode,
                                   style: AppTextStyles.mulish(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 12,
@@ -139,13 +150,35 @@ class _MenuScreenState extends State<MenuScreen> {
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
-                                  '8 Employees',
-                                  style: AppTextStyles.mulish(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12,
-                                    color: AppColor.white,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Reporting',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '-',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      employee.vendorName,
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
