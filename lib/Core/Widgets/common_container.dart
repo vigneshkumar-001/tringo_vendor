@@ -37,7 +37,6 @@ class AadhaarInputFormatter extends TextInputFormatter {
 enum DatePickMode { none, single, range }
 
 class CommonContainer {
-  
   static Widget sellingProduct({
     required String image,
     required VoidCallback onTap,
@@ -1200,49 +1199,58 @@ class CommonContainer {
                               //   ),
                               // ),
                               GestureDetector(
-                                onTap: isLoading
-                                    ? null
-                                    : () async {
-                                  if (onSendOtp == null) return;
+                                onTap:
+                                    isLoading
+                                        ? null
+                                        : () async {
+                                          if (onSendOtp == null) return;
 
-                                  final success = await onSendOtp(controller!.text);
-                                  if (!success) return;
+                                          final success = await onSendOtp(
+                                            controller!.text,
+                                          );
+                                          if (!success) return;
 
-                                  //  THIS WAS MISSING
-                                  setState(() {
-                                    showOtp = true;
-                                    showOtpError = false;
-                                    for (final c in otpControllers) {
-                                      c.clear();
-                                    }
-                                    startResendTimer(setState);
-                                  });
-                                },
+                                          //  THIS WAS MISSING
+                                          setState(() {
+                                            showOtp = true;
+                                            showOtpError = false;
+                                            for (final c in otpControllers) {
+                                              c.clear();
+                                            }
+                                            startResendTimer(setState);
+                                          });
+                                        },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isLoading ? Colors.grey : const Color(0xFF2196F3),
+                                    color:
+                                        isLoading
+                                            ? Colors.grey
+                                            : const Color(0xFF2196F3),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: isLoading
-                                      ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                      : Text(
-                                    "Verify",
-                                    style: AppTextStyles.mulish(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
+                                  child:
+                                      isLoading
+                                          ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                          : Text(
+                                            "Verify",
+                                            style: AppTextStyles.mulish(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
                                 ),
                               ),
-
 
                             // VERIFIED LABEL
                             if (isVerified)
@@ -2399,6 +2407,88 @@ class CommonContainer {
     );
   }
 
+  static Widget paidCustomerCard({
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: AssetImage(AppImages.containerBCImage2),
+          ),
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [AppColor.brightBlue, AppColor.electricSkyBlue],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 20),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      title,
+                      style: AppTextStyles.mulish(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w900,
+                        color: AppColor.scaffoldColor,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      description,
+                      style: AppTextStyles.mulish(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColor.scaffoldColor,
+                      ),
+                    ),
+
+                    // InkWell(
+                    //   onTap: onTap,
+                    //   child: Container(
+                    //     decoration: BoxDecoration(
+                    //       color: AppColor.scaffoldColor,
+                    //       borderRadius: BorderRadius.circular(50),
+                    //     ),
+                    //     child: Padding(
+                    //       padding: const EdgeInsets.symmetric(
+                    //         horizontal: 14.5,
+                    //         vertical: 6.5,
+                    //       ),
+                    //       child: Image.asset(
+                    //         AppImages.rightStickArrow,
+                    //         height: 20,
+                    //         color: AppColor.royalBlue,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                  ],
+                ),
+              ),
+              // SizedBox(width: 30),
+              // Image.asset(AppImages.upgrade, height: 138),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   static Widget attractCustomerCard({
     required String title,
     required String description,
@@ -2529,23 +2619,27 @@ class CommonContainer {
                         width: 130,
                         height: 130,
                         fit: BoxFit.cover, // same effect as FittedBox.cover
-                        placeholder: (context, url) => Container(
-                          width: 130,
-                          height: 130,
-                          color: Colors.grey[300],
-                          child: const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          width: 130,
-                          height: 130,
-                          color: Colors.grey[300],
-                          child: const Icon(
-                            Icons.broken_image,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        placeholder:
+                            (context, url) => Container(
+                              width: 130,
+                              height: 130,
+                              color: Colors.grey[300],
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                        errorWidget:
+                            (context, url, error) => Container(
+                              width: 130,
+                              height: 130,
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
+                            ),
                       ),
                     ),
                     // if (Ad)
@@ -2592,11 +2686,11 @@ class CommonContainer {
                           // SizedBox(width: 5),
                           doorDelivery
                               ? CommonContainer.doorDelivery(
-                            text: 'Door Delivery',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            textColor: AppColor.skyBlue,
-                          )
+                                text: 'Door Delivery',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                textColor: AppColor.skyBlue,
+                              )
                               : SizedBox.shrink(),
                         ],
                       ),
@@ -2635,25 +2729,25 @@ class CommonContainer {
                           oldAmound.isEmpty
                               ? SizedBox.shrink()
                               : Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Text(
-                                oldAmound,
-                                style: AppTextStyles.mulish(
-                                  fontSize: 14,
-                                  color: AppColor.gray84,
-                                ),
+                                alignment: Alignment.center,
+                                children: [
+                                  Text(
+                                    oldAmound,
+                                    style: AppTextStyles.mulish(
+                                      fontSize: 14,
+                                      color: AppColor.gray84,
+                                    ),
+                                  ),
+                                  Transform.rotate(
+                                    angle: -0.1,
+                                    child: Container(
+                                      height: 1.5,
+                                      width: 40,
+                                      color: AppColor.gray84,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Transform.rotate(
-                                angle: -0.1,
-                                child: Container(
-                                  height: 1.5,
-                                  width: 40,
-                                  color: AppColor.gray84,
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                       const SizedBox(height: 10),

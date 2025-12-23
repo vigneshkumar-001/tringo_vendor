@@ -5,6 +5,7 @@ class ApiUrl {
   static const String verifyOtp = "${base}api/v1/auth/verify-otp";
   static const String whatsAppVerify = "${base}api/v1/auth/check-whatsapp";
   static const String resendOtp = "${base}api/v1/auth/resend-otp";
+
   static const String employeeAddNumber =
       "${base}api/v1/vendor/employees/request-otp";
   static const String employeeAddOtp =
@@ -90,6 +91,9 @@ class ApiUrl {
 
   static String serviceDelete({required String serviceId}) {
     return "${base}api/v1/services/$serviceId";
+  }
+  static String currentPlans({required String businessProfileId}) {
+    return "${base}api/v1/subscriptions/current?businessProfileId=$businessProfileId";
   }
 
   static String employeeHome({

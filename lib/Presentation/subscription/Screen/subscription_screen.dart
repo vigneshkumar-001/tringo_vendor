@@ -34,9 +34,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(subscriptionNotifier.notifier).getPlanList();
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) async {
+    //   await ref.read(subscriptionNotifier.notifier).getPlanList();
+    // });
   }
 
   @override
@@ -305,7 +305,10 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
                               await ref
                                   .read(subscriptionNotifier.notifier)
-                                  .purchasePlan(planId: planId,businessProfileId: widget.businessProfileId);
+                                  .purchasePlan(
+                                    planId: planId,
+                                    businessProfileId: widget.businessProfileId,
+                                  );
 
                               final subState = ref.read(subscriptionNotifier);
 
@@ -316,8 +319,33 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder:
-                                        (context) =>
-                                            PaySuccessAndCancel(planId: planId),
+                                        (context) => PaySuccessAndCancel(
+                                          tittle:
+                                              subState
+                                                  .purchaseResponse
+                                                  ?.data
+                                                  .plan
+                                                  .durationLabel
+                                                  .toString() ??
+                                              '',
+                                          planId: planId,
+                                          startAt:
+                                              subState
+                                                  .purchaseResponse
+                                                  ?.data
+                                                  .period
+                                                  .startsAtLabel
+                                                  .toString() ??
+                                              '',
+                                          endsAt:
+                                              subState
+                                                  .purchaseResponse
+                                                  ?.data
+                                                  .period
+                                                  .endsAtLabel
+                                                  .toString() ??
+                                              '',
+                                        ),
                                   ),
                                 );
                               }

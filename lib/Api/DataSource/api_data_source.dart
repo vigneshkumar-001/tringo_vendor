@@ -13,6 +13,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import 'package:tringo_vendor_new/Presentation/Heater/Employee%20details-edit/Model/heater_employee_edit_res.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/History/Model/vendor_history_response.dart';
 import 'package:tringo_vendor_new/Presentation/Shops%20Details/Model/shop_details_response.dart';
+import 'package:tringo_vendor_new/Presentation/subscription/Model/current_plan_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/plan_list_response.dart';
 
 import '../../Presentation/AddProduct/Model/delete_response.dart';
@@ -2210,8 +2211,9 @@ class ApiDataSource {
         }
         return Left(ServerFailure(response.message ?? "Unknown Dio error"));
       }
-    } catch (e) {
+    } catch (e,st) {
       AppLogger.log.e(e);
+      AppLogger.log.e(st);
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -2232,6 +2234,41 @@ class ApiDataSource {
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (response.data['status'] == true) {
             return Right(PurchaseResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, CurrentPlanResponse>> getCurrentPlan({required String businessProfileId}) async {
+    try {
+      final url = ApiUrl.currentPlans(businessProfileId: businessProfileId);
+
+      dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(CurrentPlanResponse.fromJson(response.data));
           } else {
             return Left(
               ServerFailure(response.data['message'] ?? "Login failed"),

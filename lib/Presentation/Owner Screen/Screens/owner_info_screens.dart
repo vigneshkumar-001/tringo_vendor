@@ -443,6 +443,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                       /// SUBMIT
                       CommonContainer.button(
+                        buttonColor: AppColor.black,
                         imagePath:
                             ownerState.isLoading
                                 ? null

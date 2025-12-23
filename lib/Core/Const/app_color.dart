@@ -8,6 +8,7 @@ class AppColor {
   static const skyBlue = Color(0xFF2C8DD1);
   static const white = Color(0xffFFFFFF);
   static const white2 = Color(0xffF6F6F6);
+  static const electricSkyBlue = Color(0xff41CEFF);
   static const white3 = Color(0xffF1F1F1);
   static const leftArrow = Color(0xFFF5F5F5);
   static const white4 = Color(0xffE7EBEE);

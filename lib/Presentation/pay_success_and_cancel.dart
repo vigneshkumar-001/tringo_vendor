@@ -1,13 +1,25 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tringo_vendor_new/Core/Const/app_color.dart';
 import 'package:tringo_vendor_new/Core/Const/app_images.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 
+import '../Core/Widgets/app_go_routes.dart';
+
 class PaySuccessAndCancel extends StatefulWidget {
   final String planId;
-  const PaySuccessAndCancel({super.key, required this.planId});
+  final String startAt;
+  final String endsAt;
+  final String tittle;
+  const PaySuccessAndCancel({
+    super.key,
+    required this.planId,
+    required this.startAt,
+    required this.endsAt,
+    required this.tittle,
+  });
 
   @override
   State<PaySuccessAndCancel> createState() => _PaySuccessAndCancelState();
@@ -88,7 +100,7 @@ class _PaySuccessAndCancelState extends State<PaySuccessAndCancel> {
                                     ),
                                   ),
                                   Text(
-                                    '1 Year Premium Plan',
+                                    '${widget.tittle} Plan',
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.mulish(
                                       fontSize: 22,
@@ -98,7 +110,7 @@ class _PaySuccessAndCancelState extends State<PaySuccessAndCancel> {
                                   ),
                                   SizedBox(height: 12),
                                   Text(
-                                    'Paid for 18-Jun-2025 to 18-Jun-2026',
+                                    'Paid for ${widget.startAt} to ${widget.endsAt}',
                                     style: AppTextStyles.mulish(
                                       fontSize: 14,
                                       color: AppColor.white,
@@ -219,32 +231,37 @@ class _PaySuccessAndCancelState extends State<PaySuccessAndCancel> {
                           SizedBox(width: 12),
 
                           Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColor.black,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 17.5,
+                            child: GestureDetector(
+                              onTap: () {
+                                context.goNamed(AppRoutes.home);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColor.black,
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Go to Shop',
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColor.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 17.5,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Go to Shop',
+                                        style: AppTextStyles.mulish(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColor.white,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Image.asset(
-                                      AppImages.rightStickArrow,
-                                      height: 18,
-                                    ),
-                                  ],
+                                      SizedBox(width: 8),
+                                      Image.asset(
+                                        AppImages.rightStickArrow,
+                                        height: 18,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
