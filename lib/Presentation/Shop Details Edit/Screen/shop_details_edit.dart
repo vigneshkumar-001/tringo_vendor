@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
@@ -23,11 +24,13 @@ import '../../No Data Screen/Screen/no_data_screen.dart';
 import '../../ShopInfo/Model/search_keywords_response.dart';
 import '../../ShopInfo/Screens/shop_category_info.dart';
 import '../../Shops Details/Controller/shop_details_notifier.dart';
+import '../../subscription/Controller/subscription_notifier.dart';
 import '../../subscription/Screen/subscription_screen.dart';
 
 class ShopDetailsEdit extends ConsumerStatefulWidget {
   final String shopId;
-  const ShopDetailsEdit({required this.shopId, super.key});
+  final String businessProfileId;
+  const ShopDetailsEdit({required this.shopId,required this.businessProfileId, super.key});
 
   @override
   ConsumerState<ShopDetailsEdit> createState() => _ShopDetailsEditState();
@@ -39,10 +42,13 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+     await ref
           .read(shopDetailsNotifierProvider.notifier)
           .fetchShopDetails(apiShopId: widget.shopId);
+     await ref
+         .read(subscriptionNotifier.notifier)
+         .getCurrentPlan(businessProfileId: widget.businessProfileId);
     });
   }
 
@@ -52,7 +58,19 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
     final productSession = RegistrationProductSeivice.instance;
     final bool isPremium = productSession.isPremium;
     final bool isNonPremium = productSession.isNonPremium;
+    final planState = ref.watch(subscriptionNotifier);
+    final planData = planState.currentPlanResponse?.data;
 
+    String time = '-';
+    String date = '-';
+
+    final String? startsAt = planData?.period.startsAt;
+
+    if (startsAt != null && startsAt.isNotEmpty) {
+      final DateTime dateTime = DateTime.parse(startsAt).toLocal();
+      time = DateFormat('h.mm.a').format(dateTime);
+      date = DateFormat('dd MMM yyyy').format(dateTime);
+    }
     final bool isCompany =
         RegistrationSession.instance.businessType == BusinessType.company;
     final bool showAddBranch = isPremium && isCompany;
@@ -1319,22 +1337,53 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                       ),
 
                       SizedBox(height: 30),
-                      CommonContainer.attractCustomerCard(
-                        title: 'Attract More Customers',
-                        description: 'Unlock premium to attract more customers',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => SubscriptionScreen(
-                                    businessProfileId:
-                                        shop?.businessProfileId ?? '',
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
+                      planData?.isFreemium == false
+                          ? CommonContainer.paidCustomerCard(
+                            title:
+                                '${planData?.plan.durationLabel} Premium Activated',
+                            description: '${time} @ ${date}',
+                            onTap: () {
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) => SubscriptionScreen(),
+                              //   ),
+                              // );
+                            },
+                          )
+                          : CommonContainer.attractCustomerCard(
+                            title: 'Attract More Customers',
+                            description:
+                                'Unlock premium to attract more customers',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => SubscriptionScreen(
+                                        businessProfileId:
+                                            shop?.businessProfileId ?? '',
+                                      ),
+                                ),
+                              );
+                            },
+                          ),
+                      // CommonContainer.attractCustomerCard(
+                      //   title: 'Attract More Customers',
+                      //   description: 'Unlock premium to attract more customers',
+                      //   onTap: () {
+                      //     Navigator.push(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //         builder:
+                      //             (context) => SubscriptionScreen(
+                      //               businessProfileId:
+                      //                   shop?.businessProfileId ?? '',
+                      //             ),
+                      //       ),
+                      //     );
+                      //   },
+                      // ),
                       SizedBox(height: 30),
                     ],
                   ),

@@ -1600,6 +1600,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       const SizedBox(height: 30),
 
                       CommonContainer.button(
+                        buttonColor: AppColor.black,
                         onTap: () async {
                           FocusScope.of(context).unfocus();
 

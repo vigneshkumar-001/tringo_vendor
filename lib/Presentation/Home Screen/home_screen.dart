@@ -408,8 +408,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onTap: () {
                     context.push(
                       AppRoutes.shopDetailsEditPath,
-                      extra: item.shopId,
+                      extra: {
+                        'shopId': item.shopId,
+                        'businessProfileId': item.businessProfileId,
+                      },
                     );
+
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -517,92 +521,85 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await _refreshDashboardByDate(); // your existing refresh method
-          },
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // HEADER
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 20,
-                  ),
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(AppImages.homeScreenTopBCImage),
-                      fit: BoxFit.cover,
-                      colorFilter: ColorFilter.mode(
-                        AppColor.richNavy.withOpacity(0.4),
-                        BlendMode.srcATop,
-                      ),
-                    ),
-                    gradient: LinearGradient(
-                      colors: [AppColor.richNavy, AppColor.richBlack],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(25),
-                      bottomRight: Radius.circular(25),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // HEADER
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 20,
+                ),
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(AppImages.homeScreenTopBCImage),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      AppColor.richNavy.withOpacity(0.4),
+                      BlendMode.srcATop,
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  employee.name.isNotEmpty
-                                      ? employee.name
-                                      : '-',
-                                  style: AppTextStyles.mulish(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: AppColor.white,
-                                  ),
+                  gradient: LinearGradient(
+                    colors: [AppColor.richNavy, AppColor.richBlack],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(25),
+                    bottomRight: Radius.circular(25),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                employee.name.isNotEmpty ? employee.name : '-',
+                                style: AppTextStyles.mulish(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: AppColor.white,
                                 ),
-                                Text(
-                                  employee.employeeCode,
-                                  style: AppTextStyles.mulish(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12,
-                                    color: AppColor.lightGray1,
-                                  ),
+                              ),
+                              Text(
+                                employee.employeeCode,
+                                style: AppTextStyles.mulish(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                  color: AppColor.lightGray1,
                                 ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Reporting',
-                                      style: AppTextStyles.mulish(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 10,
-                                        color: AppColor.white4,
-                                      ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Reporting',
+                                    style: AppTextStyles.mulish(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 10,
+                                      color: AppColor.white4,
                                     ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      '-',
-                                      style: AppTextStyles.mulish(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 10,
-                                        color: AppColor.white4,
-                                      ),
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '-',
+                                    style: AppTextStyles.mulish(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 10,
+                                      color: AppColor.white4,
                                     ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      employee.vendorName,
-                                      style: AppTextStyles.mulish(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 10,
-                                        color: AppColor.white4,
-                                      ),
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    employee.vendorName,
+                                    style: AppTextStyles.mulish(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 10,
+                                      color: AppColor.white4,
                                     ),
                                   ),
                                 ],
@@ -641,229 +638,222 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         label: 'Total Entry',
                       ),
 
-                        _TotalEntryDonut(
-                          value:
-                              metrics.totalEntry, // ✅ use API metric directly
-                          label: 'Total Entry',
-                        ),
+                      const SizedBox(height: 25),
 
-                        const SizedBox(height: 25),
-
-                        // Date filter button
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: InkWell(
-                            onTap: _showDateFilterSheet,
-                            child: IntrinsicWidth(
-                              child: DottedBorder(
-                                color: AppColor.lightBlueBorder,
-                                dashPattern: const [4, 5],
-                                borderType: BorderType.RRect,
-                                radius: const Radius.circular(18),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      _filterLabel,
-                                      style: AppTextStyles.mulish(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 12,
-                                        color: AppColor.white,
-                                      ),
+                      // Date filter button
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: InkWell(
+                          onTap: _showDateFilterSheet,
+                          child: IntrinsicWidth(
+                            child: DottedBorder(
+                              color: AppColor.lightBlueBorder,
+                              dashPattern: const [4, 5],
+                              borderType: BorderType.RRect,
+                              radius: const Radius.circular(18),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _filterLabel,
+                                    style: AppTextStyles.mulish(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12,
+                                      color: AppColor.white,
                                     ),
-                                    const SizedBox(width: 7),
-                                    Image.asset(
-                                      AppImages.drapDownImage,
-                                      height: 14,
-                                      width: 10,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Image.asset(
+                                    AppImages.drapDownImage,
+                                    height: 14,
+                                    width: 10,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 15),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                // TITLE
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Recent Activity',
-                        style: AppTextStyles.mulish(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                        ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EmployeeHistory(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 15,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.black,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Image.asset(
-                            AppImages.rightStickArrow,
-                            height: 19,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(height: 15),
                     ],
                   ),
                 ),
+              ),
 
-                // TABS
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 25,
-                  ),
-                  child: Row(
-                    children: List.generate(tabs.length, (index) {
-                      final isSelected = selectedIndex == index;
-                      final tab = tabs[index];
+              const SizedBox(height: 40),
 
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: InkWell(
-                          onTap: () => setState(() => selectedIndex = index),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
+              // TITLE
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Recent Activity',
+                      style: AppTextStyles.mulish(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EmployeeHistory(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColor.black,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Image.asset(
+                          AppImages.rightStickArrow,
+                          height: 19,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // TABS
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 25,
+                ),
+                child: Row(
+                  children: List.generate(tabs.length, (index) {
+                    final isSelected = selectedIndex == index;
+                    final tab = tabs[index];
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () => setState(() => selectedIndex = index),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                isSelected
+                                    ? AppColor.white
+                                    : AppColor.black.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
                               color:
                                   isSelected
-                                      ? AppColor.white
-                                      : AppColor.black.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color:
-                                    isSelected
-                                        ? AppColor.deepTeaBlue
-                                        : Colors.transparent,
+                                      ? AppColor.deepTeaBlue
+                                      : Colors.transparent,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                tab["image"] ?? '',
+                                height: 18,
+                                width: 18,
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  tab["image"] ?? '',
-                                  height: 18,
-                                  width: 18,
+                              const SizedBox(width: 10),
+                              Text(
+                                tab["label"] ?? '',
+                                style: AppTextStyles.mulish(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColor.darkBlue,
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  tab["label"] ?? '',
-                                  style: AppTextStyles.mulish(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColor.darkBlue,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    }),
-                  ),
+                      ),
+                    );
+                  }),
                 ),
+              ),
 
-                const SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-                // Center(
-                //   child: Text(
-                //     _filterLabel,
-                //     style: AppTextStyles.mulish(
-                //       fontSize: 12,
-                //       fontWeight: FontWeight.w700,
-                //       color: AppColor.darkGrey,
-                //     ),
-                //   ),
-                // ),
-                //
-                // const SizedBox(height: 20),
+              // Center(
+              //   child: Text(
+              //     _filterLabel,
+              //     style: AppTextStyles.mulish(
+              //       fontSize: 12,
+              //       fontWeight: FontWeight.w700,
+              //       color: AppColor.darkGrey,
+              //     ),
+              //   ),
+              // ),
+              //
+              // const SizedBox(height: 20),
 
-                // LIST (Grouped by dateLabel)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child:
-                      (groups.isEmpty || totalItems == 0)
-                          ? _emptyActivityView()
-                          : ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: groups.length,
-                            separatorBuilder:
-                                (_, __) => const SizedBox(height: 18),
-                            itemBuilder: (context, groupIndex) {
-                              final group = groups[groupIndex];
+              // LIST (Grouped by dateLabel)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child:
+                    (groups.isEmpty || totalItems == 0)
+                        ? _emptyActivityView()
+                        : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: groups.length,
+                          separatorBuilder:
+                              (_, __) => const SizedBox(height: 18),
+                          itemBuilder: (context, groupIndex) {
+                            final group = groups[groupIndex];
 
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Center(
-                                    child: Text(
-                                      group.dateLabel.isNotEmpty
-                                          ? group.dateLabel
-                                          : group.dateKey,
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColor.darkGrey,
-                                      ),
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Center(
+                                  child: Text(
+                                    group.dateLabel.isNotEmpty
+                                        ? group.dateLabel
+                                        : group.dateKey,
+                                    style: AppTextStyles.mulish(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColor.darkGrey,
                                     ),
                                   ),
-                                  const SizedBox(height: 10),
-                                  ListView.separated(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    itemCount: group.items.length,
-                                    separatorBuilder:
-                                        (_, __) => const SizedBox(height: 15),
-                                    itemBuilder: (context, index) {
-                                      final item = group.items[index];
-                                      final imageUrl = _shopImage(item);
-                                      return _activityCard(item, imageUrl);
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                ),
+                                ),
+                                const SizedBox(height: 10),
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: group.items.length,
+                                  separatorBuilder:
+                                      (_, __) => const SizedBox(height: 15),
+                                  itemBuilder: (context, index) {
+                                    final item = group.items[index];
+                                    final imageUrl = _shopImage(item);
+                                    return _activityCard(item, imageUrl);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+              ),
 
-                const SizedBox(height: 40),
-              ],
-            ),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
@@ -891,7 +881,9 @@ class _TotalEntryDonut extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const double size = 220;
+
     final intensity = _intensityFromValue(value);
+    final double progress = (value / 50).clamp(0.0, 1.0); // 0..50 scale
 
     return Center(
       child: SizedBox(
@@ -903,6 +895,7 @@ class _TotalEntryDonut extends StatelessWidget {
             CustomPaint(
               size: const Size(size, size),
               painter: _FigmaRingPainter(
+                progress: progress,
                 backgroundColor: AppColor.steelNavy.withOpacity(
                   0.3 + intensity * 0.3,
                 ),
@@ -948,11 +941,13 @@ class _TotalEntryDonut extends StatelessWidget {
 }
 
 class _FigmaRingPainter extends CustomPainter {
+  final double progress; // 0.0 - 1.0
   final Color backgroundColor;
   final Color startColor;
   final Color endColor;
 
   _FigmaRingPainter({
+    required this.progress,
     required this.backgroundColor,
     required this.startColor,
     required this.endColor,
@@ -962,37 +957,71 @@ class _FigmaRingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Rect outerRect = Offset.zero & size;
 
+    // Outer rounded-square (same proportions as your old code)
     final double outerRadius = size.width * 0.35;
-    final RRect outerRRect = RRect.fromRectAndRadius(
-      outerRect,
-      Radius.circular(outerRadius),
+
+    // Ring thickness (same as your old inset)
+    final double inset = size.width * 0.18;
+    final double strokeWidth = inset;
+
+    // Draw the ring using a STROKE around a rounded-rect path
+    // This keeps the exact rounded-square donut look.
+    final Rect strokeRect = Rect.fromLTWH(
+      strokeWidth / 2,
+      strokeWidth / 2,
+      size.width - strokeWidth,
+      size.height - strokeWidth,
     );
 
-    final Paint ringPaint =
-        Paint()
-          ..shader = LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [startColor, endColor],
-          ).createShader(outerRect)
-          ..style = PaintingStyle.fill;
+    // radius adjusted for stroke
+    final double strokeRadius = (outerRadius - strokeWidth / 2).clamp(
+      0.0,
+      size.width,
+    );
 
-    canvas.drawRRect(outerRRect, ringPaint);
+    final RRect strokeRRect = RRect.fromRectAndRadius(
+      strokeRect,
+      Radius.circular(strokeRadius),
+    );
 
-    final Paint quarterPaint =
+    // ✅ Build a path that STARTS at TOP-CENTER (12 o’clock)
+    final Path ringPath = _roundedRectPathFromTopCenter(strokeRRect);
+
+    // 1) Background ring (full dark)
+    final Paint bgPaint =
         Paint()
           ..color = backgroundColor
-          ..style = PaintingStyle.fill;
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.butt;
 
-    canvas.save();
-    canvas.clipRRect(outerRRect);
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width / 2, size.height / 2),
-      quarterPaint,
-    );
-    canvas.restore();
+    canvas.drawPath(ringPath, bgPaint);
 
-    final double inset = size.width * 0.18;
+    // 2) Progress ring (blue) starting from TOP and clockwise
+    final double p = progress.clamp(0.0, 1.0);
+    if (p > 0) {
+      final metric = ringPath.computeMetrics().first;
+      final Path progressPath = metric.extractPath(0, metric.length * p);
+
+      final Paint fgPaint =
+          Paint()
+            ..shader = LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: const [
+                Color(0xFF0797FD), // top
+                Color(0xFF07C8FD), // middle
+                Color(0xFF0797FD), // bottom
+              ],
+            ).createShader(outerRect)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = strokeWidth
+            ..strokeCap = StrokeCap.butt;
+
+      canvas.drawPath(progressPath, fgPaint);
+    }
+
+    // 3) Inner cut (same as your old code)
     final Rect innerRect = Rect.fromLTWH(
       inset,
       inset,
@@ -1013,9 +1042,172 @@ class _FigmaRingPainter extends CustomPainter {
     canvas.drawRRect(innerRRect, cutPaint);
   }
 
+  // Path around rounded-rect perimeter, but START at top-center
+  Path _roundedRectPathFromTopCenter(RRect rr) {
+    final left = rr.left;
+    final top = rr.top;
+    final right = rr.right;
+    final bottom = rr.bottom;
+    final r = rr.tlRadiusX; // same on all corners
+    final cx = (left + right) / 2;
+
+    return Path()
+      ..moveTo(cx, top)
+      ..lineTo(right - r, top)
+      ..arcToPoint(Offset(right, top + r), radius: Radius.circular(r))
+      ..lineTo(right, bottom - r)
+      ..arcToPoint(Offset(right - r, bottom), radius: Radius.circular(r))
+      ..lineTo(left + r, bottom)
+      ..arcToPoint(Offset(left, bottom - r), radius: Radius.circular(r))
+      ..lineTo(left, top + r)
+      ..arcToPoint(Offset(left + r, top), radius: Radius.circular(r))
+      ..lineTo(cx, top);
+  }
+
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _FigmaRingPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.startColor != startColor ||
+        oldDelegate.endColor != endColor;
+  }
 }
+
+// class _TotalEntryDonut extends StatelessWidget {
+//   final int value;
+//   final String label;
+//
+//   const _TotalEntryDonut({Key? key, required this.value, required this.label})
+//       : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     const double size = 220;
+//     final intensity = _intensityFromValue(value);
+//
+//     return Center(
+//       child: SizedBox(
+//         height: size,
+//         width: size,
+//         child: Stack(
+//           alignment: Alignment.center,
+//           children: [
+//             CustomPaint(
+//               size: const Size(size, size),
+//               painter: _FigmaRingPainter(
+//                 backgroundColor: AppColor.steelNavy.withOpacity(
+//                   0.3 + intensity * 0.3,
+//                 ),
+//                 startColor: AppColor.blueGradient3.withOpacity(intensity),
+//                 endColor: AppColor.blueGradient3.withOpacity(intensity),
+//               ),
+//             ),
+//             Container(
+//               height: 140,
+//               width: 140,
+//               decoration: BoxDecoration(
+//                 color: AppColor.midnightBlue,
+//                 borderRadius: BorderRadius.circular(50),
+//               ),
+//               child: Column(
+//                 mainAxisAlignment: MainAxisAlignment.center,
+//                 children: [
+//                   Text(
+//                     value.toString(),
+//                     style: AppTextStyles.mulish(
+//                       fontWeight: FontWeight.w800,
+//                       fontSize: 26,
+//                       color: AppColor.white,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 4),
+//                   Text(
+//                     label,
+//                     style: AppTextStyles.mulish(
+//                       fontWeight: FontWeight.w600,
+//                       fontSize: 12,
+//                       color: AppColor.white4,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// class _FigmaRingPainter extends CustomPainter {
+//   final Color backgroundColor;
+//   final Color startColor;
+//   final Color endColor;
+//
+//   _FigmaRingPainter({
+//     required this.backgroundColor,
+//     required this.startColor,
+//     required this.endColor,
+//   });
+//
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final Rect outerRect = Offset.zero & size;
+//
+//     final double outerRadius = size.width * 0.35;
+//     final RRect outerRRect = RRect.fromRectAndRadius(
+//       outerRect,
+//       Radius.circular(outerRadius),
+//     );
+//
+//     final Paint ringPaint =
+//     Paint()
+//       ..shader = LinearGradient(
+//         begin: Alignment.topCenter,
+//         end: Alignment.bottomCenter,
+//         colors: [startColor, endColor],
+//       ).createShader(outerRect)
+//       ..style = PaintingStyle.fill;
+//
+//     canvas.drawRRect(outerRRect, ringPaint);
+//
+//     final Paint quarterPaint =
+//     Paint()
+//       ..color = backgroundColor
+//       ..style = PaintingStyle.fill;
+//
+//     canvas.save();
+//     canvas.clipRRect(outerRRect);
+//     canvas.drawRect(
+//       Rect.fromLTWH(0, 0, size.width / 2, size.height / 2),
+//       quarterPaint,
+//     );
+//     canvas.restore();
+//
+//     final double inset = size.width * 0.18;
+//     final Rect innerRect = Rect.fromLTWH(
+//       inset,
+//       inset,
+//       size.width - 2 * inset,
+//       size.height - 2 * inset,
+//     );
+//     final double innerRadius = size.width * 0.24;
+//     final RRect innerRRect = RRect.fromRectAndRadius(
+//       innerRect,
+//       Radius.circular(innerRadius),
+//     );
+//
+//     final Paint cutPaint =
+//     Paint()
+//       ..color = backgroundColor
+//       ..style = PaintingStyle.fill;
+//
+//     canvas.drawRRect(innerRRect, cutPaint);
+//   }
+//
+//   @override
+//   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+// }
 
 // import 'dart:math' as math;
 //
@@ -2135,7 +2327,7 @@ class _FigmaRingPainter extends CustomPainter {
 //       innerRect,
 //       Radius.circular(innerRadius),
 //     );
-//
+//r
 //     final Paint cutPaint =
 //         Paint()
 //           ..color = backgroundColor

@@ -397,7 +397,8 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                         ),
                       ),
                       SizedBox(height: 30),
-                      CommonContainer.button2(
+                      CommonContainer.button2(backgroundColor:      AppColor.black,
+
                         context: context,
                         text: 'Save & Continue',
                         width: double.infinity,

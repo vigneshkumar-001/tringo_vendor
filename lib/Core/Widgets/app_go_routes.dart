@@ -350,9 +350,17 @@ final goRouter = GoRouter(
       path: AppRoutes.shopDetailsEditPath,
       name: AppRoutes.shopDetailsEdit,
       builder: (context, state) {
-        final shopId = state.extra as String;
-        return ShopDetailsEdit(shopId: shopId);
+        final extra = state.extra as Map<String, dynamic>;
+
+        final String shopId = extra['shopId'];
+        final String businessProfileId = extra['businessProfileId'];
+
+        return ShopDetailsEdit(
+          shopId: shopId,
+          businessProfileId: businessProfileId,
+        );
       },
     ),
+
   ],
 );

@@ -117,7 +117,7 @@ class _ProductCategoryScreensState
         return Consumer(
           builder: (context, ref, _) {
             final productState = ref.watch(productNotifierProvider);
-            final isLoading = productState.isLoading;
+            final isLoading = productState.isGetLoading;
             final categories =
                 productState.shopCategoryListResponse?.data ?? [];
 

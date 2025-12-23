@@ -348,6 +348,7 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                     SizedBox(height: 30),
 
                     CommonContainer.button(
+                      buttonColor: AppColor.black,
                       onTap: () async {
                         FocusScope.of(context).unfocus();
 

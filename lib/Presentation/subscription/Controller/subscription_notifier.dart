@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/add_employee_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
+import 'package:tringo_vendor_new/Presentation/subscription/Model/current_plan_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/plan_list_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/purchase_response.dart';
 
@@ -16,6 +17,7 @@ class SubscriptionState {
   final String? error;
   final PlanListResponse? planListResponse;
   final PurchaseResponse? purchaseResponse;
+  final CurrentPlanResponse? currentPlanResponse;
 
   const SubscriptionState({
     this.isLoading = false,
@@ -23,6 +25,7 @@ class SubscriptionState {
     this.error,
     this.planListResponse,
     this.purchaseResponse,
+    this.currentPlanResponse,
   });
 
   factory SubscriptionState.initial() => const SubscriptionState();
@@ -33,6 +36,7 @@ class SubscriptionState {
     String? error,
     PurchaseResponse? purchaseResponse,
     PlanListResponse? planListResponse,
+    CurrentPlanResponse? currentPlanResponse,
     bool clearError = false,
   }) {
     return SubscriptionState(
@@ -41,6 +45,7 @@ class SubscriptionState {
       error: clearError ? null : (error ?? this.error),
       planListResponse: planListResponse ?? this.planListResponse,
       purchaseResponse: purchaseResponse ?? this.purchaseResponse,
+      currentPlanResponse: currentPlanResponse ?? this.currentPlanResponse,
     );
   }
 }
@@ -51,10 +56,15 @@ class SubscriptionNotifier extends Notifier<SubscriptionState> {
   @override
   SubscriptionState build() {
     api = ref.read(apiDataSourceProvider);
+    Future.microtask(() async {
+      await getPlanList();
+      await getCurrentPlan(businessProfileId: '');
+    });
     return SubscriptionState.initial();
   }
 
   Future<void> getPlanList() async {
+    if (state.isLoading || state.planListResponse != null) return;
     state = state.copyWith(isLoading: true, planListResponse: null);
 
     final result = await api.getPlanList();
@@ -72,6 +82,29 @@ class SubscriptionNotifier extends Notifier<SubscriptionState> {
           isLoading: false,
           error: null,
           planListResponse: response,
+        );
+      },
+    );
+  }
+
+  Future<void> getCurrentPlan({required String businessProfileId}) async {
+    state = state.copyWith(isLoading: true, currentPlanResponse: null);
+
+    final result = await api.getCurrentPlan(businessProfileId : businessProfileId);
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          error: failure.message,
+          currentPlanResponse: null,
+        );
+      },
+      (response) {
+        state = state.copyWith(
+          isLoading: false,
+          error: null,
+          currentPlanResponse: response,
         );
       },
     );

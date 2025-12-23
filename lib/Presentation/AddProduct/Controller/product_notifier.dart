@@ -15,6 +15,7 @@ import '../Model/service_remove_response.dart';
 
 class ProductState {
   final bool isLoading;
+  final bool isGetLoading;
   final String? error;
   final ProductResponse? productResponse;
   final CategoryListResponse? shopCategoryListResponse;
@@ -25,6 +26,7 @@ class ProductState {
 
   const ProductState({
     this.isLoading = false,
+    this.isGetLoading = false,
     this.error,
     this.productResponse,
     this.shopCategoryListResponse,
@@ -94,16 +96,16 @@ class ProductNotifier extends Notifier<ProductState> {
   }
 
   Future<void> fetchProductCategories({String? apiShopId}) async {
-    state = const ProductState(isLoading: true);
+    state = const ProductState(isGetLoading: true);
 
     final result = await api.getProductCategories(apiShopId: apiShopId);
 
     result.fold(
       (failure) =>
-          state = ProductState(isLoading: false, error: failure.message),
+          state = ProductState(isGetLoading: false, error: failure.message),
       (response) =>
           state = ProductState(
-            isLoading: false,
+            isGetLoading: false,
             shopCategoryListResponse: response,
           ),
     );
