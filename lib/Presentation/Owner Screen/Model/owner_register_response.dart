@@ -131,7 +131,7 @@ class Vendor {
   final String? avatarUrl;
   final String? gender;
   final String? dateOfBirth;
-  final int? isActive;
+  final bool? isActive;
   final String? addressLine1;
   final String? gpsLatitude;
   final String? gpsLongitude;
@@ -174,6 +174,18 @@ class Vendor {
     this.companyEmail,
     this.gstNumber,
   });
+  static bool? _parseBool(dynamic v) {
+    if (v == null) return null;
+    if (v is bool) return v;
+    if (v is int) return v == 1;
+    if (v is String) {
+      final s = v.toLowerCase().trim();
+      if (s == 'true' || s == '1' || s == 'yes') return true;
+      if (s == 'false' || s == '0' || s == 'no') return false;
+    }
+    return null;
+  }
+
 
   factory Vendor.fromJson(Map<String, dynamic> json) {
     return Vendor(
@@ -195,7 +207,7 @@ class Vendor {
       avatarUrl: json['avatarUrl'] as String?,
       gender: json['gender'] as String?,
       dateOfBirth: json['dateOfBirth'] as String?,
-      isActive: json['isActive'],
+      isActive: _parseBool(json['isActive']),
       addressLine1: json['addressLine1'] as String?,
       gpsLatitude: json['gpsLatitude'] as String?,
       gpsLongitude: json['gpsLongitude'] as String?,

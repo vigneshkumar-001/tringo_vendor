@@ -61,6 +61,7 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
 
       case 4:
         return const NoDataScreens();
+
       default:
         return const SizedBox.shrink();
     }

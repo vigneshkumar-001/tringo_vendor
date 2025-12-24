@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Screen/subscription_history.dart';
 
 import '../../../Core/Const/app_color.dart';
@@ -34,7 +35,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   @override
   void initState() {
     super.initState();
-
+AppLogger.log.e(widget.businessProfileId);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(subscriptionNotifier.notifier).getPlanList();
       await ref
@@ -154,65 +155,65 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                         ),
                       ),
                       SizedBox(height: 20),
-                      if (widget.showSkip)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 31),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: () {
-                              RegistrationProductSeivice.instance
-                                  .markUnsubscribed();
+                      // if (widget.showSkip)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 31),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            RegistrationProductSeivice.instance
+                                .markUnsubscribed();
 
-                              final router = GoRouter.of(context);
+                            final router = GoRouter.of(context);
 
-                              //  Close this SubscriptionScreen if it was pushed via Navigator
-                              if (Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop();
-                              }
+                            //  Close this SubscriptionScreen if it was pushed via Navigator
+                            if (Navigator.of(context).canPop()) {
+                              Navigator.of(context).pop();
+                            }
 
-                              //  Now use go_router to show ShopsDetails
-                              router.goNamed(
-                                AppRoutes.shopsDetails,
-                                extra: {
-                                  'backDisabled': false,
-                                  'fromSubscriptionSkip': true,
-                                },
-                              );
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: AppColor.silverGray),
-                                borderRadius: BorderRadius.circular(16),
+                            //  Now use go_router to show ShopsDetails
+                            router.goNamed(
+                              AppRoutes.shopsDetails,
+                              extra: {
+                                'backDisabled': false,
+                                'fromSubscriptionSkip': true,
+                              },
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: AppColor.silverGray),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 0,
+                                vertical: 20,
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 0,
-                                  vertical: 20,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Continue as Free',
-                                      style: AppTextStyles.mulish(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColor.darkBlue,
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Image.asset(
-                                      AppImages.rightStickArrow,
-                                      height: 20,
-                                      width: 17,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Continue as Free',
+                                    style: AppTextStyles.mulish(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
                                       color: AppColor.darkBlue,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Image.asset(
+                                    AppImages.rightStickArrow,
+                                    height: 20,
+                                    width: 17,
+                                    color: AppColor.darkBlue,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
+                      ),
                       SizedBox(height: 25),
                     ],
                   ),

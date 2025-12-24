@@ -33,12 +33,12 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
   final TextEditingController englishNameController = TextEditingController();
   final TextEditingController emergencyNameController = TextEditingController();
   final TextEditingController emergencyRelationShipController =
-  TextEditingController();
+      TextEditingController();
   final TextEditingController emailIdController = TextEditingController();
   final TextEditingController mobileController = TextEditingController();
   final TextEditingController aadharController = TextEditingController();
   final TextEditingController emergencyMobileController =
-  TextEditingController();
+      TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
 
@@ -153,40 +153,42 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                   color: AppColor.lowGery1,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: hasError
-                        ? Colors.red
-                        : hasImage
-                        ? AppColor.lightSkyBlue
-                        : Colors.transparent,
+                    color:
+                        hasError
+                            ? Colors.red
+                            : hasImage
+                            ? AppColor.lightSkyBlue
+                            : Colors.transparent,
                     width: 1.5,
                   ),
                 ),
-                child: !hasImage
-                    ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 22.5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(AppImages.addImage, height: 20),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Upload Image',
-                        style: AppTextStyles.mulish(
-                          color: AppColor.darkGrey,
+                child:
+                    !hasImage
+                        ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 22.5),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(AppImages.addImage, height: 20),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Upload Image',
+                                style: AppTextStyles.mulish(
+                                  color: AppColor.darkGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(
+                            file!,
+                            fit: BoxFit.cover,
+                            height: 150,
+                            width: double.infinity,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                )
-                    : ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.file(
-                    file!,
-                    fit: BoxFit.cover,
-                    height: 150,
-                    width: double.infinity,
-                  ),
-                ),
               ),
             ),
             if (hasImage)
@@ -242,7 +244,9 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
   // ✅ NEW: Add success -> refresh employee list (prevents blocked-stale UI)
   Future<void> _refreshEmployeesSilent() async {
     try {
-      await ref.read(addEmployeeNotifier.notifier).getEmployeeList(silent: true);
+      await ref
+          .read(addEmployeeNotifier.notifier)
+          .getEmployeeList(silent: true);
     } catch (_) {}
   }
 
@@ -260,9 +264,10 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
-              autovalidateMode: _isSubmitted
-                  ? AutovalidateMode.onUserInteraction
-                  : AutovalidateMode.disabled,
+              autovalidateMode:
+                  _isSubmitted
+                      ? AutovalidateMode.onUserInteraction
+                      : AutovalidateMode.disabled,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -362,16 +367,21 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                         CommonContainer.fillingContainer(
                           controller: englishNameController,
                           context: context,
-                          validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Name required'
-                              : null,
+                          validator:
+                              (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Name required'
+                                      : null,
                         ),
                         const SizedBox(height: 30),
 
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 400),
-                          transitionBuilder: (child, animation) =>
-                              FadeTransition(opacity: animation, child: child),
+                          transitionBuilder:
+                              (child, animation) => FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
                           child: OwnerVerifyField(
                             controller: mobileController,
                             isLoading: state.isSendingOtp,
@@ -380,16 +390,16 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                               return ref
                                   .read(addEmployeeNotifier.notifier)
                                   .employeeAddNumberRequest(
-                                phoneNumber: mobile,
-                              );
+                                    phoneNumber: mobile,
+                                  );
                             },
                             onVerifyOtp: (mobile, otp) {
                               return ref
                                   .read(addEmployeeNotifier.notifier)
                                   .employeeAddOtpRequest(
-                                phoneNumber: mobile,
-                                code: otp,
-                              );
+                                    phoneNumber: mobile,
+                                    code: otp,
+                                  );
                             },
                           ),
                         ),
@@ -428,9 +438,11 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                           verticalDivider: true,
                           controller: emergencyNameController,
                           context: context,
-                          validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Name required'
-                              : null,
+                          validator:
+                              (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Name required'
+                                      : null,
                         ),
                         const SizedBox(height: 10),
 
@@ -439,9 +451,11 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                           verticalDivider: true,
                           controller: emergencyRelationShipController,
                           context: context,
-                          validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Relationship required'
-                              : null,
+                          validator:
+                              (v) =>
+                                  v == null || v.trim().isEmpty
+                                      ? 'Relationship required'
+                                      : null,
                         ),
                         const SizedBox(height: 10),
 
@@ -450,8 +464,11 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                           isMobile: true,
                           controller: emergencyMobileController,
                           context: context,
-                          validator: (v) =>
-                          v == null || v.isEmpty ? 'Please enter mobile number' : null,
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Please enter mobile number'
+                                      : null,
                         ),
 
                         const SizedBox(height: 30),
@@ -482,7 +499,8 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                           context: context,
                           title: 'Aadhar Photo',
                           image: AppImages.iImage,
-                          infoMessage: 'Please upload a clear photo of your Aadhar.',
+                          infoMessage:
+                              'Please upload a clear photo of your Aadhar.',
                         ),
                         const SizedBox(height: 10),
                         _imageBox(index: 0),
@@ -502,33 +520,51 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
 
                         CommonContainer.button(
                           buttonColor: AppColor.darkBlue,
-                          imagePath: state.isLoading ? null : AppImages.rightStickArrow,
-                          text: state.isLoading ? ThreeDotsLoader() : const Text('Save & Continue'),
+                          imagePath:
+                              state.isLoading
+                                  ? null
+                                  : AppImages.rightStickArrow,
+                          text:
+                              state.isLoading
+                                  ? ThreeDotsLoader()
+                                  : const Text('Save & Continue'),
                           onTap: () async {
                             setState(() => _isSubmitted = true);
 
                             if (!_formKey.currentState!.validate()) return;
 
                             if (!_validateImages()) {
-                              AppSnackBar.error(context, "Please upload required images");
+                              AppSnackBar.error(
+                                context,
+                                "Please upload required images",
+                              );
                               return;
                             }
 
                             // ✅ normalize numbers before API call
-                            final phone10 = _normalizeIndianPhone10(mobileController.text);
-                            final emergency10 = _normalizeIndianPhone10(emergencyMobileController.text);
-
-                            await ref.read(addEmployeeNotifier.notifier).addEmployeeVendor(
-                              phoneNumber: phone10,
-                              fullName: englishNameController.text.trim(),
-                              email: emailIdController.text.trim(),
-                              emergencyContactName: emergencyNameController.text.trim(),
-                              emergencyContactRelationship: emergencyRelationShipController.text.trim(),
-                              emergencyContactPhone: emergency10,
-                              aadhaarNumber: aadharController.text.trim(),
-                              aadhaarFile: _pickedImages[0]!,
-                              ownerImageFile: _pickedImages[1]!,
+                            final phone10 = _normalizeIndianPhone10(
+                              mobileController.text,
                             );
+                            final emergency10 = _normalizeIndianPhone10(
+                              emergencyMobileController.text,
+                            );
+
+                            await ref
+                                .read(addEmployeeNotifier.notifier)
+                                .addEmployeeVendor(
+                                  phoneNumber: phone10,
+                                  fullName: englishNameController.text.trim(),
+                                  email: emailIdController.text.trim(),
+                                  emergencyContactName:
+                                      emergencyNameController.text.trim(),
+                                  emergencyContactRelationship:
+                                      emergencyRelationShipController.text
+                                          .trim(),
+                                  emergencyContactPhone: emergency10,
+                                  aadhaarNumber: aadharController.text.trim(),
+                                  aadhaarFile: _pickedImages[0]!,
+                                  ownerImageFile: _pickedImages[1]!,
+                                );
 
                             final newState = ref.read(addEmployeeNotifier);
 
@@ -537,14 +573,20 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                               return;
                             }
 
-                            // ✅ refresh list so new employee shows correctly (not blocked/stale)
+                            //  refresh list so new employee shows correctly (not blocked/stale)
                             await _refreshEmployeesSilent();
 
-                            AppSnackBar.success(context, "Employee added successfully");
+                            AppSnackBar.success(
+                              context,
+                              "Employee added successfully",
+                            );
 
                             final prefs = await SharedPreferences.getInstance();
-                            final vendorStatus = (prefs.getString('vendorStatus') ?? 'PENDING').toUpperCase();
-                            final hasShownPending = prefs.getBool('hasShownPendingScreen') ?? false;
+                            final vendorStatus =
+                                (prefs.getString('vendorStatus') ?? 'PENDING')
+                                    .toUpperCase();
+                            final hasShownPending =
+                                prefs.getBool('hasShownPendingScreen') ?? false;
 
                             if (vendorStatus == 'ACTIVE') {
                               if (!mounted) return;
@@ -553,9 +595,14 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                             }
 
                             if (!hasShownPending) {
-                              await prefs.setBool('hasShownPendingScreen', true);
+                              await prefs.setBool(
+                                'hasShownPendingScreen',
+                                true,
+                              );
                               if (!mounted) return;
-                              context.push(AppRoutes.employeeApprovalPendingPath);
+                              context.push(
+                                AppRoutes.employeeApprovalPendingPath,
+                              );
                             } else {
                               if (!mounted) return;
                               context.pop();
@@ -576,8 +623,6 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
     );
   }
 }
-
-
 
 // import 'dart:async';
 // import 'dart:io';

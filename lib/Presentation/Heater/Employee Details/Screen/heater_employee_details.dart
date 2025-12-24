@@ -468,7 +468,7 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
 
     final selectedSection = _getSelectedSection(sas, selectedKey);
     final fallbackFiltered = _filterByTab(sas.items, selectedKey);
-    
+
 
     return Scaffold(
       body: SafeArea(
