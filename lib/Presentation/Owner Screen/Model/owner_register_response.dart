@@ -2,10 +2,7 @@ class OwnerRegisterResponse {
   final bool status;
   final OwnerData? data;
 
-  OwnerRegisterResponse({
-    required this.status,
-    this.data,
-  });
+  OwnerRegisterResponse({required this.status, this.data});
 
   factory OwnerRegisterResponse.fromJson(Map<String, dynamic> json) {
     return OwnerRegisterResponse(
@@ -14,7 +11,6 @@ class OwnerRegisterResponse {
     );
   }
 }
-
 
 class OwnerData {
   final String id;
@@ -54,12 +50,14 @@ class OwnerData {
   factory OwnerData.fromJson(Map<String, dynamic> json) {
     return OwnerData(
       id: json['id'] ?? '',
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
-          : null,
+      createdAt:
+          json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'])
+              : null,
+      updatedAt:
+          json['updatedAt'] != null
+              ? DateTime.tryParse(json['updatedAt'])
+              : null,
       businessType: json['businessType'] as String?,
       ownershipType: json['ownershipType'] as String?,
       govtRegisteredName: json['govtRegisteredName'] as String?,
@@ -70,15 +68,14 @@ class OwnerData {
       ownerNameTamil: json['ownerNameTamil'] as String?,
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       onboardingStatus: json['onboardingStatus'] as String?,
-      vendor:
-      json['vendor'] != null ? Vendor.fromJson(json['vendor']) : null,
-      onboardedByEmployee: json['onboardedByEmployee'] != null
-          ? OnboardedByEmployee.fromJson(json['onboardedByEmployee'])
-          : null,
+      vendor: json['vendor'] != null ? Vendor.fromJson(json['vendor']) : null,
+      onboardedByEmployee:
+          json['onboardedByEmployee'] != null
+              ? OnboardedByEmployee.fromJson(json['onboardedByEmployee'])
+              : null,
     );
   }
 }
-
 
 class User {
   final String id;
@@ -104,12 +101,14 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] ?? '',
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
-          : null,
+      createdAt:
+          json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'])
+              : null,
+      updatedAt:
+          json['updatedAt'] != null
+              ? DateTime.tryParse(json['updatedAt'])
+              : null,
       fullName: json['fullName'] as String?,
       phoneNumber: json['phoneNumber'] as String?,
       email: json['email'] as String?,
@@ -118,7 +117,6 @@ class User {
     );
   }
 }
-
 
 class Vendor {
   final String id;
@@ -180,12 +178,14 @@ class Vendor {
   factory Vendor.fromJson(Map<String, dynamic> json) {
     return Vendor(
       id: json['id'] ?? '',
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
-          : null,
+      createdAt:
+          json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'])
+              : null,
+      updatedAt:
+          json['updatedAt'] != null
+              ? DateTime.tryParse(json['updatedAt'])
+              : null,
       vendorCode: json['vendorCode'] as String?,
       displayName: json['displayName'] as String?,
       ownerNameTamil: json['ownerNameTamil'] as String?,
@@ -213,7 +213,6 @@ class Vendor {
   }
 }
 
-
 class OnboardedByEmployee {
   final String id;
   final DateTime? createdAt;
@@ -234,17 +233,17 @@ class OnboardedByEmployee {
   factory OnboardedByEmployee.fromJson(Map<String, dynamic> json) {
     return OnboardedByEmployee(
       id: json['id'] ?? '',
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
-          : null,
-      vendor:
-      json['vendor'] != null ? Vendor.fromJson(json['vendor']) : null,
+      createdAt:
+          json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'])
+              : null,
+      updatedAt:
+          json['updatedAt'] != null
+              ? DateTime.tryParse(json['updatedAt'])
+              : null,
+      vendor: json['vendor'] != null ? Vendor.fromJson(json['vendor']) : null,
       displayName: json['displayName'] as String?,
       employeeCode: json['employeeCode'] as String?,
     );
   }
 }
-
