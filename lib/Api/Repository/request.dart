@@ -567,6 +567,11 @@ class Request {
     Map<String, dynamic> queryParams,
     String method,
     bool isTokenRequired,
+      {
+        String? appName,
+        String? appVersion,
+        String? appPlatForm,
+      }
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
@@ -612,6 +617,9 @@ class Request {
         if (token != null && isTokenRequired) "Authorization": "Bearer $token",
         if (sessionToken != null && isTokenRequired)
           "x-session-token": sessionToken,
+        "X-App-Id": appName,
+        "X-App-Version": appVersion,
+        "X-Platform": appPlatForm,
       };
       Response response = await dio.get(
         url,
