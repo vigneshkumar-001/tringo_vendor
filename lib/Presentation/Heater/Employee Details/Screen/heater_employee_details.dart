@@ -17,6 +17,7 @@ import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 
 import '../../../Login Screen/Controller/login_notifier.dart';
+import '../../../No Data Screen/Screen/no_data_screen.dart';
 import '../Controller/heater_employee_details_notifier.dart';
 import '../Model/employeeDetailsResponse.dart' as emp;
 
@@ -423,7 +424,7 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(heaterEmployeeDetailsNotifier.notifier)
           .heaterEmployee(employeeId: widget.employeeId);
@@ -443,8 +444,13 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
       );
     }
 
+    // if (state.error != null) {
+    //   return Scaffold(body: Center(child: Text(state.error!)));
+    // }
     if (state.error != null) {
-      return Scaffold(body: Center(child: Text(state.error!)));
+      return const Scaffold(
+        body: NoDataScreen(showTopBackArrow: false, showBottomButton: false),
+      );
     }
 
     final data = state.employeeDetailsResponse?.data;

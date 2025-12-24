@@ -34,9 +34,13 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //   await ref.read(subscriptionNotifier.notifier).getPlanList();
-    // });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(subscriptionNotifier.notifier).getPlanList();
+      await ref
+          .read(subscriptionNotifier.notifier)
+          .getCurrentPlan(businessProfileId: widget.businessProfileId);
+    });
   }
 
   @override
@@ -44,6 +48,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     final state = ref.watch(subscriptionNotifier);
 
     final planAmount = state.planListResponse?.data;
+    final businessProfileId = state.purchaseResponse?.data;
 
     return Scaffold(
       backgroundColor: Color(0xFFF3F3F3),
@@ -77,6 +82,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                               ),
                             ),
                           ),
+
                           //Spacer(),
                           // if (widget.showSkip)
                           //   InkWell(
@@ -255,7 +261,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 10),
                         child: _BillingOptions(
-                          index: index, // ✅ add this
+                          index: index, //  add this
                           price: data.price.toString(),
 
                           type:

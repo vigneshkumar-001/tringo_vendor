@@ -413,7 +413,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         'businessProfileId': item.businessProfileId,
                       },
                     );
-
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(

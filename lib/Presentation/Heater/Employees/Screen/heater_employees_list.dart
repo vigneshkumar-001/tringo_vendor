@@ -478,6 +478,7 @@ class _HeaterEmployeesListState extends ConsumerState<HeaterEmployeesList> {
                       AppRoutes.heaterEmployeeDetailsPath,
                       extra: data.id,
                     );
+                    ref.read(heaterEmployeeNotifier.notifier).heaterEmployee();
                   },
                   child: Container(
                     decoration: BoxDecoration(

@@ -4,25 +4,22 @@ class VendorDashboardResponse {
   final bool? status;
   final VendorDashboardData? data;
 
-  const VendorDashboardResponse({
-    this.status,
-    this.data,
-  });
+  const VendorDashboardResponse({this.status, this.data});
 
   factory VendorDashboardResponse.fromJson(Map<String, dynamic> json) {
     return VendorDashboardResponse(
       status: json['status'] as bool?,
-      data: json['data'] == null
-          ? null
-          : VendorDashboardData.fromJson(json['data'] as Map<String, dynamic>),
+      data:
+          json['data'] == null
+              ? null
+              : VendorDashboardData.fromJson(
+                json['data'] as Map<String, dynamic>,
+              ),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'status': status,
-      'data': data?.toJson(),
-    };
+    return {'status': status, 'data': data?.toJson()};
   }
 }
 
@@ -47,25 +44,31 @@ class VendorDashboardData {
 
   factory VendorDashboardData.fromJson(Map<String, dynamic> json) {
     return VendorDashboardData(
-      header: json['header'] == null
-          ? null
-          : VendorHeader.fromJson(json['header'] as Map<String, dynamic>),
+      header:
+          json['header'] == null
+              ? null
+              : VendorHeader.fromJson(json['header'] as Map<String, dynamic>),
       todayTotalCount: _asInt(json['todayTotalCount']),
       todayTotalAmount: _asNum(json['todayTotalAmount']),
-      planCards: (json['planCards'] as List<dynamic>?)
-          ?.map((e) => PlanCardItem.fromJson(e as Map<String, dynamic>))
-          .toList() ??
+      planCards:
+          (json['planCards'] as List<dynamic>?)
+              ?.map((e) => PlanCardItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
           const [],
-      todayActivity: (json['todayActivity'] as List<dynamic>?)
-          ?.map((e) => TodayActivityItem.fromJson(e as Map<String, dynamic>))
-          .toList() ??
+      todayActivity:
+          (json['todayActivity'] as List<dynamic>?)
+              ?.map(
+                (e) => TodayActivityItem.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
           const [],
       activityTitle: json['activityTitle'] as String?,
-      appliedFilters: json['appliedFilters'] == null
-          ? null
-          : AppliedFilters.fromJson(
-        json['appliedFilters'] as Map<String, dynamic>,
-      ),
+      appliedFilters:
+          json['appliedFilters'] == null
+              ? null
+              : AppliedFilters.fromJson(
+                json['appliedFilters'] as Map<String, dynamic>,
+              ),
     );
   }
 
@@ -127,11 +130,7 @@ class PlanCardItem {
   final int? count;
   final num? amount;
 
-  const PlanCardItem({
-    this.label,
-    this.count,
-    this.amount,
-  });
+  const PlanCardItem({this.label, this.count, this.amount});
 
   factory PlanCardItem.fromJson(Map<String, dynamic> json) {
     return PlanCardItem(
@@ -142,11 +141,7 @@ class PlanCardItem {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'label': label,
-      'count': count,
-      'amount': amount,
-    };
+    return {'label': label, 'count': count, 'amount': amount};
   }
 }
 
@@ -157,7 +152,7 @@ class TodayActivityItem {
   final String? phoneNumber;
   final String? avatarUrl;
   final num? todayAmount;
-  final bool isActive;
+  final bool? isActive;
 
   const TodayActivityItem({
     this.employeeId,
@@ -166,9 +161,9 @@ class TodayActivityItem {
     this.phoneNumber,
     this.avatarUrl,
     this.todayAmount,
-    required this.isActive,
+    this.isActive,
   });
-
+  bool get isActiveSafe => isActive ?? true;
   factory TodayActivityItem.fromJson(Map<String, dynamic> json) {
     return TodayActivityItem(
       employeeId: json['employeeId'] as String?,
@@ -177,7 +172,8 @@ class TodayActivityItem {
       phoneNumber: json['phoneNumber'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
       todayAmount: _asNum(json['todayAmount']),
-      isActive: json['isActive'] as bool,
+      isActive: _asBool(json['isActive']),
+      // isActive: json['isActive'] as bool,
     );
   }
 
@@ -194,16 +190,22 @@ class TodayActivityItem {
   }
 }
 
+bool? _asBool(dynamic v) {
+  if (v == null) return null;
+  if (v is bool) return v;
+  if (v is num) return v != 0;
+  final s = v.toString().trim().toLowerCase();
+  if (s == 'true' || s == '1' || s == 'yes') return true;
+  if (s == 'false' || s == '0' || s == 'no') return false;
+  return null;
+}
+
 class AppliedFilters {
   final String? dateFrom; // "2025-12-23"
-  final String? dateTo;   // "2025-12-23"
+  final String? dateTo; // "2025-12-23"
   final String? timezone; // "Asia/Kolkata"
 
-  const AppliedFilters({
-    this.dateFrom,
-    this.dateTo,
-    this.timezone,
-  });
+  const AppliedFilters({this.dateFrom, this.dateTo, this.timezone});
 
   factory AppliedFilters.fromJson(Map<String, dynamic> json) {
     return AppliedFilters(
@@ -214,11 +216,7 @@ class AppliedFilters {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'dateFrom': dateFrom,
-      'dateTo': dateTo,
-      'timezone': timezone,
-    };
+    return {'dateFrom': dateFrom, 'dateTo': dateTo, 'timezone': timezone};
   }
 }
 

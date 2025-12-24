@@ -79,23 +79,39 @@ class _MobileNumberVerifyState extends ConsumerState<MobileNumberVerify> {
       // 📌 IMPORTANT:
       // Permission should already be handled in LoginMobileNumber screen.
       // Here we ONLY CHECK, we DO NOT REQUEST again.
+      var hasPermission = await MobileNumber.hasPhonePermission;
 
-      final hasPermission = await MobileNumber.hasPhonePermission;
       if (!hasPermission) {
-        debugPrint(
-          "⚠️ Phone/SIM permission not granted. Skipping SIM auto-verify.",
-        );
+        await MobileNumber.requestPhonePermission;
+        hasPermission = await MobileNumber.hasPhonePermission;
+      }
 
+      if (!hasPermission) {
         if (!mounted) return;
         setState(() {
           loaded = true;
           anySimHasNumber = false;
           numberMatch = false;
         });
-
-        // Directly fall back to OTP UI (text + button already there)
         return;
       }
+
+      // final hasPermission = await MobileNumber.hasPhonePermission;
+      // if (!hasPermission) {
+      //   debugPrint(
+      //     " Phone/SIM permission not granted. Skipping SIM auto-verify.",
+      //   );
+      //
+      //   if (!mounted) return;
+      //   setState(() {
+      //     loaded = true;
+      //     anySimHasNumber = false;
+      //     numberMatch = false;
+      //   });
+      //
+      //   // Directly fall back to OTP UI (text + button already there)
+      //   return;
+      // }
 
       //  We have permission → proceed with SIM reading
       final simCards = await MobileNumber.getSimCards;
@@ -165,6 +181,7 @@ Slot Index      : $slot
     }
   }
 
+  ///old///
   //   Future<void> loadSimInfo() async {
   //     try {
   //       if (!await MobileNumber.hasPhonePermission) {

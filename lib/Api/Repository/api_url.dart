@@ -93,6 +93,7 @@ class ApiUrl {
   static String serviceDelete({required String serviceId}) {
     return "${base}api/v1/services/$serviceId";
   }
+
   static String currentPlans({required String businessProfileId}) {
     return "${base}api/v1/subscriptions/current?businessProfileId=$businessProfileId";
   }
