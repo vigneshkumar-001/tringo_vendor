@@ -60,10 +60,7 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
         return EmployeeAboutMe();
 
       case 4:
-        return const NoDataScreen(
-          showBottomButton: false,
-          showTopBackArrow: false,
-        );
+        return const NoDataScreens();
       default:
         return const SizedBox.shrink();
     }

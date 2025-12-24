@@ -118,6 +118,7 @@ class AddEmployeeNotifier extends Notifier<AddEmployeeState> {
         aadhaarNumber: aadhaarNumber,
         aadhaarDocumentUrl: aadhaarUrl.message,
         avatarUrl: profileUrl.message,
+        isActive: true,
       );
 
       result.fold(

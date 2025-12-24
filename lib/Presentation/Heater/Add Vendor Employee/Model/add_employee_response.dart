@@ -1,24 +1,32 @@
-class  AddEmployeeResponse  {
+bool parseBool(dynamic v, {bool defaultValue = true}) {
+  if (v == null) return defaultValue;
+  if (v is bool) return v;
+  if (v is num) return v != 0;
+
+  if (v is String) {
+    final s = v.trim().toLowerCase();
+    if (s == 'true' || s == '1' || s == 'yes' || s == 'y') return true;
+    if (s == 'false' || s == '0' || s == 'no' || s == 'n') return false;
+  }
+  return defaultValue;
+}
+
+class AddEmployeeResponse {
   final bool status;
   final AddEmployeeData? data;
 
-  AddEmployeeResponse({
-    required this.status,
-    this.data,
-  });
+  AddEmployeeResponse({required this.status, this.data});
 
   factory AddEmployeeResponse.fromJson(Map<String, dynamic> json) {
     return AddEmployeeResponse(
       status: json['status'] ?? false,
-      data: json['data'] != null ? AddEmployeeData.fromJson(json['data']) : null,
+      data:
+          json['data'] != null ? AddEmployeeData.fromJson(json['data']) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'status': status,
-      'data': data?.toJson(),
-    };
+    return {'status': status, 'data': data?.toJson()};
   }
 }
 
@@ -52,7 +60,8 @@ class AddEmployeeData {
       phoneNumber: json['phoneNumber'],
       email: json['email'],
       avatarUrl: json['avatarUrl'],
-      isActive: json['isActive'],
+      // isActive: json['isActive'],
+      isActive: parseBool(json['isActive'], defaultValue: true),
       status: json['status'],
       employeeCode: json['employeeCode'],
       employeeVerificationToken: json['employeeVerificationToken'],

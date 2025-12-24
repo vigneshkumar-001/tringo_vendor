@@ -445,17 +445,17 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
     }
 
     // if (state.error != null) {
-    //   return Scaffold(body: Center(child: Text(state.error!)));
+    //   return const Scaffold(
+    //     body: NoDataScreen(showTopBackArrow: false, showBottomButton: false),
+    //   );
     // }
-    if (state.error != null) {
-      return const Scaffold(
-        body: NoDataScreen(showTopBackArrow: false, showBottomButton: false),
-      );
-    }
 
     final data = state.employeeDetailsResponse?.data;
     if (data == null) {
-      return const Scaffold(body: Center(child: Text("No data available")));
+      return const Scaffold(
+        body: NoDataScreen(showTopBackArrow: false, showBottomButton: false),
+      );
+      // return const Scaffold(body: Center(child: Text("No data available")));
     }
 
     final employee = data.employee;
@@ -468,6 +468,7 @@ class _HeaterEmployeeDetailsState extends ConsumerState<HeaterEmployeeDetails> {
 
     final selectedSection = _getSelectedSection(sas, selectedKey);
     final fallbackFiltered = _filterByTab(sas.items, selectedKey);
+    
 
     return Scaffold(
       body: SafeArea(

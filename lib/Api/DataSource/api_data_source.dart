@@ -60,6 +60,20 @@ String normalizeIndianPhone(String input) {
   return p;
 }
 
+String toIndiaE164(String input) {
+  var p = input.trim();
+
+  if (p.startsWith('+')) return p; // already e164
+
+  p = p.replaceAll(RegExp(r'[^0-9]'), '');
+
+  if (p.length == 10) return '+91$p';
+  if (p.length == 12 && p.startsWith('91')) return '+$p';
+
+  // fallback
+  return '+91$p';
+}
+
 abstract class BaseApiDataSource {
   Future<Either<Failure, LoginResponse>> mobileNumberLogin(
     String mobileNumber,
@@ -407,12 +421,14 @@ class ApiDataSource {
     required String aadhaarNumber,
     required String aadhaarDocumentUrl,
     required String avatarUrl,
+    bool isActive = true,
   }) async {
     try {
       final url = ApiUrl.addEmployees;
       final verification = await AppPrefs.getVerificationToken();
       final payload = {
-        "phoneNumber": '+91${phoneNumber}',
+        // "phoneNumber": '+91${phoneNumber}',
+        "phoneNumber": toIndiaE164(phoneNumber),
         "employeeVerificationToken": verification,
         "fullName": fullName,
         "email": email,
@@ -422,6 +438,7 @@ class ApiDataSource {
         "aadharNumber": aadhaarNumber,
         "aadharDocumentUrl": aadhaarDocumentUrl,
         "avatarUrl": avatarUrl,
+        "isActive": isActive,
       };
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
@@ -2214,7 +2231,7 @@ class ApiDataSource {
         }
         return Left(ServerFailure(response.message ?? "Unknown Dio error"));
       }
-    } catch (e,st) {
+    } catch (e, st) {
       AppLogger.log.e(e);
       AppLogger.log.e(st);
       return Left(ServerFailure(e.toString()));
@@ -2264,7 +2281,9 @@ class ApiDataSource {
     }
   }
 
-  Future<Either<Failure, CurrentPlanResponse>> getCurrentPlan({required String businessProfileId}) async {
+  Future<Either<Failure, CurrentPlanResponse>> getCurrentPlan({
+    required String businessProfileId,
+  }) async {
     try {
       final url = ApiUrl.currentPlans(businessProfileId: businessProfileId);
 
