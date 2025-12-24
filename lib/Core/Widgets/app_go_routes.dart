@@ -124,12 +124,27 @@ final goRouter = GoRouter(
       name: AppRoutes.privacyPolicy,
       builder: (context, state) => const PrivacyPolicy(),
     ),
-
     GoRoute(
       path: AppRoutes.homePath,
       name: AppRoutes.home,
-      builder: (context, state) => CommonBottomNavigation(initialIndex: 0),
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        final forceHome = extra['forceHome'] == true;
+
+        return CommonBottomNavigation(
+          initialIndex: 0,
+          forceHome: forceHome, // ✅ new param
+        );
+      },
     ),
+
+
+
+    // GoRoute(
+    //   path: AppRoutes.homePath,
+    //   name: AppRoutes.home,
+    //   builder: (context, state) => CommonBottomNavigation(initialIndex: 0),
+    // ),
     GoRoute(
       path: AppRoutes.ownerInfoPath,
       name: AppRoutes.ownerInfo,

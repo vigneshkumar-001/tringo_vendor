@@ -12,11 +12,13 @@ import '../Const/app_images.dart';
 
 class CommonBottomNavigation extends StatefulWidget {
   final int initialIndex;
-  final int? initialAboutMeTab;
+  final int? initialAboutMeTab;  final bool forceHome;
+
   const CommonBottomNavigation({
     super.key,
     this.initialIndex = 0,
     this.initialAboutMeTab,
+    this.forceHome = false,
   });
 
   @override
@@ -34,6 +36,7 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
   @override
   void initState() {
     super.initState();
+    if (widget.forceHome) return;
 
     _selectedIndex = widget.initialIndex;
     _prevIndex = _selectedIndex;

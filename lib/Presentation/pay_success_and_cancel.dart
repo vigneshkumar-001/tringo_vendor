@@ -233,7 +233,10 @@ class _PaySuccessAndCancelState extends State<PaySuccessAndCancel> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                context.goNamed(AppRoutes.home);
+                                context.goNamed(
+                                  AppRoutes.home,
+                                  extra: {"forceHome": true},
+                                );
                               },
                               child: Container(
                                 decoration: BoxDecoration(
