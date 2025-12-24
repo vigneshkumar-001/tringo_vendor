@@ -7,6 +7,7 @@ import 'package:tringo_vendor_new/Core/Const/app_images.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 
 import '../Core/Widgets/app_go_routes.dart';
+import '../Core/Widgets/bottom_navigation_bar.dart';
 
 class PaySuccessAndCancel extends StatefulWidget {
   final String planId;
@@ -229,14 +230,22 @@ class _PaySuccessAndCancelState extends State<PaySuccessAndCancel> {
                           ),
 
                           SizedBox(width: 12),
-
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                context.goNamed(
-                                  AppRoutes.home,
-                                  extra: {"forceHome": true},
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => CommonBottomNavigation(
+                                          initialIndex: 0,
+                                        ),
+                                  ),
                                 );
+                                // context.goNamed(
+                                //   AppRoutes.home,
+                                //   extra: {"forceHome": true},
+                                // );
                               },
                               child: Container(
                                 decoration: BoxDecoration(

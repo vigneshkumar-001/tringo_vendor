@@ -133,7 +133,7 @@ final goRouter = GoRouter(
 
         return CommonBottomNavigation(
           initialIndex: 0,
-          forceHome: forceHome, // ✅ new param
+          forceHome: forceHome,
         );
       },
     ),
