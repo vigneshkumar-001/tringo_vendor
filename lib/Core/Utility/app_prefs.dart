@@ -7,6 +7,7 @@ class AppPrefs {
   static const String _shopId = 'shop_id';
   static const String _productId = 'product_id';
   static const String _serviceId = 'service_id';
+  static const String _businessProfileId = 'businessProfile_Id';
 
   /// Save
   static Future<void> setVerificationToken(String token) async {
@@ -14,14 +15,21 @@ class AppPrefs {
     await prefs.setString(_kVerificationToken, token);
   }
 
+  static Future<void> setBusinessProfileId(String businessProfileId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_businessProfileId, businessProfileId);
+  }
+
   static Future<void> setShopId(String shopId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_shopId, shopId);
   }
+
   static Future<void> setServiceId(String shopId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_serviceId, shopId);
   }
+
   static Future<void> setProductId(String productId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_productId, productId);
@@ -37,6 +45,7 @@ class AppPrefs {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_shopId);
   }
+
   static Future<String?> getServiceId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_serviceId);
@@ -45,6 +54,11 @@ class AppPrefs {
   static Future<String?> getProductId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_productId);
+  }
+
+  static Future<String?> getBusinessProfileId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_businessProfileId);
   }
   // /// Optional: sync-like getter (only after init)
   // static String? _cachedVerificationToken;
@@ -69,5 +83,4 @@ class AppPrefs {
     await prefs.remove(_serviceId);
     // _cachedVerificationToken = null;
   }
-
 }

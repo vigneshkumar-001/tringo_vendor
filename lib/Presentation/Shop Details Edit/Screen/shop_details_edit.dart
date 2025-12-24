@@ -30,7 +30,11 @@ import '../../subscription/Screen/subscription_screen.dart';
 class ShopDetailsEdit extends ConsumerStatefulWidget {
   final String shopId;
   final String businessProfileId;
-  const ShopDetailsEdit({required this.shopId,required this.businessProfileId, super.key});
+  const ShopDetailsEdit({
+    required this.shopId,
+    required this.businessProfileId,
+    super.key,
+  });
 
   @override
   ConsumerState<ShopDetailsEdit> createState() => _ShopDetailsEditState();
@@ -43,12 +47,12 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-     await ref
+      await ref
           .read(shopDetailsNotifierProvider.notifier)
           .fetchShopDetails(apiShopId: widget.shopId);
-     await ref
-         .read(subscriptionNotifier.notifier)
-         .getCurrentPlan(businessProfileId: widget.businessProfileId);
+      await ref
+          .read(subscriptionNotifier.notifier)
+          .getCurrentPlan(businessProfileId: widget.businessProfileId);
     });
   }
 
@@ -563,6 +567,10 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                                           Expanded(
                                             child: GestureDetector(
                                               onTap: () async {
+                                                final id =
+                                                    await AppPrefs.setBusinessProfileId(
+                                                      widget.businessProfileId,
+                                                    );
                                                 final updated = await Navigator.push<
                                                   bool
                                                 >(
