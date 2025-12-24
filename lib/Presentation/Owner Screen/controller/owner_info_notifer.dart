@@ -72,9 +72,8 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
 
     state = OwnerInfoState.initial();
   }
-  Future<String?> ownerInfoNumberRequest({
-    required String phoneNumber,
-  }) async {
+
+  Future<String?> ownerInfoNumberRequest({required String phoneNumber}) async {
     if (state.isSendingOtp) return "OTP_ALREADY_SENDING";
 
     state = state.copyWith(isSendingOtp: true, error: null);
@@ -82,18 +81,12 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
     final result = await api.ownerInfoNumberRequest(phone: phoneNumber);
 
     return result.fold(
-          (failure) {
-        state = state.copyWith(
-          isSendingOtp: false,
-          error: failure.message,
-        );
+      (failure) {
+        state = state.copyWith(isSendingOtp: false, error: failure.message);
         return failure.message;
       },
-          (response) {
-        state = state.copyWith(
-          isSendingOtp: false,
-          loginResponse: response,
-        );
+      (response) {
+        state = state.copyWith(isSendingOtp: false, loginResponse: response);
         return null; //  success
       },
     );
@@ -172,6 +165,7 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
       },
       (response) async {
         final data = response.data;
+        await AppPrefs.setBusinessProfileId(data?.id ?? '');
 
         // await prefs.setString('refreshToken', data?.refreshToken ?? '');
         // await prefs.setString('sessionToken', data?.sessionToken ?? '');
@@ -184,9 +178,6 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
       },
     );
   }
-
-
-
 }
 
 final ownerInfoNotifierProvider =

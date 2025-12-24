@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Controller/product_notifier.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
@@ -21,7 +22,8 @@ import 'add_product_list.dart';
 class ProductSearchKeyword extends ConsumerStatefulWidget {
   final bool? isCompany;
   final bool? isService;
-  const ProductSearchKeyword({super.key, this.isCompany, this.isService});
+
+  const ProductSearchKeyword({super.key, this.isCompany, this.isService, });
   bool get isCompanyResolved =>
       isCompany ??
       (RegistrationSession.instance.businessType == BusinessType.company);
@@ -402,12 +404,14 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                         // Company + Non-premium → Subscription Screen
                         if (regSession.isCompanyBusiness &&
                             productSession.isNonPremium) {
+                          final id = await AppPrefs.getBusinessProfileId();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
-                                  (context) =>
-                                      SubscriptionScreen(businessProfileId: ''),
+                                  (context) => SubscriptionScreen(
+                                    businessProfileId: id.toString() ?? '',
+                                  ),
                             ),
                           );
                           // context.goNamed(
