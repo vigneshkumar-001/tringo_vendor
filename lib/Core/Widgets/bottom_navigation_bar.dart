@@ -12,7 +12,8 @@ import '../Const/app_images.dart';
 
 class CommonBottomNavigation extends StatefulWidget {
   final int initialIndex;
-  final int? initialAboutMeTab;  final bool forceHome;
+  final int? initialAboutMeTab;
+  final bool forceHome;
 
   const CommonBottomNavigation({
     super.key,
@@ -36,18 +37,40 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
   @override
   void initState() {
     super.initState();
-    if (widget.forceHome) return;
 
-    _selectedIndex = widget.initialIndex;
-    _prevIndex = _selectedIndex;
-
+    // Always init controller (NEVER early return)
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
 
+    // If forceHome -> open Home tab (index 0) and skip any register redirect logic
+    if (widget.forceHome) {
+      _selectedIndex = 0;
+      _prevIndex = 0;
+    } else {
+      _selectedIndex = widget.initialIndex;
+      _prevIndex = _selectedIndex;
+    }
+
     _updateSlideAnimation();
   }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   if (widget.forceHome) return;
+  //
+  //   _selectedIndex = widget.initialIndex;
+  //   _prevIndex = _selectedIndex;
+  //
+  //   _animationController = AnimationController(
+  //     vsync: this,
+  //     duration: const Duration(milliseconds: 400),
+  //   );
+  //
+  //   _updateSlideAnimation();
+  // }
 
   //  Build the page on demand so it always sees latest businessType
   ///new///
