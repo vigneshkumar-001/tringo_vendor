@@ -741,9 +741,7 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                               },
                             ),
 
-
                             SizedBox(height: 10),
-
                           ],
                         ],
                       ),
@@ -796,8 +794,9 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) =>   SubscriptionScreen(
-                                      businessProfileId: shop?.businessProfileId?? '',
+                                    (context) => SubscriptionScreen(
+                                      businessProfileId:
+                                          shop?.businessProfileId ?? '',
                                       showSkip: false,
                                     ),
                               ),

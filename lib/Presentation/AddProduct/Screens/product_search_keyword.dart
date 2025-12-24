@@ -405,15 +405,17 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                         if (regSession.isCompanyBusiness &&
                             productSession.isNonPremium) {
                           final id = await AppPrefs.getBusinessProfileId();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => SubscriptionScreen(
-                                    businessProfileId: id.toString() ?? '',
-                                  ),
-                            ),
-                          );
+                          AppLogger.log.i('Business Profile Id');
+                          AppLogger.log.i(id);
+                           Navigator.push(
+                             context,
+                             MaterialPageRoute(
+                               builder:
+                                   (context) => SubscriptionScreen(
+                                     businessProfileId: id.toString() ?? '',
+                                   ),
+                             ),
+                           );
                           // context.goNamed(
                           //   AppRoutes.subscriptionScreen,
                           //   extra: true,

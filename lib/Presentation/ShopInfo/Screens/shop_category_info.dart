@@ -860,6 +860,71 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     );
   }
 
+  ThemeData _timePickerTheme(BuildContext context) {
+    return Theme.of(context).copyWith(
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: AppColor.white,
+        // ✅ Hour / Minute box background
+        hourMinuteColor: MaterialStateColor.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return AppColor.darkBlue; // selected box
+          }
+          return AppColor.lowGery1; // unselected box
+        }),
+
+        // ✅ Hour / Minute text color
+        hourMinuteTextColor: MaterialStateColor.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return Colors.white;
+          }
+          return AppColor.mildBlack;
+        }),
+
+        // ✅ Shape for time boxes
+        hourMinuteShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+
+        // ✅ AM / PM box bg
+        dayPeriodColor: MaterialStateColor.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return AppColor.darkBlue.withOpacity(0.12);
+          }
+          return Colors.transparent;
+        }),
+
+        // ✅ AM / PM text color
+        dayPeriodTextColor: MaterialStateColor.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return AppColor.darkBlue;
+          }
+          return AppColor.mildBlack;
+        }),
+
+        // ✅ AM/PM shape
+        dayPeriodShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+
+        // ✅ Dial + hand color (optional)
+        dialHandColor: AppColor.darkBlue,
+        dialBackgroundColor: AppColor.lowGery1,
+        dialTextColor: MaterialStateColor.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) return Colors.white;
+          return AppColor.mildBlack;
+        }),
+
+        // ✅ OK / CANCEL button color (optional)
+        confirmButtonStyle: TextButton.styleFrom(
+          foregroundColor: AppColor.darkBlue,
+        ),
+        cancelButtonStyle: TextButton.styleFrom(
+          foregroundColor: AppColor.mildBlack,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(shopCategoryNotifierProvider);
@@ -1445,8 +1510,15 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         onFieldTap: () async {
                           final picked = await showTimePicker(
                             context: context,
-                            initialTime: TimeOfDay.now(),
+                            initialTime: _openTod ?? TimeOfDay.now(),
+                            builder: (context, child) {
+                              return Theme(
+                                data: _timePickerTheme(context),
+                                child: child!,
+                              );
+                            },
                           );
+
                           if (picked != null) {
                             _openTimeController.text = picked.format(context);
                             setState(() => _openTod = picked);
@@ -1476,8 +1548,15 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         onFieldTap: () async {
                           final picked = await showTimePicker(
                             context: context,
-                            initialTime: TimeOfDay.now(),
+                            initialTime: _closeTod ?? TimeOfDay.now(),
+                            builder: (context, child) {
+                              return Theme(
+                                data: _timePickerTheme(context),
+                                child: child!,
+                              );
+                            },
                           );
+
                           if (picked != null) {
                             _closeTimeController.text = picked.format(context);
                             setState(() => _closeTod = picked);

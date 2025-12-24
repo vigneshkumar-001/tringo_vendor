@@ -145,7 +145,7 @@ class _HeaterHistoryState extends ConsumerState<HeaterHistory> {
             ),
             const SizedBox(height: 10),
 
-            // ✅ Search + Filter + Sort (ALWAYS visible)
+            //  Search + Filter + Sort (ALWAYS visible)
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -415,13 +415,13 @@ class _HeaterHistoryState extends ConsumerState<HeaterHistory> {
                 ),
               ),
 
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
 
-            // ✅ MAIN CONTENT AREA
+            //  MAIN CONTENT AREA
             Expanded(
               child: Builder(
                 builder: (_) {
-                  // ✅ A) LOADING => show skeleton list cards
+                  //  A) LOADING => show skeleton list cards
                   if (state.isLoading) {
                     return ListView.builder(
                       physics: const BouncingScrollPhysics(),

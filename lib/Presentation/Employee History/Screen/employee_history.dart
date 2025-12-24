@@ -68,6 +68,41 @@ class _EmployeeHistoryState extends ConsumerState<EmployeeHistory> {
     super.dispose();
   }
 
+  Set<String> _selectedCategories = {};
+
+  bool _hasAnyFilterApplied() {
+    final hasSearch = _searchController.text.trim().isNotEmpty;
+    final hasDate = _selectedRange != null;
+    final hasCategory = _selectedCategories.isNotEmpty;
+    return hasSearch || hasDate || hasCategory;
+  }
+
+  Future<void> _pickDateRange() async {
+    final now = DateTime.now();
+
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 2),
+      lastDate: now,
+      initialDateRange: _selectedRange ?? DateTimeRange(start: now, end: now),
+    );
+
+    if (picked == null) return;
+
+    // ✅ Save for label
+    _selectedRange = picked;
+
+    // ✅ Convert to API format
+    _dateFrom = DateFormat('yyyy-MM-dd').format(picked.start);
+    _dateTo = DateFormat('yyyy-MM-dd').format(picked.end);
+
+    _isSearching = true;
+    if (mounted) setState(() {});
+    await _firstLoad(showMainLoader: true);
+    _isSearching = false;
+    if (mounted) setState(() {});
+  }
+
   // flatten grouped activity -> items list
   List<BusinessProfile> _flattenAll(EmployeeData data) {
     final freemium = data.recentActivity.freemium.expand((g) => g.items);
@@ -85,6 +120,34 @@ class _EmployeeHistoryState extends ConsumerState<EmployeeHistory> {
         existingIds.add(it.shopId);
       }
     }
+  }
+
+  DateTime _onlyDate(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  DateTimeRange? _selectedRange;
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  final DateFormat _labelDf = DateFormat('dd MMM yyyy');
+
+  String _selectedDateLabel() {
+    final now = DateTime.now();
+    final today = _onlyDate(now);
+    final yesterday = today.subtract(const Duration(days: 1));
+
+    if (_selectedRange == null) return "Today";
+
+    final start = _onlyDate(_selectedRange!.start);
+    final end = _onlyDate(_selectedRange!.end);
+
+    if (_isSameDay(start, end)) {
+      if (_isSameDay(start, today)) return "Today";
+      if (_isSameDay(start, yesterday)) return "Yesterday";
+      return _labelDf.format(start);
+    }
+
+    return "${_labelDf.format(start)}  →  ${_labelDf.format(end)}";
   }
 
   Widget _breadcrumbText(String text) {
@@ -105,6 +168,7 @@ class _EmployeeHistoryState extends ConsumerState<EmployeeHistory> {
       color: AppColor.darkGrey,
     );
   }
+
   Future<void> _firstLoad({bool showMainLoader = false}) async {
     _page = 1;
     _hasMore = true;
@@ -591,8 +655,36 @@ class _EmployeeHistoryState extends ConsumerState<EmployeeHistory> {
                 ],
               ),
             ),
+            const SizedBox(height: 18),
 
-            const SizedBox(height: 16),
+            // GestureDetector(
+            //   onTap: _pickDateRange, // ✅ date select open
+            //   child: Center(
+            //     child: Text(
+            //       _selectedDateLabel(),
+            //       style: AppTextStyles.mulish(
+            //         fontSize: 12,
+            //         fontWeight: FontWeight.w600,
+            //         color: AppColor.lightGray2,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // const SizedBox(height: 16),
+
+            // if (_hasAnyFilterApplied())
+            //   Padding(
+            //     padding: const EdgeInsets.symmetric(horizontal: 16),
+            //     child: Text(
+            //       "Filters applied",
+            //       style: AppTextStyles.mulish(
+            //         fontSize: 12,
+            //         fontWeight: FontWeight.w700,
+            //         color: AppColor.lightGray2,
+            //       ),
+            //     ),
+            //   ),
+            SizedBox(height: 10),
 
             Expanded(
               child: Stack(
@@ -694,29 +786,41 @@ class _EmployeeHistoryState extends ConsumerState<EmployeeHistory> {
                                                 decoration: BoxDecoration(
                                                   gradient: LinearGradient(
                                                     colors: [
-                                                      AppColor.black.withOpacity(0.054),
-                                                      AppColor.black.withOpacity(0.0),
+                                                      AppColor.black
+                                                          .withOpacity(0.054),
+                                                      AppColor.black
+                                                          .withOpacity(0.0),
                                                     ],
                                                     begin: Alignment.centerLeft,
                                                     end: Alignment.centerRight,
                                                   ),
-                                                  borderRadius: BorderRadius.circular(16),
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
                                                 ),
                                                 child: Padding(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 15,
-                                                    vertical: 10,
-                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 15,
+                                                        vertical: 10,
+                                                      ),
                                                   child: Wrap(
-                                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                                    crossAxisAlignment:
+                                                        WrapCrossAlignment
+                                                            .center,
                                                     spacing: 6,
                                                     runSpacing: 6,
                                                     children: [
-                                                      _breadcrumbText(item.typeLabel),
+                                                      _breadcrumbText(
+                                                        item.typeLabel,
+                                                      ),
                                                       _breadcrumbArrow(),
-                                                      _breadcrumbText(item.categoryLabel),
+                                                      _breadcrumbText(
+                                                        item.categoryLabel,
+                                                      ),
                                                       _breadcrumbArrow(),
-                                                      _breadcrumbText(item.subCategoryLabel),
+                                                      _breadcrumbText(
+                                                        item.subCategoryLabel,
+                                                      ),
                                                     ],
                                                   ),
                                                 ),
@@ -846,7 +950,11 @@ class _EmployeeHistoryState extends ConsumerState<EmployeeHistory> {
                                                       context.push(
                                                         AppRoutes
                                                             .shopDetailsEditPath,
-                                                        extra: item.shopId,
+                                                        extra: {
+                                                          'shopId': item.shopId,
+                                                          'businessProfileId':
+                                                              item.businessProfileId,
+                                                        },
                                                       );
                                                     },
                                                     child: Container(

@@ -2247,7 +2247,9 @@ class ApiDataSource {
 
       dynamic response = await Request.sendRequest(
         url,
-        {"planId": planId},
+        {"planId": planId,
+          "businessProfileId" : businessProfileId
+        },
         'POST',
         true,
       );
