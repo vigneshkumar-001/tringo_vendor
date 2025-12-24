@@ -27,6 +27,7 @@ class heaterEmployeeEditState {
   final EmployeeChangeNumber? employeeChangeNumber;
   final PhoneVerificationResponse? phoneVerificationResponse;
   final bool? latestIsActive;
+  final String? latestEmployeeId;
 
   const heaterEmployeeEditState({
     this.isLoading = false,
@@ -41,6 +42,7 @@ class heaterEmployeeEditState {
     this.employeeChangeNumber,
     this.phoneVerificationResponse,
     this.latestIsActive,
+    this.latestEmployeeId,
   });
 
   factory heaterEmployeeEditState.initial() => const heaterEmployeeEditState();
@@ -52,6 +54,7 @@ class heaterEmployeeEditState {
     bool? isSendingOtp,
     bool? isVerifyingOtp,
     bool? latestIsActive,
+    String? latestEmployeeId,
 
     String? error,
     EmployeeUpdateResponse? data,
@@ -60,6 +63,7 @@ class heaterEmployeeEditState {
     EmployeeChangeNumber? employeeChangeNumber,
     PhoneVerificationResponse? phoneVerificationResponse,
     bool clearError = false,
+    bool clearLatest = false,
   }) {
     return heaterEmployeeEditState(
       isLoading: isLoading ?? this.isLoading,
@@ -77,6 +81,8 @@ class heaterEmployeeEditState {
       employeeChangeNumber: employeeChangeNumber ?? this.employeeChangeNumber,
       phoneVerificationResponse:
           phoneVerificationResponse ?? this.phoneVerificationResponse,
+      latestEmployeeId:
+          clearLatest ? null : (latestEmployeeId ?? this.latestEmployeeId),
     );
   }
 }
@@ -211,15 +217,20 @@ class HeaterEmployeeEditNotifier extends Notifier<heaterEmployeeEditState> {
   // }
 
   Future<void> unblockEmployee({required String employeeId}) async {
-    state = state.copyWith(isBlockLoading: true, clearError: true);
+    state = state.copyWith(
+      isBlockLoading: true,
+      clearError: true,
+      latestIsActive: true,
+      latestEmployeeId: employeeId,
+    );
 
     final result = await api.employeeUnblock(employeeId: employeeId);
 
     result.fold(
-          (failure) {
+      (failure) {
         state = state.copyWith(isBlockLoading: false, error: failure.message);
       },
-          (response) {
+      (response) {
         state = state.copyWith(
           isBlockLoading: false,
           employeeUnblockResponse: response,
@@ -233,15 +244,23 @@ class HeaterEmployeeEditNotifier extends Notifier<heaterEmployeeEditState> {
     required String employeeId,
     String? reason,
   }) async {
-    state = state.copyWith(isBlockLoading: true, clearError: true);
+    state = state.copyWith(
+      isBlockLoading: true,
+      clearError: true,
+      latestIsActive: false,
+      latestEmployeeId: employeeId,
+    );
 
-    final result = await api.employeeBlock(employeeId: employeeId, reason: reason);
+    final result = await api.employeeBlock(
+      employeeId: employeeId,
+      reason: reason,
+    );
 
     result.fold(
-          (failure) {
+      (failure) {
         state = state.copyWith(isBlockLoading: false, error: failure.message);
       },
-          (response) {
+      (response) {
         state = state.copyWith(
           isBlockLoading: false,
           employeeUnblockResponse: response,
@@ -251,6 +270,9 @@ class HeaterEmployeeEditNotifier extends Notifier<heaterEmployeeEditState> {
     );
   }
 
+  void resetLatest() {
+    state = state.copyWith(clearLatest: true, error: null);
+  }
 
   Future<String?> employeeUpdateNumberRequest({
     required String phoneNumber,

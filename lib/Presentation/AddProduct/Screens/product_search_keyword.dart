@@ -21,7 +21,13 @@ import 'add_product_list.dart';
 class ProductSearchKeyword extends ConsumerStatefulWidget {
   final bool? isCompany;
   final bool? isService;
-  const ProductSearchKeyword({super.key, this.isCompany, this.isService});
+  final String ? businessProfileId;
+  const ProductSearchKeyword({
+    super.key,
+    this.isCompany,
+      this.businessProfileId,
+    this.isService,
+  });
   bool get isCompanyResolved =>
       isCompany ??
       (RegistrationSession.instance.businessType == BusinessType.company);

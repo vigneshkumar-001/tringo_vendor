@@ -8,7 +8,7 @@ import '../../Presentation/Heater/Heater Home Screen/Screen/heater_home_screen.d
 import '../../Presentation/Heater/History/Screen/heater_history.dart';
 import '../../Presentation/Heater/Setting/Screen/heater_setting.dart';
 import '../../Presentation/Home Screen/home_screen.dart';
-import '../../Presentation/No Data Screen/Screen/no_data_screen.dart';
+import '../../Presentation/No Data Screen/Screen/no_data_screen.dart' hide NoDataScreen;
 import '../../Presentation/Register Screen/Screen/register_screen.dart';
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
@@ -59,7 +59,8 @@ class HeaterBottomNavigationBarState extends State<HeaterBottomNavigationBar>
       case 2:
         return HeaterHistory();
       case 3:
-        return HeaterEarnings();
+        // return HeaterEarnings();
+        return NoDataScreens();
       case 4:
         return HeaterSetting();
       default:

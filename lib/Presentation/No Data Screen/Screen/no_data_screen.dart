@@ -14,6 +14,9 @@ class NoDataScreen extends StatelessWidget {
   final bool showTopBackArrow;
   final bool showBottomButton;
   final double? fontSize;
+  final double? messageFontSize;
+  final FontWeight? messageFontWeight;
+
   final EdgeInsetsGeometry padding;
 
   const NoDataScreen({
@@ -26,6 +29,8 @@ class NoDataScreen extends StatelessWidget {
     this.onTopBackTap,
     this.imagePath,
     this.fontSize = 24,
+    this.messageFontSize = 14,
+    this.messageFontWeight = FontWeight.w500,
     this.showTopBackArrow = true,
     this.showBottomButton = true,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -69,8 +74,8 @@ class NoDataScreen extends StatelessWidget {
                 message,
                 textAlign: TextAlign.center,
                 style: AppTextStyles.mulish(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontSize: messageFontSize!,
+                  fontWeight: messageFontWeight!,
                   color: AppColor.darkGrey,
                 ),
               ),

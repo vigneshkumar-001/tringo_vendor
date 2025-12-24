@@ -322,7 +322,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                       SizedBox(height: 40),
                       _TotalEntryDonut(
                         plans: activePlans,
-                        value: todayActivity.length,
+                        value: dashboard.todayTotalCount ?? 0,
                         label: _filterLabel,
                         onTapLabel: _showDateFilterSheet,
                       ),
@@ -377,7 +377,9 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                     itemCount: todayActivity.length,
                     itemBuilder: (context, index) {
                       final data = todayActivity[index];
-                      final bool isBlocked = !(data.isActive);
+                      // final bool isBlocked = !(data.isActive);
+                      // final bool isBlocked = !(data.isActiveSafe);
+                      final bool isBlocked = !(data.isActive ?? true);
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 15),
                         child: Column(

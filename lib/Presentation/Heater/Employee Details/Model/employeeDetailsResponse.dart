@@ -32,10 +32,25 @@ class EmployeeDetailsData {
       shopsAndServices: ShopsAndServices.fromJson(
         json['shopsAndServices'] ?? {},
       ),
-      isActive: json['isActive'] == true,
+      // isActive: json['isActive'] == true,
+      isActive: parseBool(json['isActive'], defaultValue: true),
     );
   }
 }
+bool parseBool(dynamic v, {bool defaultValue = true}) {
+  if (v == null) return defaultValue;
+  if (v is bool) return v;
+  if (v is num) return v != 0;
+
+  if (v is String) {
+    final s = v.trim().toLowerCase();
+    if (s == 'true' || s == '1' || s == 'yes' || s == 'y') return true;
+    if (s == 'false' || s == '0' || s == 'no' || s == 'n') return false;
+  }
+  return defaultValue;
+}
+
+
 
 class Employee {
   final String id;
@@ -76,7 +91,8 @@ class Employee {
       phoneNumber: json['phoneNumber'] ?? '',
       email: json['email'] ?? '',
       avatarUrl: json['avatarUrl'],
-      isActive: json['isActive'] == true,
+      // isActive: json['isActive'] == true,
+      isActive: parseBool(json['isActive'], defaultValue: true),
       emergencyContactName: json['emergencyContactName'] ?? '',
       emergencyContactRelationship: json['emergencyContactRelationship'] ?? '',
       emergencyContactPhone: json['emergencyContactPhone'] ?? '',

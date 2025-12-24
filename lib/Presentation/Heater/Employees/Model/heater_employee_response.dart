@@ -1,3 +1,31 @@
+// ✅ helpers (put at TOP of this file, above classes)
+bool parseBool(dynamic v, {bool defaultValue = true}) {
+  if (v == null) return defaultValue;
+  if (v is bool) return v;
+  if (v is num) return v != 0;
+  if (v is String) {
+    final s = v.trim().toLowerCase();
+    if (s == 'true' || s == '1' || s == 'yes') return true;
+    if (s == 'false' || s == '0' || s == 'no') return false;
+  }
+  return defaultValue;
+}
+
+int parseInt(dynamic v, {int defaultValue = 0}) {
+  if (v == null) return defaultValue;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v.trim()) ?? defaultValue;
+  return defaultValue;
+}
+
+String parseString(dynamic v, {String defaultValue = ''}) {
+  if (v == null) return defaultValue;
+  return v.toString();
+}
+
+// ---------------------------------------------------------------------------
+
 class HeaterEmployeeResponse {
   final bool status;
   final EmployeeData data;
@@ -6,8 +34,8 @@ class HeaterEmployeeResponse {
 
   factory HeaterEmployeeResponse.fromJson(Map<String, dynamic> json) {
     return HeaterEmployeeResponse(
-      status: json['status'] as bool,
-      data: EmployeeData.fromJson(json['data'] as Map<String, dynamic>),
+      status: parseBool(json['status'], defaultValue: false),
+      data: EmployeeData.fromJson((json['data'] ?? {}) as Map<String, dynamic>),
     );
   }
 
@@ -30,14 +58,19 @@ class EmployeeData {
   });
 
   factory EmployeeData.fromJson(Map<String, dynamic> json) {
+    final list = (json['items'] as List?) ?? [];
     return EmployeeData(
       items:
-      (json['items'] as List).map((e) => EmployeeItem.fromJson(e)).toList(),
-      page: json['page'] as int,
-      limit: json['limit'] as int,
-      total: json['total'] as int,
+          list
+              .map(
+                (e) => EmployeeItem.fromJson((e ?? {}) as Map<String, dynamic>),
+              )
+              .toList(),
+      page: parseInt(json['page'], defaultValue: 1),
+      limit: parseInt(json['limit'], defaultValue: 10),
+      total: parseInt(json['total'], defaultValue: 0),
       appliedFilters: AppliedFilters.fromJson(
-        json['appliedFilters'] as Map<String, dynamic>,
+        (json['appliedFilters'] ?? {}) as Map<String, dynamic>,
       ),
     );
   }
@@ -57,7 +90,7 @@ class EmployeeItem {
   final String name;
   final String phoneNumber;
   final String email;
-  final String ? avatarUrl;
+  final String? avatarUrl;
   final bool isActive;
   final int collectionCount;
   final int totalAmount;
@@ -68,7 +101,7 @@ class EmployeeItem {
     required this.name,
     required this.phoneNumber,
     required this.email,
-      this.avatarUrl,
+    this.avatarUrl,
     required this.isActive,
     required this.collectionCount,
     required this.totalAmount,
@@ -76,15 +109,19 @@ class EmployeeItem {
 
   factory EmployeeItem.fromJson(Map<String, dynamic> json) {
     return EmployeeItem(
-      id: json['id'] as String,
-      employeeCode: json['employeeCode'] as String,
-      name: json['name'] as String,
-      phoneNumber: json['phoneNumber'] as String,
-      email: json['email'] as String,
-      avatarUrl: json['avatarUrl'] ??'',
-      isActive: json['isActive'] as bool,
-      collectionCount: json['collectionCount'] as int,
-      totalAmount: json['totalAmount'] as int,
+      id: parseString(json['id']),
+      employeeCode: parseString(json['employeeCode']),
+      name: parseString(json['name']),
+      phoneNumber: parseString(json['phoneNumber']),
+      email: parseString(json['email']),
+      avatarUrl:
+          (json['avatarUrl'] == null || '${json['avatarUrl']}'.trim().isEmpty)
+              ? null
+              : parseString(json['avatarUrl']),
+      // ✅ MAIN FIX: defaultValue true so new employee won't show Blocked
+      isActive: parseBool(json['isActive'], defaultValue: true),
+      collectionCount: parseInt(json['collectionCount'], defaultValue: 0),
+      totalAmount: parseInt(json['totalAmount'], defaultValue: 0),
     );
   }
 
@@ -125,16 +162,16 @@ class AppliedFilters {
   factory AppliedFilters.fromJson(Map<String, dynamic> json) {
     return AppliedFilters(
       q: json['q'] as String?,
-      active: json['active'] as String,
-      minAmount: json['minAmount'] as int?,
-      maxAmount: json['maxAmount'] as int?,
+      active: parseString(json['active'], defaultValue: ''),
+      minAmount: json['minAmount'] == null ? null : parseInt(json['minAmount']),
+      maxAmount: json['maxAmount'] == null ? null : parseInt(json['maxAmount']),
       categories:
-      (json['categories'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+          ((json['categories'] as List?) ?? [])
+              .map((e) => parseString(e))
+              .toList(),
       dateFrom: json['dateFrom'] as String?,
       dateTo: json['dateTo'] as String?,
-      sort: json['sort'] as String,
+      sort: parseString(json['sort'], defaultValue: ''),
     );
   }
 
