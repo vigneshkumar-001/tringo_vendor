@@ -97,8 +97,7 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
   }
 
   Map<String, dynamic> _buildResult() {
-    // ✅ plan mapping (ONLY if selected)
-    String? plan; // null => no category filter
+    String? plan;
     if (selectedCategories.isNotEmpty) {
       final first = selectedCategories.first.toLowerCase();
       if (first.contains('freemium')) plan = 'freemium';
@@ -106,30 +105,22 @@ class _FilterPopupScreenState extends State<FilterPopupScreen> {
       if (first == 'premium') plan = 'premium';
     }
 
-    // ✅ date range mapping
-    String? date;
+    String? dateFrom;
+    String? dateTo;
+
     if (_selectedDate != null) {
-      date = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+      final d = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+      dateFrom = d;
+      dateTo = d; // ✅ same day
     }
 
     return {
       "filters": {"plan": plan},
-      "date": date,
+      "dateFrom": dateFrom,
+      "dateTo": dateTo,
     };
-
-    // String? dateFrom;
-    // String? dateTo;
-    // if (_selectedRange != null) {
-    //   dateFrom = DateFormat('yyyy-MM-dd').format(_selectedRange!.start);
-    //   dateTo = DateFormat('yyyy-MM-dd').format(_selectedRange!.end);
-    // }
-
-    // return {
-    //   "filters": {"plan": plan},
-    //   "dateFrom": dateFrom,
-    //   "dateTo": dateTo,
-    // };
   }
+
 
   // Future<void> _pickDateRange() async {
   //   _dateRange.unfocus();
