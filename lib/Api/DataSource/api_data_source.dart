@@ -36,6 +36,7 @@ import '../../Presentation/Heater/Employees/Model/heater_employee_response.dart'
 import '../../Presentation/Heater/Heater Home Screen/Model/heater_home_response.dart';
 import '../../Presentation/Heater/Heater Register/Model/vendorResponse.dart';
 import '../../Presentation/Home Screen/Model/employee_home_response.dart';
+import '../../Presentation/Login Screen/Model/app_version_response.dart';
 import '../../Presentation/Login Screen/Model/login_response.dart';
 import '../../Presentation/Login Screen/Model/otp_response.dart';
 import '../../Presentation/Login Screen/Model/resend_otp_response.dart';
@@ -2295,6 +2296,54 @@ class ApiDataSource {
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (response.data['status'] == true) {
             return Right(CurrentPlanResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+
+  Future<Either<Failure, AppVersionResponse>> getAppVersion({
+    required String appName,
+    required String appVersion,
+    required String appPlatForm,
+  }) async {
+    try {
+      final url = ApiUrl.version;
+
+      dynamic response = await Request.sendGetRequest(
+        url,
+        {},
+        'GET',
+        false,
+        appName: appName,
+        appPlatForm: appPlatForm,
+        appVersion: appVersion,
+      );
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(AppVersionResponse.fromJson(response.data));
           } else {
             return Left(
               ServerFailure(response.data['message'] ?? "Login failed"),
