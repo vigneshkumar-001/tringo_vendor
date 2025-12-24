@@ -25,7 +25,7 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
-  String appVersion = '0.0.0';
+  String appVersion = '1.0.0';
   @override
   void initState() {
     super.initState();
@@ -249,7 +249,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               top: h * 0.53,
               left: w * 0.43,
               child: Text(
-                'V 1.2',
+                'V $appVersion',
                 style: AppTextStyles.mulish(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
