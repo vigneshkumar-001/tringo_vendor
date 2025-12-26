@@ -8,9 +8,25 @@ class AppPrefs {
   static const String _productId = 'product_id';
   static const String _serviceId = 'service_id';
   static const String _businessProfileId = 'businessProfile_Id';
+  static const _kOfflineSessionId = "offline_session_id";
 
-  /// Save
-  static Future<void> setVerificationToken(String token) async {
+  static Future<void> setOfflineSessionId(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kOfflineSessionId, id);
+  }
+
+  static Future<String?> getOfflineSessionId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kOfflineSessionId);
+  }
+
+  static Future<void> clearOfflineSessionId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kOfflineSessionId);
+  }
+
+
+     static Future<void> setVerificationToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kVerificationToken, token);
   }

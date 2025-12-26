@@ -138,8 +138,6 @@ final goRouter = GoRouter(
       },
     ),
 
-
-
     // GoRoute(
     //   path: AppRoutes.homePath,
     //   name: AppRoutes.home,
@@ -376,6 +374,5 @@ final goRouter = GoRouter(
         );
       },
     ),
-
   ],
 );
