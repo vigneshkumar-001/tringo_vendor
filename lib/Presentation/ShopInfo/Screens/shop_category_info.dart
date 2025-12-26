@@ -158,67 +158,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     if (widget.isEditMode) {
       _prefillFields();
     }
-    // // ✅ Show server image in edit mode if available
-    // _hasExistingOwnerImage =
-    //     (widget.initialOwnerImageUrl?.trim().isNotEmpty ?? false);
-    //
-    // // Optional: prefill controllers if you want
-    // if ((widget.initialShopNameEnglish ?? '').trim().isNotEmpty) {
-    //   _shopNameEnglishController.text = widget.initialShopNameEnglish!.trim();
-    // }
-    // if ((widget.initialShopNameTamil ?? '').trim().isNotEmpty) {
-    //   tamilNameController.text = widget.initialShopNameTamil!.trim();
-    //   _tamilPrefilled = true;
-    // }
-    // if ((widget.initialDescriptionEnglish ?? '').trim().isNotEmpty) {
-    //   _descriptionEnglishController.text =
-    //       widget.initialDescriptionEnglish!.trim();
-    // }
-    // if ((widget.initialDescriptionTamil ?? '').trim().isNotEmpty) {
-    //   descriptionTamilController.text = widget.initialDescriptionTamil!.trim();
-    // }
-    // if ((widget.initialAddressEnglish ?? '').trim().isNotEmpty) {
-    //   _addressEnglishController.text = widget.initialAddressEnglish!.trim();
-    // }
-    // if ((widget.initialAddressTamil ?? '').trim().isNotEmpty) {
-    //   addressTamilNameController.text = widget.initialAddressTamil!.trim();
-    // }
-    // if ((widget.initialGps ?? '').trim().isNotEmpty) {
-    //   _gpsController.text = widget.initialGps!.trim();
-    //   _gpsFetched = true;
-    // }
-    // if ((widget.initialPrimaryMobile ?? '').trim().isNotEmpty) {
-    //   _primaryMobileController.text = widget.initialPrimaryMobile!.trim();
-    // }
-    // if ((widget.initialWhatsapp ?? '').trim().isNotEmpty) {
-    //   _whatsappController.text = widget.initialWhatsapp!.trim();
-    // }
-    // if ((widget.initialEmail ?? '').trim().isNotEmpty) {
-    //   _emailController.text = widget.initialEmail!.trim();
-    // }
-    // if ((widget.initialCategoryName ?? '').trim().isNotEmpty) {
-    //   _categoryController.text = widget.initialCategoryName!.trim();
-    // }
-    // if ((widget.initialCategorySlug ?? '').trim().isNotEmpty) {
-    //   categorySlug = widget.initialCategorySlug!.trim();
-    // }
-    // if ((widget.initialSubCategoryName ?? '').trim().isNotEmpty) {
-    //   _subCategoryController.text = widget.initialSubCategoryName!.trim();
-    // }
-    // if ((widget.initialSubCategorySlug ?? '').trim().isNotEmpty) {
-    //   subCategorySlug = widget.initialSubCategorySlug!.trim();
-    // }
-    // if ((widget.initialDoorDeliveryText ?? '').trim().isNotEmpty) {
-    //   _doorDeliveryController.text = widget.initialDoorDeliveryText!.trim();
-    // }
-    // if ((widget.initialOpenTimeText ?? '').trim().isNotEmpty) {
-    //   _openTimeController.text = widget.initialOpenTimeText!.trim();
-    //   _openTod = _parseTimeOfDay(_openTimeController.text);
-    // }
-    // if ((widget.initialCloseTimeText ?? '').trim().isNotEmpty) {
-    //   _closeTimeController.text = widget.initialCloseTimeText!.trim();
-    //   _closeTod = _parseTimeOfDay(_closeTimeController.text);
-    // }
   }
 
   void _prefillFields() {
@@ -289,7 +228,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       _doorDeliveryController.text = widget.initialDoorDeliveryText!;
     }
 
-    // 👉 open / close time – text + parse to TimeOfDay
     if (widget.initialOpenTimeText?.isNotEmpty ?? false) {
       final parsedOpen = _parseTimeOfDay(widget.initialOpenTimeText!);
       if (parsedOpen != null) {

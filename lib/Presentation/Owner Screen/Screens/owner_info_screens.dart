@@ -10,7 +10,11 @@ import 'package:tringo_vendor_new/Presentation/Owner%20Screen/controller/owner_i
 import '../../../../Core/Session/registration_session.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
+import '../../../Core/Offline_Data/offline_demo_screen.dart';
+import '../../../Core/Offline_Data/offline_owner_payload.dart';
+import '../../../Core/Offline_Data/offline_providers.dart';
 import '../../../Core/Utility/app_loader.dart';
+import '../../../Core/Utility/app_prefs.dart';
 import '../../../Core/Utility/app_snackbar.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Utility/thanglish_to_tamil.dart';
@@ -21,11 +25,15 @@ import '../../../Core/Widgets/owner_verify_feild.dart';
 class OwnerInfoScreens extends ConsumerStatefulWidget {
   final bool isService;
   final bool isIndividual;
+  final bool fromOffline;         // ✅ new
+  final String? offlineSessionId; // ✅ new
   const OwnerInfoScreens({
     super.key,
     this.isCompany,
     required this.isService,
     required this.isIndividual,
+    this.fromOffline = false,
+    this.offlineSessionId,
   });
   final bool? isCompany;
   @override
@@ -35,6 +43,7 @@ class OwnerInfoScreens extends ConsumerStatefulWidget {
 class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitted = false;
+  final FocusNode mobileFocusNode = FocusNode();
 
   final TextEditingController englishNameController = TextEditingController();
   final TextEditingController tamilNameController = TextEditingController();
@@ -47,6 +56,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   int resendSeconds = 30;
   List<String> tamilNameSuggestion = [];
   bool isTamilNameLoading = false;
+  bool _prefilled = false;
 
   final int otpLength = 4;
   late List<TextEditingController> otpControllers;
@@ -63,6 +73,12 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
     otpControllers = List.generate(otpLength, (_) => TextEditingController());
     otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (widget.fromOffline) {
+        await _prefillFromOffline();
+        if (mounted) mobileFocusNode.requestFocus();
+      }
+    });
   }
 
   bool showOtp = false;
@@ -84,6 +100,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
     });
   }
 
+
   @override
   void dispose() {
     englishNameController.dispose();
@@ -100,6 +117,33 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
       f.dispose();
     }
     super.dispose();
+  }
+  void _setIfEmpty(TextEditingController c, String v) {
+    if (c.text.trim().isNotEmpty) return;
+    final val = v.trim();
+    if (val.isEmpty) return;
+    c.text = val;
+  }
+  Future<void> _prefillFromOffline() async {
+    if (_prefilled) return;
+    final sid = widget.offlineSessionId;
+    if (sid == null || sid.trim().isEmpty) return;
+
+    final db = ref.read(offlineSyncDbProvider); // ✅ your provider
+    final raw = await db.getOwnerPayload(sid); // Map<String,dynamic>?
+    if (raw == null) return;
+
+    final p = OfflineOwnerPayload.fromMap(raw);
+
+    _setIfEmpty(englishNameController, p.govtRegisteredName.isNotEmpty ? p.govtRegisteredName : p.fullName);
+    _setIfEmpty(tamilNameController, p.ownerNameTamil);
+    _setIfEmpty(mobileController, p.phone10);
+    _setIfEmpty(emailIdController, p.email);
+    _setIfEmpty(dateOfBirthController, p.dobUi);
+    _setIfEmpty(genderController, p.genderUi);
+
+    _prefilled = true;
+    if (mounted) setState(() {});
   }
 
   void _onSubmitOtp() {
@@ -348,6 +392,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                             ),
                         child: OwnerVerifyField(
                           controller: mobileController,
+                          focusNode: mobileFocusNode, // ✅
                           isLoading: ownerState.isSendingOtp,
                           isOtpVerifying: ownerState.isVerifyingOtp,
                           onSendOtp: (mobile) {
@@ -355,14 +400,24 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                                 .read(ownerInfoNotifierProvider.notifier)
                                 .ownerInfoNumberRequest(phoneNumber: mobile);
                           },
-                          onVerifyOtp: (mobile, otp) {
-                            return ref
-                                .read(ownerInfoNotifierProvider.notifier)
-                                .ownerInfoOtpRequest(
-                                  phoneNumber: mobile,
-                                  code: otp,
-                                );
+                          onVerifyOtp: (mobile, otp) async {
+                            final ok = await ref.read(ownerInfoNotifierProvider.notifier)
+                                .ownerInfoOtpRequest(phoneNumber: mobile, code: otp);
+
+                            if (ok && widget.fromOffline && context.mounted) {
+                              Navigator.pop(context, true);
+                            }
+                            return ok;
                           },
+
+                          // onVerifyOtp: (mobile, otp) {
+                          //   return ref
+                          //       .read(ownerInfoNotifierProvider.notifier)
+                          //       .ownerInfoOtpRequest(
+                          //         phoneNumber: mobile,
+                          //         code: otp,
+                          //       );
+                          // },
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -456,9 +511,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         onTap: () async {
                           setState(() => _isSubmitted = true);
 
-                          if (!_formKey.currentState!.validate()) {
-                            return;
-                          }
+                          if (!_formKey.currentState!.validate()) return;
 
                           final englishName = englishNameController.text.trim();
                           final tamilName = tamilNameController.text.trim();
@@ -474,24 +527,19 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                             dobForApi = DateFormat(
                               'yyyy-MM-dd',
                             ).format(parsedDate);
-                          } catch (e) {
+                          } catch (_) {
                             AppSnackBar.error(context, "Invalid DOB");
                             return;
                           }
 
                           final gender = genderController.text.trim();
 
-                          AppLogger.log.i(
-                            'ownershipType: $ownershipType, businessType: $businessTypeForApi',
-                          );
-
-                          await ref
+                          // ✅ IMPORTANT: Use return value from notifier
+                          final ok = await ref
                               .read(ownerInfoNotifierProvider.notifier)
                               .ownerInfoRegister(
-                                ownershipType:
-                                    ownershipType, // ✅ "INDIVIDUAL" / "COMPANY"
-                                businessType:
-                                    businessTypeForApi, // ✅ "PRODUCT" / "SERVICE" (adjust if backend uses different strings)
+                                ownershipType: ownershipType,
+                                businessType: businessTypeForApi,
                                 ownerNameTamil: tamilName,
                                 ownerPhoneNumber: mobile,
                                 govtRegisteredName: englishName,
@@ -504,35 +552,134 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                           final newState = ref.read(ownerInfoNotifierProvider);
 
-                          if (newState.error != null) {
-                            AppSnackBar.error(context, newState.error!);
-                          } else if (newState.ownerRegisterResponse != null) {
-                            final employeeId =
-                                newState
-                                    .ownerRegisterResponse
-                                    ?.data
-                                    ?.id; // <-- change if your model differs
-
-                            context.push(
-                              AppRoutes.shopCategoryInfoPath,
-                              extra: {
-                                'isService': widget.isService,
-                                'isIndividual': widget.isIndividual,
-                                // 'initialShopNameEnglish':
-                                //     englishNameController.text.trim(),
-                                // 'initialShopNameTamil':
-                                //     tamilNameController.text.trim(),
-                                'pages': 'OwnerInfoScreens',
-                                'employeeId': employeeId,
-                              },
+                          // ❌ If failed (not offline queue case)
+                          if (!ok) {
+                            AppSnackBar.error(
+                              context,
+                              newState.error ?? "Something went wrong",
                             );
-                            //
-                            //   AppLogger.log.i(
-                            //     "Owner Info Saved  ${newState.ownerResponse?.toJson()}",
-                            //   );
-                            // }
+                            return;
                           }
+
+                          // ✅ If offline queue saved (ownerRegisterResponse will be null)
+                          if (newState.ownerRegisterResponse == null) {
+                            final sessionId =
+                                await AppPrefs.getOfflineSessionId();
+                            if (sessionId == null) {
+                              AppSnackBar.error(
+                                context,
+                                "Offline session not found",
+                              );
+                              return;
+                            }
+
+                            // Go Offline Demo Page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) =>
+                                        OfflineDemoScreen(sessionId: sessionId),
+                              ),
+                            );
+                            return;
+                          }
+
+                          // ✅ ONLINE CASE: normal navigation
+                          final employeeId =
+                              newState.ownerRegisterResponse?.data?.id;
+
+                          context.push(
+                            AppRoutes.shopCategoryInfoPath,
+                            extra: {
+                              'isService': widget.isService,
+                              'isIndividual': widget.isIndividual,
+                              'pages': 'OwnerInfoScreens',
+                              'employeeId': employeeId,
+                            },
+                          );
                         },
+
+                        // onTap: () async {
+                        //   setState(() => _isSubmitted = true);
+                        //
+                        //   if (!_formKey.currentState!.validate()) {
+                        //     return;
+                        //   }
+                        //
+                        //   final englishName = englishNameController.text.trim();
+                        //   final tamilName = tamilNameController.text.trim();
+                        //   final mobile = mobileController.text.trim();
+                        //   final email = emailIdController.text.trim();
+                        //   final input = dateOfBirthController.text.trim();
+                        //
+                        //   String dobForApi = '';
+                        //   try {
+                        //     final parsedDate = DateFormat(
+                        //       'dd-MM-yyyy',
+                        //     ).parseStrict(input);
+                        //     dobForApi = DateFormat(
+                        //       'yyyy-MM-dd',
+                        //     ).format(parsedDate);
+                        //   } catch (e) {
+                        //     AppSnackBar.error(context, "Invalid DOB");
+                        //     return;
+                        //   }
+                        //
+                        //   final gender = genderController.text.trim();
+                        //
+                        //   AppLogger.log.i(
+                        //     'ownershipType: $ownershipType, businessType: $businessTypeForApi',
+                        //   );
+                        //
+                        //   await ref
+                        //       .read(ownerInfoNotifierProvider.notifier)
+                        //       .ownerInfoRegister(
+                        //         ownershipType:
+                        //             ownershipType, // ✅ "INDIVIDUAL" / "COMPANY"
+                        //         businessType:
+                        //             businessTypeForApi, // ✅ "PRODUCT" / "SERVICE" (adjust if backend uses different strings)
+                        //         ownerNameTamil: tamilName,
+                        //         ownerPhoneNumber: mobile,
+                        //         govtRegisteredName: englishName,
+                        //         gender: gender,
+                        //         fullName: englishName,
+                        //         dateOfBirth: dobForApi,
+                        //         email: email,
+                        //         preferredLanguage: '',
+                        //       );
+                        //
+                        //   final newState = ref.read(ownerInfoNotifierProvider);
+                        //
+                        //   if (newState.error != null) {
+                        //     AppSnackBar.error(context, newState.error!);
+                        //   } else if (newState.ownerRegisterResponse != null) {
+                        //     final employeeId =
+                        //         newState
+                        //             .ownerRegisterResponse
+                        //             ?.data
+                        //             ?.id; // <-- change if your model differs
+                        //
+                        //     context.push(
+                        //       AppRoutes.shopCategoryInfoPath,
+                        //       extra: {
+                        //         'isService': widget.isService,
+                        //         'isIndividual': widget.isIndividual,
+                        //         // 'initialShopNameEnglish':
+                        //         //     englishNameController.text.trim(),
+                        //         // 'initialShopNameTamil':
+                        //         //     tamilNameController.text.trim(),
+                        //         'pages': 'OwnerInfoScreens',
+                        //         'employeeId': employeeId,
+                        //       },
+                        //     );
+                        //     //
+                        //     //   AppLogger.log.i(
+                        //     //     "Owner Info Saved  ${newState.ownerResponse?.toJson()}",
+                        //     //   );
+                        //     // }
+                        //   }
+                        // },
                       ),
                     ],
                   ),

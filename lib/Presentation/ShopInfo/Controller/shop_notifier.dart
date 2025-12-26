@@ -205,8 +205,8 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
           );
 
           final uploadedUrl = uploadResult.fold<String?>(
-                (failure) => null,
-                (success) => success.message,
+            (failure) => null,
+            (success) => success.message,
           );
 
           if (uploadedUrl != null && uploadedUrl.trim().isNotEmpty) {
@@ -236,12 +236,12 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
       );
 
       return apiResult.fold(
-            (failure) {
+        (failure) {
           state = ShopCategoryState(isLoading: false, error: failure.message);
           AppLogger.log.e(failure.message);
           return false;
         },
-            (response) {
+        (response) {
           state = ShopCategoryState(
             isLoading: false,
             shopInfoPhotosResponse: response,
@@ -254,7 +254,6 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
       return false;
     }
   }
-
 
   // Future<bool> uploadShopImages({
   //   required List<File?> images,

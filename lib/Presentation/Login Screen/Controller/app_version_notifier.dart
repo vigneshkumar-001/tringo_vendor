@@ -41,6 +41,6 @@ class AppVersionNotifier extends Notifier<AppVersionState> {
 }
 
 final appVersionNotifierProvider =
-NotifierProvider<AppVersionNotifier, AppVersionState>(
-  AppVersionNotifier.new,
-);
+    NotifierProvider<AppVersionNotifier, AppVersionState>(
+      AppVersionNotifier.new,
+    );

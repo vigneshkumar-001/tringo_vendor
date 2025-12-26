@@ -8,6 +8,8 @@ import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
 import 'package:tringo_vendor_new/Presentation/Login%20Screen/Model/login_response.dart';
 
+import '../../../Core/Offline_Data/offline_helpers.dart';
+import '../../../Core/Offline_Data/offline_providers.dart';
 import '../../Login Screen/Controller/login_notifier.dart';
 import '../Model/owner_otp_response.dart';
 import '../Model/owner_register_response.dart' show OwnerRegisterResponse;
@@ -159,13 +161,41 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
     );
 
     return result.fold(
-      (failure) {
+      (failure) async {
         state = state.copyWith(isLoading: false, error: failure.message);
+        if (isOfflineMessage(failure.message)) {
+          final engine = ref.read(offlineSyncEngineProvider);
+          final verification = await AppPrefs.getVerificationToken();
+
+          final ownerPayload = {
+            "businessType": businessType,
+            "ownershipType": ownershipType,
+            "govtRegisteredName": govtRegisteredName,
+            "preferredLanguage": preferredLanguage,
+            "gender": gender.toUpperCase(),
+            "dateOfBirth": dateOfBirth,
+            "fullName": fullName,
+            "ownerNameTamil": ownerNameTamil,
+            "email": email,
+            "ownerPhoneNumber": "+91$ownerPhoneNumber",
+            "phoneVerificationToken": verification,
+          };
+
+          final sessionId = await engine.enqueueOwnerOnly(
+            ownerPayload: ownerPayload,
+          );
+
+          await AppPrefs.setOfflineSessionId(sessionId);
+
+          // ✅ continue next screen even offline
+          return true;
+        }
         return false;
       },
       (response) async {
         final data = response.data;
         await AppPrefs.setBusinessProfileId(data?.id ?? '');
+        await AppPrefs.clearOfflineSessionId();
 
         // await prefs.setString('refreshToken', data?.refreshToken ?? '');
         // await prefs.setString('sessionToken', data?.sessionToken ?? '');

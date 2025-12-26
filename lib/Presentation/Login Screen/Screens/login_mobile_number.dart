@@ -50,6 +50,7 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber> {
       debugPrint('$st');
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -59,7 +60,10 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber> {
       await _ensurePhonePermission();
     });
 
-    _sub = ref.listenManual<LoginState>(loginNotifierProvider, (prev, next) async {
+    _sub = ref.listenManual<LoginState>(loginNotifierProvider, (
+      prev,
+      next,
+    ) async {
       if (!mounted) return;
 
       // ❌ remove this line from here:
@@ -82,18 +86,20 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber> {
             final fullPhone = '$_selectedDialCode$raw';
             final simToken = generateSimToken(fullPhone);
 
-            ref.read(loginNotifierProvider.notifier)
+            ref
+                .read(loginNotifierProvider.notifier)
                 .loginUser(phoneNumber: raw, simToken: simToken);
           }
         } else {
           setState(() => isWhatsappChecked = false);
-          AppSnackBar.error(context,
-              'This number is not registered on WhatsApp. Please use a WhatsApp number.');
+          AppSnackBar.error(
+            context,
+            'This number is not registered on WhatsApp. Please use a WhatsApp number.',
+          );
         }
       }
 
       if (next.loginResponse != null) {
-        // ✅ Ensure permission before going to SIM screen
         await _ensurePhonePermission();
 
         final raw = _lastRawPhone ?? '';
@@ -109,8 +115,6 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber> {
       }
     });
   }
-
-
 
   // @override
   // void initState() {
