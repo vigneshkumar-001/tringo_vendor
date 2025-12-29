@@ -35,7 +35,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   @override
   void initState() {
     super.initState();
-AppLogger.log.e(widget.businessProfileId);
+    AppLogger.log.e(widget.businessProfileId);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(subscriptionNotifier.notifier).getPlanList();
       await ref
@@ -327,6 +327,7 @@ AppLogger.log.e(widget.businessProfileId);
                                   MaterialPageRoute(
                                     builder:
                                         (context) => PaySuccessAndCancel(
+                                          isSuccess: true,
                                           tittle:
                                               subState
                                                   .purchaseResponse

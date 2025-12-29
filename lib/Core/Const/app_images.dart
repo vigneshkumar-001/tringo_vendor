@@ -88,4 +88,6 @@ class AppImages {
   static String premiumCancel = 'Assets/Images/PremiumCancel.png';
   static String shareImage = 'Assets/Images/ShareImage.png';
   static String moreDarkImage = 'Assets/Images/MoreDarkImage.png';
+  static String timeLoading = 'Assets/Images/TimeLoadImage.png';
+  static String uploadPhoto = 'Assets/Images/UploadPhoto.png';
 }
