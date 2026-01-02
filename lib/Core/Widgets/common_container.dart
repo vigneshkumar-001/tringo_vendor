@@ -1882,7 +1882,7 @@ class CommonContainer {
   }
 
   static doorDelivery({
-    Color? containerColor = AppColor.iceBlue,
+    Color? containerColor = AppColor.textWhite,
     Color? imageColor,
     Color? textColor,
     String? text,

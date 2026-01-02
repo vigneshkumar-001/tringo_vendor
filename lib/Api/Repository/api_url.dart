@@ -1,12 +1,13 @@
 class ApiUrl {
-  // static const String base =
-  //     "https://fenizo-tringo-backend-12ebb106711d.herokuapp.com/";
-  static const String base = "https://bknd.tringobiz.com/";
+  static const String base =
+      "https://fenizo-tringo-backend-12ebb106711d.herokuapp.com/";
+  // static const String base = "https://bknd.tringobiz.com/";
   static const String register = "${base}api/v1/auth/request-otp";
   static const String verifyOtp = "${base}api/v1/auth/verify-otp";
   static const String whatsAppVerify = "${base}api/v1/auth/check-whatsapp";
   static const String resendOtp = "${base}api/v1/auth/resend-otp";
   static const String version = "${base}api/v1/app/version";
+  static const String contactInfo = "${base}api/v1/contacts/sync";
   static const String employeeAddNumber =
       "${base}api/v1/vendor/employees/request-otp";
   static const String employeeAddOtp =
