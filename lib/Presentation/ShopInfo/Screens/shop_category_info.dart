@@ -12,7 +12,9 @@ import 'package:tringo_vendor_new/Presentation/ShopInfo/Screens/shop_photo_info.
 
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
+import '../../../Core/Offline_Data/Screens/offline_demo_screen.dart';
 import '../../../Core/Utility/app_loader.dart';
+import '../../../Core/Utility/app_prefs.dart';
 import '../../../Core/Utility/app_snackbar.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Utility/thanglish_to_tamil.dart';
@@ -504,6 +506,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   //   setState(() {});
   //   return allGood;
   // }
+  String? tamilRequired(String label, String? v) {
+    if ((v ?? "").trim().isEmpty) return "$label is required";
+    return null;
+  }
 
   void _showCategoryBottomSheet(
     BuildContext context,
@@ -1111,11 +1117,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         controller: tamilNameController,
                         text: 'Tamil',
                         isTamil: true,
-                        validator:
-                            (v) =>
-                                (v == null || v.isEmpty)
-                                    ? 'Please Enter Shop Name in Tamil'
-                                    : null,
+                        validator: (v) => tamilRequired("Shop Tamil Name", v),
                         onChanged: (value) async {
                           setState(() => isTamilNameLoading = true);
                           final result =
@@ -1188,10 +1190,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         text: 'Tamil',
                         isTamil: true,
                         validator:
-                            (value) =>
-                                value == null || value.isEmpty
-                                    ? 'Please Enter Describe in Tamil'
-                                    : null,
+                            (v) => tamilRequired("Description Tamil Name", v),
                         onChanged: (value) async {
                           setState(() => isDescriptionTamilLoading = true);
                           final result =
@@ -1266,10 +1265,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         text: 'Tamil',
                         isTamil: true,
                         validator:
-                            (value) =>
-                                value == null || value.isEmpty
-                                    ? 'Please Enter Address in Tamil'
-                                    : null,
+                            (v) => tamilRequired("Address Tamil Name", v),
                         onChanged: (value) async {
                           setState(() => isAddressLoading = true);
                           final result =
@@ -1615,15 +1611,19 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       ],
 
                       const SizedBox(height: 30),
-
                       CommonContainer.button(
                         buttonColor: AppColor.black,
                         onTap: () async {
                           FocusScope.of(context).unfocus();
+                          setState(() => _isSubmitted = true);
 
-                          // if (!_validateAll()) return;
+                          // ✅ Only tamil fields will validate (because only they have validators)
+                          if (!(_formKey.currentState?.validate() ?? false))
+                            return;
 
                           final bool isServiceFlow = widget.isService ?? false;
+                          final bool isEditFromAboutMe =
+                              widget.pages == "shopDetailsEdit";
                           final String type =
                               isServiceFlow ? 'service' : 'product';
 
@@ -1637,17 +1637,14 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             longitude = double.tryParse(parts[1].trim()) ?? 0.0;
                           }
 
-                          // Door delivery
                           bool isDoorDeliveryEnabled = false;
                           if (!isServiceFlow) {
-                            final doorDeliveryValue =
-                                _doorDeliveryController.text.trim();
-                            isDoorDeliveryEnabled = doorDeliveryValue == 'Yes';
+                            isDoorDeliveryEnabled =
+                                _doorDeliveryController.text.trim() == 'Yes';
                           }
 
-                          // ✅ Owner image file (picked)
                           final File? ownerFile =
-                              _ownerImage == null
+                              (_ownerImage == null)
                                   ? null
                                   : File(_ownerImage!.path);
 
@@ -1666,69 +1663,67 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                   ? _whatsappController.text.trim()
                                   : _withCountryCode(_whatsappController.text);
 
-                          final response = await ref
+                          final ok = await ref
                               .read(shopCategoryNotifierProvider.notifier)
                               .shopInfoRegister(
                                 shopId: widget.shopId,
                                 businessProfileId: widget.employeeId ?? '',
-                                ownerImageUrl: ownerFile,
                                 type: type,
-                                addressEn:
-                                    _addressEnglishController.text.trim(),
-                                addressTa:
-                                    addressTamilNameController.text.trim(),
-                                alternatePhone: alternatePhoneToSend,
-                                primaryPhone: primaryPhoneToSend,
+
                                 category: categorySlug,
-                                contactEmail: _emailController.text.trim(),
+                                subCategory: subCategorySlug,
+                                englishName:
+                                    _shopNameEnglishController.text.trim(),
+                                tamilName:
+                                    tamilNameController.text
+                                        .trim(), // ✅ validated
                                 descriptionEn:
                                     _descriptionEnglishController.text.trim(),
                                 descriptionTa:
-                                    descriptionTamilController.text.trim(),
-                                doorDelivery: isDoorDeliveryEnabled,
-                                englishName:
-                                    _shopNameEnglishController.text.trim(),
+                                    descriptionTamilController.text
+                                        .trim(), // ✅ if validator added
+                                addressEn:
+                                    _addressEnglishController.text.trim(),
+                                addressTa:
+                                    addressTamilNameController.text
+                                        .trim(), // ✅ if validator added
                                 gpsLatitude: latitude,
                                 gpsLongitude: longitude,
-                                subCategory: subCategorySlug,
-                                tamilName: tamilNameController.text.trim(),
+                                primaryPhone: primaryPhoneToSend,
+                                alternatePhone: alternatePhoneToSend,
+                                contactEmail: _emailController.text.trim(),
+                                doorDelivery: isDoorDeliveryEnabled,
                                 weeklyHours: weeklyHoursText,
+                                ownerImageFile: ownerFile,
                               );
 
                           final newState = ref.read(
                             shopCategoryNotifierProvider,
                           );
 
-                          if (newState.error != null &&
-                              newState.error!.isNotEmpty) {
-                            AppSnackBar.error(context, newState.error!);
-                          } else if (response != null) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => ShopPhotoInfo(
-                                      pages: widget.pages,
-                                      shopId: widget.shopId,
-                                      initialImageUrls: widget.initialImageUrls,
-                                    ),
-                              ),
-                            );
-                            // context.pushNamed(
-                            //   AppRoutes.shopPhotoInfo,
-                            //   extra: {
-                            //     "from": "shopDetailsEdit",
-                            //     "initialImageUrls":
-                            //         widget.initialImageUrls ?? [],
-                            //   },
-                            // );
-                          } else {
+                          if (!ok) {
                             AppSnackBar.error(
                               context,
-                              newState.error ?? 'Something went wrong',
+                              newState.error ?? "Something went wrong",
                             );
+                            return;
                           }
+
+                          // ✅ Always continue next screen (offline/online)
+                          if (!mounted) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => ShopPhotoInfo(
+                                    pages: widget.pages,
+                                    shopId: widget.shopId,
+                                    initialImageUrls: widget.initialImageUrls,
+                                  ),
+                            ),
+                          );
                         },
+
                         text:
                             state.isLoading
                                 ? ThreeDotsLoader()
@@ -1741,10 +1736,139 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
+
                         imagePath:
                             state.isLoading ? null : AppImages.rightStickArrow,
                       ),
 
+                      // CommonContainer.button(
+                      //   buttonColor: AppColor.black,
+                      //   onTap: () async {
+                      //     FocusScope.of(context).unfocus();
+                      //
+                      //     // if (!_validateAll()) return;
+                      //
+                      //     final bool isServiceFlow = widget.isService ?? false;
+                      //     final String type =
+                      //         isServiceFlow ? 'service' : 'product';
+                      //
+                      //     // GPS parsing
+                      //     final gpsText = _gpsController.text.trim();
+                      //     double latitude = 0.0;
+                      //     double longitude = 0.0;
+                      //     if (gpsText.isNotEmpty && gpsText.contains(',')) {
+                      //       final parts = gpsText.split(',');
+                      //       latitude = double.tryParse(parts[0].trim()) ?? 0.0;
+                      //       longitude = double.tryParse(parts[1].trim()) ?? 0.0;
+                      //     }
+                      //
+                      //     // Door delivery
+                      //     bool isDoorDeliveryEnabled = false;
+                      //     if (!isServiceFlow) {
+                      //       final doorDeliveryValue =
+                      //           _doorDeliveryController.text.trim();
+                      //       isDoorDeliveryEnabled = doorDeliveryValue == 'Yes';
+                      //     }
+                      //
+                      //     // ✅ Owner image file (picked)
+                      //     final File? ownerFile =
+                      //         _ownerImage == null
+                      //             ? null
+                      //             : File(_ownerImage!.path);
+                      //
+                      //     final weeklyHoursText =
+                      //         "${_openTimeController.text.trim()} - ${_closeTimeController.text.trim()}";
+                      //
+                      //     final String primaryPhoneToSend =
+                      //         isEditFromAboutMe
+                      //             ? _primaryMobileController.text.trim()
+                      //             : _withCountryCode(
+                      //               _primaryMobileController.text,
+                      //             );
+                      //
+                      //     final String alternatePhoneToSend =
+                      //         isEditFromAboutMe
+                      //             ? _whatsappController.text.trim()
+                      //             : _withCountryCode(_whatsappController.text);
+                      //
+                      //     final response = await ref
+                      //         .read(shopCategoryNotifierProvider.notifier)
+                      //         .shopInfoRegister(
+                      //           shopId: widget.shopId,
+                      //           businessProfileId: widget.employeeId ?? '',
+                      //           ownerImageUrl: ownerFile,
+                      //           type: type,
+                      //           addressEn:
+                      //               _addressEnglishController.text.trim(),
+                      //           addressTa:
+                      //               addressTamilNameController.text.trim(),
+                      //           alternatePhone: alternatePhoneToSend,
+                      //           primaryPhone: primaryPhoneToSend,
+                      //           category: categorySlug,
+                      //           contactEmail: _emailController.text.trim(),
+                      //           descriptionEn:
+                      //               _descriptionEnglishController.text.trim(),
+                      //           descriptionTa:
+                      //               descriptionTamilController.text.trim(),
+                      //           doorDelivery: isDoorDeliveryEnabled,
+                      //           englishName:
+                      //               _shopNameEnglishController.text.trim(),
+                      //           gpsLatitude: latitude,
+                      //           gpsLongitude: longitude,
+                      //           subCategory: subCategorySlug,
+                      //           tamilName: tamilNameController.text.trim(),
+                      //           weeklyHours: weeklyHoursText,
+                      //         );
+                      //
+                      //     final newState = ref.read(
+                      //       shopCategoryNotifierProvider,
+                      //     );
+                      //
+                      //     if (newState.error != null &&
+                      //         newState.error!.isNotEmpty) {
+                      //       AppSnackBar.error(context, newState.error!);
+                      //     } else if (response != null) {
+                      //       Navigator.push(
+                      //         context,
+                      //         MaterialPageRoute(
+                      //           builder:
+                      //               (context) => ShopPhotoInfo(
+                      //                 pages: widget.pages,
+                      //                 shopId: widget.shopId,
+                      //                 initialImageUrls: widget.initialImageUrls,
+                      //               ),
+                      //         ),
+                      //       );
+                      //       // context.pushNamed(
+                      //       //   AppRoutes.shopPhotoInfo,
+                      //       //   extra: {
+                      //       //     "from": "shopDetailsEdit",
+                      //       //     "initialImageUrls":
+                      //       //         widget.initialImageUrls ?? [],
+                      //       //   },
+                      //       // );
+                      //     } else {
+                      //       AppSnackBar.error(
+                      //         context,
+                      //         newState.error ?? 'Something went wrong',
+                      //       );
+                      //     }
+                      //   },
+                      //   text:
+                      //       state.isLoading
+                      //           ? ThreeDotsLoader()
+                      //           : Text(
+                      //             widget.pages == "shopDetailsEdit"
+                      //                 ? 'Update'
+                      //                 : 'Save & Continue',
+                      //             style: AppTextStyles.mulish(
+                      //               fontSize: 18,
+                      //               fontWeight: FontWeight.w700,
+                      //             ),
+                      //           ),
+                      //   imagePath:
+                      //       state.isLoading ? null : AppImages.rightStickArrow,
+                      // ),
                       const SizedBox(height: 36),
                     ],
                   ),

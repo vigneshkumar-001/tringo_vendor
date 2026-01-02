@@ -1,8 +1,14 @@
 bool isOfflineMessage(String msg) {
-  final m = msg.toLowerCase();
-  return m.contains('no internet') ||
-      m.contains('socket') ||
-      m.contains('timeout') ||
-      m.contains('timed out') ||
-      m.contains('network');
+  final s = msg.toLowerCase();
+
+  return s.contains('socketexception') ||
+      s.contains('failed host lookup') ||
+      s.contains('no address associated with hostname') ||
+      s.contains('network is unreachable') ||
+      s.contains('connection error') ||
+      s.contains('connection timed out') ||
+      s.contains('timed out') ||
+      s.contains('dns') ||
+      s.contains('name not resolved') ||
+      s.contains('errno = 7');
 }

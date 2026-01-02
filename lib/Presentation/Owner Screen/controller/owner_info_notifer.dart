@@ -9,7 +9,7 @@ import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
 import 'package:tringo_vendor_new/Presentation/Login%20Screen/Model/login_response.dart';
 
 import '../../../Core/Offline_Data/offline_helpers.dart';
-import '../../../Core/Offline_Data/offline_providers.dart';
+import '../../../Core/Offline_Data/provider/offline_providers.dart';
 import '../../Login Screen/Controller/login_notifier.dart';
 import '../Model/owner_otp_response.dart';
 import '../Model/owner_register_response.dart' show OwnerRegisterResponse;
@@ -142,7 +142,8 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
     required String ownerNameTamil,
     required String email,
     required String ownerPhoneNumber,
-  }) async {
+  }) async
+  {
     if (state.isVerifyingOtp) return false;
 
     state = state.copyWith(isLoading: true, error: null);
@@ -161,8 +162,9 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
     );
 
     return result.fold(
-      (failure) async {
+          (failure) async {
         state = state.copyWith(isLoading: false, error: failure.message);
+
         if (isOfflineMessage(failure.message)) {
           final engine = ref.read(offlineSyncEngineProvider);
           final verification = await AppPrefs.getVerificationToken();
@@ -178,20 +180,18 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
             "ownerNameTamil": ownerNameTamil,
             "email": email,
             "ownerPhoneNumber": "+91$ownerPhoneNumber",
-            "phoneVerificationToken": verification,
+            "phoneVerificationToken": (verification ?? "").toString(),
           };
 
-          final sessionId = await engine.enqueueOwnerOnly(
-            ownerPayload: ownerPayload,
-          );
-
+          final sessionId = await engine.enqueueOwner(ownerPayload: ownerPayload);
           await AppPrefs.setOfflineSessionId(sessionId);
 
-          // ✅ continue next screen even offline
-          return true;
+          return true; // continue next screen even offline
         }
+
         return false;
       },
+
       (response) async {
         final data = response.data;
         await AppPrefs.setBusinessProfileId(data?.id ?? '');

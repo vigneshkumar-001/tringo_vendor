@@ -8,6 +8,8 @@ import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Model/owner_register_response.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_list_response.dart';
 import '../../../Api/DataSource/api_data_source.dart';
+import '../../../Core/Offline_Data/offline_helpers.dart';
+import '../../../Core/Offline_Data/provider/offline_providers.dart';
 import '../../../Core/Utility/app_prefs.dart';
 import '../../Owner Screen/Model/owner_otp_response.dart';
 import '../Model/search_keywords_response.dart';
@@ -124,8 +126,44 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     );
 
     return result.fold(
-      (failure) {
+      (failure) async {
         state = state.copyWith(isLoading: false, error: failure.message);
+        if (isOfflineMessage(failure.message)) {
+          final engine = ref.read(offlineSyncEngineProvider);
+
+          final payload = {
+            "type": type, // "service" / "product"
+            "apiShopId": shopId ?? "",
+            "businessProfileId":
+                businessProfileId, // if empty, engine can read from prefs later
+            "category": category,
+            "subCategory": subCategory,
+            "englishName": englishName,
+            "tamilName": tamilName,
+            "descriptionEn": descriptionEn,
+            "descriptionTa": descriptionTa,
+            "addressEn": addressEn,
+            "addressTa": addressTa,
+            "gpsLatitude": gpsLatitude,
+            "gpsLongitude": gpsLongitude,
+            "primaryPhone": primaryPhone,
+            "alternatePhone": alternatePhone,
+            "contactEmail": contactEmail,
+            "doorDelivery": doorDelivery,
+            "weeklyHours": weeklyHours,
+            "ownerImageLocalPath":
+                (type == "service" && ownerImageFile != null)
+                    ? ownerImageFile.path
+                    : "",
+          };
+
+          final sessionId = await engine.enqueueShop(shopPayload: payload);
+
+          await AppPrefs.setOfflineSessionId(sessionId);
+
+          // ✅ continue next screen even offline
+          return true;
+        }
         return false;
       },
       (response) async {
@@ -164,9 +202,11 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     required List<File?> images,
     required BuildContext context,
     String? shopId,
-    List<String?>? existingUrls, // ✅ NEW
+    List<String?>? existingUrls,
   }) async {
-    // existingUrls will be used in edit mode so old images won't be lost
+    state = const ShopCategoryState(isLoading: true);
+
+    // existing urls safe copy
     final safeExisting = List<String?>.filled(4, null);
     final inputExisting = existingUrls ?? const [];
 
@@ -177,28 +217,48 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
       }
     }
 
-    // if no picked images and no existing urls => nothing to upload
+    // ✅ If no picked images and no existing urls => nothing to upload/save
     final nothingPicked = images.isEmpty || images.every((e) => e == null);
     final noExisting = safeExisting.every((e) => e == null);
 
     if (nothingPicked && noExisting) {
       state = const ShopCategoryState(
         isLoading: false,
-        error: 'No images selected',
+        error: "No images selected",
       );
       return false;
     }
 
-    state = const ShopCategoryState(isLoading: true);
+    final types = ["SIGN_BOARD", "OUTSIDE", "INSIDE", "INSIDE"];
 
+    // ✅ QUICK OFFLINE CHECK: if no internet -> directly save to sqlite (NO upload)
+    final isOffline = await _isProbablyOffline();
+    if (isOffline) {
+      final engine = ref.read(offlineSyncEngineProvider);
+
+      final List<Map<String, dynamic>> offlineItems = [];
+      for (int i = 0; i < 4; i++) {
+        offlineItems.add({
+          "type": types[i],
+          "localPath": images[i]?.path ?? "",
+          "url": safeExisting[i] ?? "",
+        });
+      }
+
+      await engine.enqueuePhotos(photosPayload: {"items": offlineItems});
+
+      state = const ShopCategoryState(isLoading: false);
+      return true;
+    }
+
+    // ✅ ONLINE FLOW: upload new files -> get urls -> shopPhotoUpload
     try {
-      final types = ["SIGN_BOARD", "OUTSIDE", "INSIDE", "INSIDE"];
-      final List<Map<String, String>> items = [];
+      final List<Map<String, String>> itemsForApi = [];
 
       for (int i = 0; i < 4; i++) {
         final file = (i < images.length) ? images[i] : null;
 
-        // ✅ If user picked new file => upload and use new URL
+        // ✅ new file -> upload -> url
         if (file != null) {
           final uploadResult = await apiDataSource.userProfileUpload(
             imageFile: file,
@@ -210,35 +270,53 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
           );
 
           if (uploadedUrl != null && uploadedUrl.trim().isNotEmpty) {
-            items.add({"type": types[i], "url": uploadedUrl.trim()});
+            itemsForApi.add({"type": types[i], "url": uploadedUrl.trim()});
           }
           continue;
         }
 
-        // ✅ If no new file, keep old url (important for edit flow)
+        // ✅ else keep existing url
         final oldUrl = safeExisting[i];
         if (oldUrl != null && oldUrl.trim().isNotEmpty) {
-          items.add({"type": types[i], "url": oldUrl.trim()});
+          itemsForApi.add({"type": types[i], "url": oldUrl.trim()});
         }
       }
 
-      if (items.isEmpty) {
+      if (itemsForApi.isEmpty) {
         state = const ShopCategoryState(
           isLoading: false,
-          error: 'Upload failed',
+          error: "Upload failed",
         );
         return false;
       }
 
       final apiResult = await apiDataSource.shopPhotoUpload(
-        items: items,
+        items: itemsForApi,
         apiShopId: shopId,
       );
 
       return apiResult.fold(
-        (failure) {
+        (failure) async {
+          // ✅ If network dropped AFTER upload attempt -> save offline now
+          if (isOfflineMessage(failure.message)) {
+            final engine = ref.read(offlineSyncEngineProvider);
+
+            final List<Map<String, dynamic>> offlineItems = [];
+            for (int i = 0; i < 4; i++) {
+              offlineItems.add({
+                "type": types[i],
+                "localPath": images[i]?.path ?? "",
+                "url": safeExisting[i] ?? "",
+              });
+            }
+
+            await engine.enqueuePhotos(photosPayload: {"items": offlineItems});
+
+            state = const ShopCategoryState(isLoading: false);
+            return true;
+          }
+
           state = ShopCategoryState(isLoading: false, error: failure.message);
-          AppLogger.log.e(failure.message);
           return false;
         },
         (response) {
@@ -255,13 +333,39 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     }
   }
 
+  /// ✅ simple offline check (no extra package)
+  Future<bool> _isProbablyOffline() async {
+    try {
+      final result = await InternetAddress.lookup("example.com");
+      return result.isEmpty || result.first.rawAddress.isEmpty;
+    } catch (_) {
+      return true;
+    }
+  }
+
   // Future<bool> uploadShopImages({
   //   required List<File?> images,
   //   required BuildContext context,
   //   String? shopId,
-  // })
-  // async {
-  //   if (images.isEmpty || images.every((e) => e == null)) {
+  //   List<String?>? existingUrls, // ✅ NEW
+  // }) async
+  // {
+  //   // existingUrls will be used in edit mode so old images won't be lost
+  //   final safeExisting = List<String?>.filled(4, null);
+  //   final inputExisting = existingUrls ?? const [];
+  //
+  //   for (int i = 0; i < 4; i++) {
+  //     if (i < inputExisting.length) {
+  //       final u = inputExisting[i];
+  //       if (u != null && u.trim().isNotEmpty) safeExisting[i] = u.trim();
+  //     }
+  //   }
+  //
+  //   // if no picked images and no existing urls => nothing to upload
+  //   final nothingPicked = images.isEmpty || images.every((e) => e == null);
+  //   final noExisting = safeExisting.every((e) => e == null);
+  //
+  //   if (nothingPicked && noExisting) {
   //     state = const ShopCategoryState(
   //       isLoading: false,
   //       error: 'No images selected',
@@ -271,77 +375,105 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
   //
   //   state = const ShopCategoryState(isLoading: true);
   //
-  //   final types = ["SIGN_BOARD", "OUTSIDE", "INSIDE", "INSIDE"];
-  //   final List<Map<String, String>> items = [];
+  //   try {
+  //     final types = ["SIGN_BOARD", "OUTSIDE", "INSIDE", "INSIDE"];
+  //     final List<Map<String, String>> items = [];
   //
-  //   for (int i = 0; i < images.length; i++) {
-  //     final file = images[i];
-  //     if (file == null) continue;
+  //     for (int i = 0; i < 4; i++) {
+  //       final file = (i < images.length) ? images[i] : null;
   //
-  //     final uploadResult = await apiDataSource.userProfileUpload(
-  //       imageFile: file,
-  //     );
+  //       // ✅ If user picked new file => upload and use new URL
+  //       if (file != null) {
+  //         final uploadResult = await apiDataSource.userProfileUpload(
+  //           imageFile: file,
+  //         );
   //
-  //     final uploadedUrl = uploadResult.fold<String?>(
-  //       (failure) => null,
-  //       (success) => success.message,
-  //     );
+  //         final uploadedUrl = uploadResult.fold<String?>(
+  //           (failure) => null,
+  //           (success) => success.message,
+  //         );
   //
-  //     if (uploadedUrl != null) {
-  //       items.add({"type": types[i], "url": uploadedUrl});
+  //         if (uploadedUrl != null && uploadedUrl.trim().isNotEmpty) {
+  //           items.add({"type": types[i], "url": uploadedUrl.trim()});
+  //         }
+  //         continue;
+  //       }
+  //
+  //       // ✅ If no new file, keep old url (important for edit flow)
+  //       final oldUrl = safeExisting[i];
+  //       if (oldUrl != null && oldUrl.trim().isNotEmpty) {
+  //         items.add({"type": types[i], "url": oldUrl.trim()});
+  //       }
   //     }
-  //   }
   //
-  //   if (items.isEmpty) {
-  //     state = const ShopCategoryState(isLoading: false, error: 'Upload failed');
+  //     if (items.isEmpty) {
+  //       state = const ShopCategoryState(
+  //         isLoading: false,
+  //         error: 'Upload failed',
+  //       );
+  //       return false;
+  //     }
+  //
+  //     final apiResult = await apiDataSource.shopPhotoUpload(
+  //       items: items,
+  //       apiShopId: shopId,
+  //     );
+  //
+  //     return apiResult.fold(
+  //       (failure) {
+  //         state = ShopCategoryState(isLoading: false, error: failure.message);
+  //         AppLogger.log.e(failure.message);
+  //         return false;
+  //       },
+  //       (response) {
+  //         state = ShopCategoryState(
+  //           isLoading: false,
+  //           shopInfoPhotosResponse: response,
+  //         );
+  //         return response.status == true;
+  //       },
+  //     );
+  //   } catch (e) {
+  //     state = ShopCategoryState(isLoading: false, error: e.toString());
   //     return false;
   //   }
-  //
-  //   final apiResult = await apiDataSource.shopPhotoUpload(
-  //     items: items,
-  //     apiShopId: shopId,
-  //   );
-  //
-  //   return apiResult.fold(
-  //     (failure) {
-  //       state = ShopCategoryState(isLoading: false, error: failure.message);
-  //       AppLogger.log.e(failure.message);
-  //       return false;
-  //     },
-  //     (response) {
-  //       state = ShopCategoryState(
-  //         isLoading: false,
-  //         shopInfoPhotosResponse: response,
-  //       );
-  //       return response.status == true;
-  //     },
-  //   );
-  //
-  //   // IMPORTANT: do NOT reset state again; that would erase success/error.
   // }
+  //
 
   Future<bool> searchKeywords({required List<String> keywords}) async {
-    state = const ShopCategoryState(isLoading: true);
+    state = const ShopCategoryState(isLoading: true, error: null);
 
     final result = await apiDataSource.searchKeywords(keywords: keywords);
 
-    bool success = false;
+    return await result.fold<Future<bool>>(
+      (failure) async {
+        // ✅ OFFLINE -> save in sqlite and continue
+        if (isOfflineMessage(failure.message)) {
+          final engine = ref.read(offlineSyncEngineProvider);
 
-    result.fold(
-      (failure) {
+          await engine.enqueueKeywords(
+            keywordsPayload: {
+              "keywords": keywords,
+              "createdAt": DateTime.now().millisecondsSinceEpoch,
+            },
+          );
+
+          state = const ShopCategoryState(isLoading: false);
+          return true; // ✅ continue next screen even offline
+        }
+
+        // ❌ real error
         state = ShopCategoryState(isLoading: false, error: failure.message);
-        success = false;
+        return false;
       },
-      (response) {
+      (response) async {
         state = ShopCategoryState(
           isLoading: false,
           shopCategoryApiResponse: response,
         );
-        success = true;
+        return true;
       },
     );
-
-    return success;
   }
 
   void resetState() {

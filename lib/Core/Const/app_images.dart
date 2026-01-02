@@ -8,6 +8,11 @@ class AppImages {
   static String loginScreenBottom = 'Assets/Images/Login_Screen_Bottom.png';
   static String logo = 'Assets/Images/Logo.png';
   static String aboutMeImage = 'Assets/Images/AboutMe.png';
+  static String krishna_sweets = 'Assets/Images/krishna_sweets.png';
+  static String snacks1 = 'Assets/Images/Snacks1.png';
+  static String imageContainer2 = 'Assets/Images/Image_Container_2.png';
+  static String imageContainer3 = 'Assets/Images/Image_Container_3.png';
+  static String imageContainer4 = 'Assets/Images/Image_Container_4.png';
   static String cloudImage = 'Assets/Images/cloudImage.png';
   static String historyImage = 'Assets/Images/History.png';
   static String homeImage1 = 'Assets/Images/HomeImage1.png';

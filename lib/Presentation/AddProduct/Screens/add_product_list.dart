@@ -397,7 +397,8 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                         ),
                       ),
                       SizedBox(height: 30),
-                      CommonContainer.button2(backgroundColor:      AppColor.black,
+                      CommonContainer.button2(
+                        backgroundColor: AppColor.black,
 
                         context: context,
                         text: 'Save & Continue',
@@ -405,89 +406,91 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                         height: 60,
 
                         loader: isLoading ? ThreeDotsLoader() : null,
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                          if (_pickedImages[0] == null) {
-                            setState(() => _hasError[0] = true);
-                            return;
-                          }
+                        onTap:
+                            isLoading
+                                ? null
+                                : () async {
+                                  if (_pickedImages[0] == null) {
+                                    setState(() => _hasError[0] = true);
+                                    return;
+                                  }
 
-                          final formValid =
-                              _formKey.currentState?.validate() ?? false;
-                          setState(() {});
-                          if (!formValid) return;
+                                  final formValid =
+                                      _formKey.currentState?.validate() ??
+                                      false;
+                                  setState(() {});
+                                  if (!formValid) return;
 
-                          final features = _featureControllers.map((
-                              item,
-                              ) {
-                            return {
-                              "label": item['heading']!.text.trim(),
-                              "value": item['answer']!.text.trim(),
-                            };
-                          }).toList();
+                                  final features =
+                                      _featureControllers.map((item) {
+                                        return {
+                                          "label": item['heading']!.text.trim(),
+                                          "value": item['answer']!.text.trim(),
+                                        };
+                                      }).toList();
 
-                          bool success;
-                          String? apiError;
+                                  bool success;
+                                  String? apiError;
 
-                          if (isService) {
-                            final serviceNotifier = ref.read(
-                              serviceInfoNotifierProvider.notifier,
-                            );
+                                  if (isService) {
+                                    final serviceNotifier = ref.read(
+                                      serviceInfoNotifierProvider.notifier,
+                                    );
 
-                            success = await serviceNotifier
-                                .uploadServiceImages(
-                              images: _pickedImages,
-                              features: features,
-                              context: context,
-                            );
+                                    success = await serviceNotifier
+                                        .uploadServiceImages(
+                                          images: _pickedImages,
+                                          features: features,
+                                          context: context,
+                                        );
 
-                            // read correct error
-                            apiError = ref
-                                .read(serviceInfoNotifierProvider)
-                                .error;
-                          } else {
-                            final productNotifier = ref.read(
-                              productNotifierProvider.notifier,
-                            );
+                                    // read correct error
+                                    apiError =
+                                        ref
+                                            .read(serviceInfoNotifierProvider)
+                                            .error;
+                                  } else {
+                                    final productNotifier = ref.read(
+                                      productNotifierProvider.notifier,
+                                    );
 
-                            success = await productNotifier
-                                .uploadProductImages(
-                              images: _pickedImages,
-                              features: features,
-                              context: context,
-                            );
+                                    success = await productNotifier
+                                        .uploadProductImages(
+                                          images: _pickedImages,
+                                          features: features,
+                                          context: context,
+                                        );
 
-                            // read correct error
-                            apiError = ref
-                                .read(productNotifierProvider)
-                                .error;
-                          }
+                                    // read correct error
+                                    apiError =
+                                        ref.read(productNotifierProvider).error;
+                                  }
 
-                          if (!success) {
-                            AppSnackBar.error(
-                              context,
-                              apiError ?? "Failed. Try again.",
-                            );
-                            return;
-                          }
+                                  if (!success) {
+                                    AppSnackBar.error(
+                                      context,
+                                      apiError ?? "Failed. Try again.",
+                                    );
+                                    return;
+                                  }
 
-                          final isCompany =
-                              RegistrationProductSeivice
-                                  .instance
-                                  .businessType ==
-                                  BusinessType.company;
+                                  final isCompany =
+                                      RegistrationProductSeivice
+                                          .instance
+                                          .businessType ==
+                                      BusinessType.company;
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductSearchKeyword(
-                                isService: isService,
-                                isCompany: isCompany,
-                              ),
-                            ),
-                          );
-                        },
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => ProductSearchKeyword(
+                                            isService: isService,
+                                            isCompany: isCompany,
+                                          ),
+                                    ),
+                                  );
+                                },
                       ),
 
                       SizedBox(height: 36),

@@ -1,18 +1,33 @@
 import 'dart:convert';
 
 enum SyncSessionStatus { pending, syncing, failed, completed }
+
 enum SyncStepStatus { pending, success, failed }
-enum SyncStepType { owner, shop, product }
+
+enum SyncStepType {
+  owner,
+  shop,
+  photos,
+  keywords,
+
+  productInfo,
+  productImages,
+  productKeywords,
+
+  serviceInfo,
+  serviceImages,
+  serviceKeywords,
+}
 
 String enumName(Object e) => e.toString().split('.').last;
 
 SyncStepStatus stepStatusFrom(String s) => SyncStepStatus.values.firstWhere(
-      (e) => enumName(e) == s,
+  (e) => enumName(e) == s,
   orElse: () => SyncStepStatus.pending,
 );
 
 SyncStepType stepTypeFrom(String s) => SyncStepType.values.firstWhere(
-      (e) => enumName(e) == s,
+  (e) => enumName(e) == s,
   orElse: () => SyncStepType.owner,
 );
 

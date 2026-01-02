@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +8,11 @@ import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 
 import '../../../Api/DataSource/api_data_source.dart';
 import '../../../Api/Repository/failure.dart';
+import '../../../Core/Offline_Data/offline_helpers.dart';
+import '../../../Core/Offline_Data/provider/offline_providers.dart';
+import '../../../Core/Offline_Data/offline_db/offline_sync_db.dart';
+import '../../../Core/Offline_Data/offline_sync_models.dart';
+import '../../../Core/Utility/app_prefs.dart';
 import '../../Login Screen/Controller/login_notifier.dart';
 import '../../ShopInfo/Model/category_list_response.dart';
 import '../Model/delete_response.dart';
@@ -81,6 +87,30 @@ class ProductNotifier extends Notifier<ProductState> {
 
     final isSuccess = await result.fold<Future<bool>>(
       (failure) async {
+        // ✅ OFFLINE -> SAVE SQLITE & CONTINUE
+        if (isOfflineMessage(failure.message)) {
+          final engine = ref.read(offlineSyncEngineProvider);
+
+          await engine.enqueueProductInfo(
+            payload: {
+              "shopId": shopId ?? "",
+              "productId": productId ?? "",
+              "category": category,
+              "subCategory": subCategory,
+              "englishName": englishName,
+              "price": price,
+              "offerLabel": offerLabel,
+              "offerValue": offerValue,
+              "description": description,
+              "doorDelivery": doorDelivery,
+              "createdAt": DateTime.now().millisecondsSinceEpoch,
+            },
+          );
+
+          state = const ProductState(isLoading: false);
+          return true; // ✅ continue even offline
+        }
+
         state = ProductState(isLoading: false, error: failure.message);
         return false;
       },
@@ -115,8 +145,9 @@ class ProductNotifier extends Notifier<ProductState> {
     required List<File?> images,
     required List<Map<String, String>> features,
     required BuildContext context,
-  }) async {
-    // ---- VALIDATION ----
+  }) async
+  {
+    // ✅ validate at least 1 image selected
     if (images.isEmpty || images.every((f) => f == null)) {
       state = const ProductState(
         isLoading: false,
@@ -125,54 +156,137 @@ class ProductNotifier extends Notifier<ProductState> {
       return false;
     }
 
-    state = const ProductState(isLoading: true);
+    state = const ProductState(isLoading: true, error: null);
 
-    // ---- STEP 1: UPLOAD IMAGES ONE BY ONE ----
-    List<String> uploadedUrls = [];
+    Future<bool> _saveOfflineAndContinue({String? reason}) async {
+      try {
+        final engine = ref.read(offlineSyncEngineProvider);
 
-    for (final file in images) {
-      if (file == null) continue;
+        final paths =
+            images
+                .where((e) => e != null)
+                .map((e) => e!.path)
+                .where((p) => p.trim().isNotEmpty)
+                .toList();
 
-      final uploadResult = await api.userProfileUpload(imageFile: file);
+        await engine.enqueueProductImages(
+          payload: {
+            "imagePaths": paths,
+            "features": features, // already List<Map<String,String>>
+            "reason": reason ?? "",
+            "createdAt": DateTime.now().millisecondsSinceEpoch,
+          },
+        );
 
-      final uploadedUrl = uploadResult.fold<String?>(
-        (failure) => null,
-        (success) => success.message,
-      );
+        AppLogger.log.w("✅ OFFLINE: product images saved (${paths.length})");
+        state = const ProductState(isLoading: false);
+        return true; // ✅ continue flow even offline
+      } catch (e) {
+        // if even sqlite insert fails, show real error
+        AppLogger.log.e("❌ OFFLINE SAVE FAILED: $e");
+        state = ProductState(
+          isLoading: false,
+          error: "Offline save failed: $e",
+        );
+        return false;
+      }
+    }
 
-      if (uploadedUrl == null) {
+    try {
+      final List<String> uploadedUrls = [];
+
+      // ✅ Upload each selected image
+      for (final file in images) {
+        if (file == null) continue;
+
+        try {
+          final uploadResult = await api.userProfileUpload(imageFile: file);
+
+          final ok = await uploadResult.fold<Future<bool>>(
+            (failure) async {
+              // ✅ Offline / DNS / no internet -> save local paths
+              if (isOfflineMessage(failure.message)) {
+                return await _saveOfflineAndContinue(reason: failure.message);
+              }
+
+              state = ProductState(isLoading: false, error: failure.message);
+              return false;
+            },
+            (success) async {
+              final url = (success.message ?? "").trim();
+              if (url.isEmpty) {
+                state = const ProductState(
+                  isLoading: false,
+                  error: "Image upload failed (empty url)",
+                );
+                return false;
+              }
+              uploadedUrls.add(url);
+              return true;
+            },
+          );
+
+          // ✅ If we saved offline, stop uploading and continue
+          if (ok && uploadedUrls.isEmpty) return true;
+
+          if (!ok) return false;
+        } catch (e) {
+          // ✅ IMPORTANT: if api.userProfileUpload() throws, handle here
+          final msg = e.toString();
+          if (isOfflineMessage(msg)) {
+            return await _saveOfflineAndContinue(reason: msg);
+          }
+          state = ProductState(isLoading: false, error: msg);
+          return false;
+        }
+      }
+
+      // If no urls and not offline => error
+      if (uploadedUrls.isEmpty) {
         state = const ProductState(
           isLoading: false,
-          error: "Image upload failed",
+          error: "No image uploaded",
         );
         return false;
       }
 
-      uploadedUrls.add(uploadedUrl);
-    }
+      // ✅ Update product with uploaded urls + feature list
+      try {
+        final updateRes = await api.updateProducts(
+          images: uploadedUrls,
+          features: features,
+        );
 
-    if (uploadedUrls.isEmpty) {
-      state = const ProductState(isLoading: false, error: "No image uploaded");
+        return await updateRes.fold<Future<bool>>(
+          (failure) async {
+            if (isOfflineMessage(failure.message)) {
+              // Update step offline -> save local paths too
+              return await _saveOfflineAndContinue(reason: failure.message);
+            }
+            state = ProductState(isLoading: false, error: failure.message);
+            return false;
+          },
+          (response) async {
+            state = ProductState(isLoading: false, productResponse: response);
+            return response.status == true;
+          },
+        );
+      } catch (e) {
+        final msg = e.toString();
+        if (isOfflineMessage(msg)) {
+          return await _saveOfflineAndContinue(reason: msg);
+        }
+        state = ProductState(isLoading: false, error: msg);
+        return false;
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (isOfflineMessage(msg)) {
+        return await _saveOfflineAndContinue(reason: msg);
+      }
+      state = ProductState(isLoading: false, error: msg);
       return false;
     }
-
-    // ---- STEP 2: UPDATE PRODUCT WITH IMAGES + FEATURES ----
-    final result = await api.updateProducts(
-      images: uploadedUrls,
-      features: features,
-    );
-
-    return result.fold(
-      (failure) {
-        state = ProductState(isLoading: false, error: failure.message);
-        return false;
-      },
-      (response) async {
-        state = ProductState(isLoading: false, productResponse: response);
-
-        return response.status == true;
-      },
-    );
   }
 
   Future<bool> updateProductSearchWords({
@@ -182,20 +296,31 @@ class ProductNotifier extends Notifier<ProductState> {
 
     final result = await api.updateSearchKeyWords(keywords: keywords);
 
-    bool success = false;
+    return await result.fold<Future<bool>>(
+      (failure) async {
+        // ✅ OFFLINE -> SAVE SQLITE & CONTINUE
+        if (isOfflineMessage(failure.message)) {
+          final engine = ref.read(offlineSyncEngineProvider);
 
-    result.fold(
-      (failure) {
+          await engine.enqueueProductKeywords(
+            payload: {
+              "keywords": keywords,
+              "createdAt": DateTime.now().millisecondsSinceEpoch,
+            },
+          );
+
+          state = const ProductState(isLoading: false);
+          return true; // ✅ continue next screen
+        }
+
         state = ProductState(isLoading: false, error: failure.message);
-        success = false;
+        return false;
       },
       (response) async {
         state = ProductState(isLoading: false, productResponse: response);
-        success = true;
+        return true;
       },
     );
-
-    return success;
   }
 
   Future<bool> deleteProductAction({String? productId}) async {
