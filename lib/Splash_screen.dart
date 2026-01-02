@@ -15,6 +15,7 @@ import 'Core/Offline_Data/Screens/offline_demo_screen.dart';
 import 'Core/Utility/app_prefs.dart';
 import 'Core/Widgets/app_go_routes.dart';
 import 'Core/Widgets/common_container.dart';
+import 'Core/permissions/permission_service.dart';
 import 'Presentation/Home Screen/Contoller/employee_home_notifier.dart';
 import 'Presentation/Login Screen/Controller/app_version_notifier.dart';
 import 'Presentation/subscription/Controller/subscription_notifier.dart';
@@ -33,6 +34,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkNavigation();
+      PermissionService.requestOverlayAndContacts();
     });
   }
 

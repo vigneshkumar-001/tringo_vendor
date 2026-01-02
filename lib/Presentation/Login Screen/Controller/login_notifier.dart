@@ -5,6 +5,9 @@ import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import '../../../../../Api/DataSource/api_data_source.dart';
 
 import '../../../Api/Repository/failure.dart';
+import '../../../Core/contacts/contacts_service.dart';
+import '../../../Core/contacts/contacts_sync_manager.dart';
+import '../Model/contact_response.dart';
 import '../Model/login_response.dart';
 import '../Model/otp_response.dart';
 import '../Model/resend_otp_response.dart';
@@ -18,6 +21,7 @@ class LoginState {
   final String? error;
   final WhatsappResponse? whatsappResponse;
   final ResendOtpResponse? resendOtpResponse;
+  final ContactResponse? contactResponse;
 
   const LoginState({
     this.isLoading = false,
@@ -26,6 +30,7 @@ class LoginState {
     this.error,
     this.whatsappResponse,
     this.resendOtpResponse,
+    this.contactResponse,
   });
 
   factory LoginState.initial() => const LoginState();
@@ -37,6 +42,7 @@ class LoginState {
     String? error,
     WhatsappResponse? whatsappResponse,
     ResendOtpResponse? resendOtpResponse,
+    ContactResponse? contactResponse,
   }) {
     return LoginState(
       isLoading: isLoading ?? this.isLoading,
@@ -45,6 +51,7 @@ class LoginState {
       error: error,
       whatsappResponse: whatsappResponse ?? this.whatsappResponse,
       resendOtpResponse: resendOtpResponse ?? this.resendOtpResponse,
+      contactResponse: contactResponse ?? this.contactResponse,
     );
   }
 }
@@ -74,7 +81,7 @@ class LoginNotifier extends Notifier<LoginState> {
 
     final result = await api.mobileNumberLogin(
       phoneNumber,
-      simToken!,
+      simToken ?? "",
       page: page ?? '',
     );
 
@@ -88,82 +95,162 @@ class LoginNotifier extends Notifier<LoginState> {
     );
   }
 
+  Future<void> verifyOtp({required String contact, required String otp}) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    // ✅ keep this provider alive until we finish starting the background job safely
+    final keepAliveLink = ref.keepAlive();
+
+    try {
+      final result = await api.otp(contact: contact, otp: otp);
+
+      await result.fold<Future<void>>(
+            (failure) async {
+          if (!ref.mounted) return;
+          state = state.copyWith(isLoading: false, error: failure.message);
+        },
+            (response) async {
+          final prefs = await SharedPreferences.getInstance();
+          if (!ref.mounted) return;
+
+          final data = response.data;
+          await prefs.setString('token', data?.accessToken ?? '');
+          await prefs.setString('refreshToken', data?.refreshToken ?? '');
+          await prefs.setString('sessionToken', data?.sessionToken ?? '');
+          await prefs.setString('role', data?.role ?? '');
+
+          if (!ref.mounted) return;
+
+          // ✅ OTP success state first (UI can navigate)
+          state = state.copyWith(isLoading: false, otpResponse: response);
+
+          // ✅ Start background sync WITHOUT waiting, but safely
+          // We DO NOT pass ref anymore.
+          // ignore: unawaited_futures
+          ContactsSyncManager.syncIfNeeded(
+            api: api, // pass ApiDataSource directly
+            defaultDialCode: '+91',
+            maxContacts: 500,
+            chunkSize: 200,
+          );
+        },
+      );
+    } catch (e) {
+      if (!ref.mounted) return;
+      state = state.copyWith(isLoading: false, error: e.toString());
+    } finally {
+      // ✅ release keepAlive
+      keepAliveLink.close();
+    }
+  }
+
+
   // Future<void> verifyOtp({required String contact, required String otp}) async {
-  //   state = const LoginState(isLoading: true);
+  //   state = state.copyWith(isLoading: true, error: null);
   //
   //   final result = await api.otp(contact: contact, otp: otp);
   //
-  //   await result.fold<Future<void>>(
-  //     (Failure failure) async {
-  //       state = LoginState(isLoading: false, error: failure.message);
+  //   result.fold(
+  //         (failure) {
+  //       state = state.copyWith(isLoading: false, error: failure.message);
   //     },
-  //     (OtpResponse response) async {
-  //       final data = response.data;
-  //
+  //         (response) async {
   //       final prefs = await SharedPreferences.getInstance();
   //
+  //       final data = response.data;
   //       await prefs.setString('token', data?.accessToken ?? '');
   //       await prefs.setString('refreshToken', data?.refreshToken ?? '');
   //       await prefs.setString('sessionToken', data?.sessionToken ?? '');
   //       await prefs.setString('role', data?.role ?? '');
   //
-  //       final accessToken = prefs.getString('token');
-  //       final refreshToken = prefs.getString('refreshToken');
-  //       final sessionToken = prefs.getString('sessionToken');
-  //       final role = prefs.getString('role');
+  //       // ✅ OTP success state first (UI can navigate)
+  //       state = state.copyWith(isLoading: false, otpResponse: response);
   //
-  //       AppLogger.log.i(' SharedPreferences stored successfully:');
-  //       AppLogger.log.i('token → $accessToken');
-  //       AppLogger.log.i('refreshToken → $refreshToken');
-  //       AppLogger.log.i('sessionToken → $sessionToken');
-  //       AppLogger.log.i('role → $role');
+  //       final alreadySynced = prefs.getBool('contacts_synced') ?? false;
+  //       if (alreadySynced) return;
   //
-  //       state = LoginState(isLoading: false, otpResponse: response);
+  //       try {
+  //         AppLogger.log.i("✅ Contact sync started");
+  //
+  //         final contacts = await ContactsService.getAllContacts();
+  //         AppLogger.log.i("📞 contacts fetched = ${contacts.length}");
+  //
+  //         if (contacts.isEmpty) {
+  //           AppLogger.log.w(
+  //             "⚠️ Contacts empty OR permission denied. Not marking synced.",
+  //           );
+  //           return;
+  //         }
+  //
+  //         // ✅ Build items array (backend expects items[])
+  //         final limited = contacts.take(500).toList(); // increase if you want
+  //         final items = limited
+  //             .map(
+  //               (c) => {
+  //             "name": c.name,
+  //             "phone": "+91${c.phone}", // or use dialCode dynamic
+  //           },
+  //         )
+  //             .toList();
+  //
+  //         // ✅ Chunk to avoid huge payload (recommended)
+  //         const chunkSize = 200;
+  //         for (var i = 0; i < items.length; i += chunkSize) {
+  //           final chunk = items.sublist(
+  //             i,
+  //             (i + chunkSize > items.length) ? items.length : i + chunkSize,
+  //           );
+  //
+  //           final res = await api.syncContacts(items: chunk);
+  //
+  //           res.fold(
+  //                 (l) => AppLogger.log.e("❌ batch sync fail: ${l.message}"),
+  //                 (r) => AppLogger.log.i(
+  //               "✅ batch ok total=${r.data.total} inserted=${r.data.inserted} touched=${r.data.touched} skipped=${r.data.skipped}",
+  //             ),
+  //           );
+  //         }
+  //
+  //         await prefs.setBool('contacts_synced', true);
+  //         AppLogger.log.i("✅ Contacts synced done: ${limited.length}");
+  //       } catch (e) {
+  //         AppLogger.log.e("❌ Contact sync failed: $e");
+  //       }
   //     },
   //   );
   // }
 
-  Future<void> verifyOtp({required String contact, required String otp}) async {
-    state = const LoginState(isLoading: true);
+  Future<void> syncContact({
+    required String name,
+    required String phone,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
 
-    final result = await api.otp(contact: contact, otp: otp);
+    final items = [
+      {"name": name, "phone": "+91$phone"},
+    ];
 
-    await result.fold<Future<void>>(
-      (Failure failure) async {
-        state = LoginState(isLoading: false, error: failure.message);
+    final result = await api.syncContacts(items: items);
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          error: failure.message,
+          contactResponse: null,
+        );
       },
-      (OtpResponse response) async {
-        final data = response.data;
-
-        final prefs = await SharedPreferences.getInstance();
-
-        await prefs.setString('token', data?.accessToken ?? '');
-        await prefs.setString('refreshToken', data?.refreshToken ?? '');
-        await prefs.setString('sessionToken', data?.sessionToken ?? '');
-        await prefs.setString('role', data?.role ?? '');
-        // NEW: store isNewOwner
-        await prefs.setBool('isNewOwner', data?.isNewOwner ?? false);
-
-        final accessToken = prefs.getString('token');
-        final refreshToken = prefs.getString('refreshToken');
-        final sessionToken = prefs.getString('sessionToken');
-        final role = prefs.getString('role');
-        final isNewOwner = prefs.getBool('isNewOwner') ?? false;
-
-        AppLogger.log.i('SharedPreferences stored successfully:');
-        AppLogger.log.i('token → $accessToken');
-        AppLogger.log.i('refreshToken → $refreshToken');
-        AppLogger.log.i('sessionToken → $sessionToken');
-        AppLogger.log.i('role → $role');
-        AppLogger.log.i('isNewOwner → $isNewOwner');
-
-        state = LoginState(isLoading: false, otpResponse: response);
-
-        // If you want, you can use `isNewOwner` here to navigate:
-        // if (isNewOwner) { goToOnboarding(); } else { goToHome(); }
+      (response) {
+        state = state.copyWith(
+          isLoading: false,
+          contactResponse: response,
+          error: null,
+        );
       },
     );
   }
+
+
 
   Future<void> resendOtp({required String contact}) async {
     state = state.copyWith(isLoading: true, error: null);

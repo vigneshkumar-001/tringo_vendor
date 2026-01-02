@@ -179,9 +179,8 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
       return const Scaffold(body: Center(child: Text('No shop data found')));
     }
 
-    const String shopDisplayNameTamil =
-        'ஸ்ரீ கிருஷ்ணா ஸ்வீட்ஸ் பிரைவேட் லிமிடெட்';
-    const String shopDisplayName = 'Sri Krishna Sweets Private Limited';
+    const String shopDisplayNameTamil = '';
+    const String shopDisplayName = '';
 
     final productSession = RegistrationProductSeivice.instance;
     final bool isPremium = productSession.isPremium;
