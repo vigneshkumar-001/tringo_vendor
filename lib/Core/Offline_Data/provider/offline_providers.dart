@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../Api/DataSource/api_data_source.dart';
-import '../../Presentation/Login Screen/Controller/login_notifier.dart';
-import 'offline_sync_db.dart';
-import 'offline_sync_engine.dart';
+import '../../../Api/DataSource/api_data_source.dart';
+import '../../../Presentation/Login Screen/Controller/login_notifier.dart';
+import '../offline_db/offline_sync_db.dart';
+import '../offline_sync_engine.dart';
 
 final offlineSyncDbProvider = Provider<OfflineSyncDb>((ref) => OfflineSyncDb());
 

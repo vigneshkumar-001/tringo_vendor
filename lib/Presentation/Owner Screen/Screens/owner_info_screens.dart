@@ -10,9 +10,10 @@ import 'package:tringo_vendor_new/Presentation/Owner%20Screen/controller/owner_i
 import '../../../../Core/Session/registration_session.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
-import '../../../Core/Offline_Data/offline_demo_screen.dart';
+import '../../../Core/Offline_Data/Screens/offline_demo_screen.dart';
 import '../../../Core/Offline_Data/offline_owner_payload.dart';
-import '../../../Core/Offline_Data/offline_providers.dart';
+import '../../../Core/Offline_Data/provider/offline_providers.dart';
+import '../../../Core/Offline_Data/offline_sync_models.dart';
 import '../../../Core/Utility/app_loader.dart';
 import '../../../Core/Utility/app_prefs.dart';
 import '../../../Core/Utility/app_snackbar.dart';
@@ -25,7 +26,7 @@ import '../../../Core/Widgets/owner_verify_feild.dart';
 class OwnerInfoScreens extends ConsumerStatefulWidget {
   final bool isService;
   final bool isIndividual;
-  final bool fromOffline;         // ✅ new
+  final bool fromOffline; // ✅ new
   final String? offlineSessionId; // ✅ new
   const OwnerInfoScreens({
     super.key,
@@ -100,7 +101,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
     });
   }
 
-
   @override
   void dispose() {
     englishNameController.dispose();
@@ -118,24 +118,30 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
     }
     super.dispose();
   }
+
   void _setIfEmpty(TextEditingController c, String v) {
     if (c.text.trim().isNotEmpty) return;
     final val = v.trim();
     if (val.isEmpty) return;
     c.text = val;
   }
+
   Future<void> _prefillFromOffline() async {
     if (_prefilled) return;
+
     final sid = widget.offlineSessionId;
     if (sid == null || sid.trim().isEmpty) return;
 
-    final db = ref.read(offlineSyncDbProvider); // ✅ your provider
-    final raw = await db.getOwnerPayload(sid); // Map<String,dynamic>?
+    final db = ref.read(offlineSyncDbProvider);
+    final raw = await db.getPayload(sid, SyncStepType.owner); // ✅ updated
     if (raw == null) return;
 
     final p = OfflineOwnerPayload.fromMap(raw);
 
-    _setIfEmpty(englishNameController, p.govtRegisteredName.isNotEmpty ? p.govtRegisteredName : p.fullName);
+    _setIfEmpty(
+      englishNameController,
+      p.govtRegisteredName.isNotEmpty ? p.govtRegisteredName : p.fullName,
+    );
     _setIfEmpty(tamilNameController, p.ownerNameTamil);
     _setIfEmpty(mobileController, p.phone10);
     _setIfEmpty(emailIdController, p.email);
@@ -401,8 +407,12 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                                 .ownerInfoNumberRequest(phoneNumber: mobile);
                           },
                           onVerifyOtp: (mobile, otp) async {
-                            final ok = await ref.read(ownerInfoNotifierProvider.notifier)
-                                .ownerInfoOtpRequest(phoneNumber: mobile, code: otp);
+                            final ok = await ref
+                                .read(ownerInfoNotifierProvider.notifier)
+                                .ownerInfoOtpRequest(
+                                  phoneNumber: mobile,
+                                  code: otp,
+                                );
 
                             if (ok && widget.fromOffline && context.mounted) {
                               Navigator.pop(context, true);
@@ -534,7 +544,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                           final gender = genderController.text.trim();
 
-                          // ✅ IMPORTANT: Use return value from notifier
                           final ok = await ref
                               .read(ownerInfoNotifierProvider.notifier)
                               .ownerInfoRegister(
@@ -552,7 +561,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                           final newState = ref.read(ownerInfoNotifierProvider);
 
-                          // ❌ If failed (not offline queue case)
                           if (!ok) {
                             AppSnackBar.error(
                               context,
@@ -561,33 +569,13 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                             return;
                           }
 
-                          // ✅ If offline queue saved (ownerRegisterResponse will be null)
-                          if (newState.ownerRegisterResponse == null) {
-                            final sessionId =
-                                await AppPrefs.getOfflineSessionId();
-                            if (sessionId == null) {
-                              AppSnackBar.error(
-                                context,
-                                "Offline session not found",
-                              );
-                              return;
-                            }
-
-                            // Go Offline Demo Page
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (_) =>
-                                        OfflineDemoScreen(sessionId: sessionId),
-                              ),
-                            );
-                            return;
-                          }
-
-                          // ✅ ONLINE CASE: normal navigation
+                          // ✅ ALWAYS go to ShopCategoryInfo (online + offline)
+                          // Online: employeeId will be available
+                          // Offline: employeeId may be null -> next screen should read offlineSessionId from prefs if needed
                           final employeeId =
                               newState.ownerRegisterResponse?.data?.id;
+
+                          if (!mounted) return;
 
                           context.push(
                             AppRoutes.shopCategoryInfoPath,
@@ -595,7 +583,11 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                               'isService': widget.isService,
                               'isIndividual': widget.isIndividual,
                               'pages': 'OwnerInfoScreens',
-                              'employeeId': employeeId,
+                              'employeeId':
+                                  employeeId, // can be null in offline case
+                              // Optional: pass this too if your ShopCategory needs it
+                              'offlineSessionId':
+                                  await AppPrefs.getOfflineSessionId(),
                             },
                           );
                         },

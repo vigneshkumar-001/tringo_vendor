@@ -2586,6 +2586,7 @@ class CommonContainer {
     bool Verify = false,
     bool locations = false,
     bool doorDelivery = false,
+    bool dummyImage = false,
     bool weight = false,
     bool Ad = false,
     VoidCallback? onTap,
@@ -2612,6 +2613,10 @@ class CommonContainer {
               children: [
                 Stack(
                   children: [
+               dummyImage == true?     ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(child: Image.asset(image, height: 135)),
+                    ):
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: CachedNetworkImage(
@@ -2642,6 +2647,7 @@ class CommonContainer {
                             ),
                       ),
                     ),
+
                     // if (Ad)
                     //   Positioned(
                     //     bottom: 10,
