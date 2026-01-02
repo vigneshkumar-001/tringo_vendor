@@ -7,6 +7,7 @@ import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Controller/product_notifier.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
+import '../../../Core/Offline_Data/Screens/offline_demo_screen.dart';
 import '../../../Core/Session/registration_product_seivice.dart';
 import '../../../Core/Session/registration_session.dart';
 import '../../../Core/Utility/app_loader.dart';
@@ -23,7 +24,7 @@ class ProductSearchKeyword extends ConsumerStatefulWidget {
   final bool? isCompany;
   final bool? isService;
 
-  const ProductSearchKeyword({super.key, this.isCompany, this.isService, });
+  const ProductSearchKeyword({super.key, this.isCompany, this.isService});
   bool get isCompanyResolved =>
       isCompany ??
       (RegistrationSession.instance.businessType == BusinessType.company);
@@ -363,13 +364,12 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                           return;
                         }
 
-                        // final session = RegistrationProductSeivice.instance;
-                        // final isService = session.isServiceBusiness;
+                        final bool isServiceFlow = isService;
 
                         bool success = false;
 
                         // 🔹 Call correct API (service / product)
-                        if (isService) {
+                        if (isServiceFlow) {
                           success = await ref
                               .read(serviceInfoNotifierProvider.notifier)
                               .serviceSearchWords(keywords: _keywords);
@@ -384,73 +384,193 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                           serviceInfoNotifierProvider,
                         );
 
-                        // ❌ Handle errors
+                        // ❌ Handle errors (only for real API errors)
                         if (!success) {
-                          if (!isService && productState.error != null) {
+                          if (!isServiceFlow && productState.error != null) {
                             AppSnackBar.error(context, productState.error!);
-                          } else if (isService && serviceState.error != null) {
+                          } else if (isServiceFlow &&
+                              serviceState.error != null) {
                             AppSnackBar.error(context, serviceState.error!);
+                          } else {
+                            AppSnackBar.error(context, "Failed. Try again.");
                           }
                           return;
                         }
 
+                        // ✅ OFFLINE CHECK (important)
+                        // If offline, your notifier already enqueued sqlite and returned true.
+                        // So here we must redirect to Offline Demo screen.
+                        final offlineSessionId =
+                            await AppPrefs.getOfflineSessionId();
+                        final hasOfflineSession =
+                            offlineSessionId != null &&
+                            offlineSessionId.trim().isNotEmpty;
+
+                        if (hasOfflineSession) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => OfflineDemoScreen(
+
+                                  ),
+                            ),
+                          );
+                          return;
+                        }
+
                         // ================================
-                        //        SUCCESS FLOW
+                        //        ONLINE SUCCESS FLOW
                         // ================================
                         final productSession =
                             RegistrationProductSeivice.instance;
                         final regSession = RegistrationSession.instance;
 
-                        // Company + Non-premium → Subscription Screen
+                        // Company + Non-premium → Subscription Screen (ONLINE only)
                         if (regSession.isCompanyBusiness &&
                             productSession.isNonPremium) {
                           final id = await AppPrefs.getBusinessProfileId();
-                          AppLogger.log.i('Business Profile Id');
-                          AppLogger.log.i(id);
-                           Navigator.push(
-                             context,
-                             MaterialPageRoute(
-                               builder:
-                                   (context) => SubscriptionScreen(
-                                     businessProfileId: id.toString() ?? '',
-                                   ),
-                             ),
-                           );
-                          // context.goNamed(
-                          //   AppRoutes.subscriptionScreen,
-                          //   extra: true,
-                          // );
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => SubscriptionScreen(
+                                    businessProfileId: (id ?? "").toString(),
+                                  ),
+                            ),
+                          );
                           return;
                         }
 
                         // ================================
-                        //      SEPARATE NAVIGATION
+                        //      ONLINE NAVIGATION
                         // ================================
-                        if (isService) {
-                          AppLogger.log.i(
-                            'App Servikces Passing ${serviceState.serviceInfoResponse?.data.shopId}',
-                          );
+                        if (isServiceFlow) {
+                          final shopId =
+                              serviceState.serviceInfoResponse?.data.shopId;
                           context.goNamed(
                             AppRoutes.shopsDetails,
                             extra: {
                               'backDisabled': true,
                               'fromSubscriptionSkip': false,
-                              'shopId':
-                                  serviceState.serviceInfoResponse?.data.shopId,
+                              'shopId': shopId,
                             },
                           );
                         } else {
+                          final shopId =
+                              productState.productResponse?.data.shopId;
                           context.goNamed(
                             AppRoutes.shopsDetails,
                             extra: {
                               'backDisabled': true,
                               'fromSubscriptionSkip': false,
-                              'shopId':
-                                  productState.productResponse?.data.shopId,
+                              'shopId': shopId,
                             },
                           );
                         }
                       },
+
+                      // onTap: () async {
+                      //   FocusScope.of(context).unfocus();
+                      //
+                      //   // 🔹 Basic validation
+                      //   if (_keywords.isEmpty) {
+                      //     AppSnackBar.error(
+                      //       context,
+                      //       'Please add at least one keyword',
+                      //     );
+                      //     return;
+                      //   }
+                      //
+                      //   // final session = RegistrationProductSeivice.instance;
+                      //   // final isService = session.isServiceBusiness;
+                      //
+                      //   bool success = false;
+                      //
+                      //   // 🔹 Call correct API (service / product)
+                      //   if (isService) {
+                      //     success = await ref
+                      //         .read(serviceInfoNotifierProvider.notifier)
+                      //         .serviceSearchWords(keywords: _keywords);
+                      //   } else {
+                      //     success = await ref
+                      //         .read(productNotifierProvider.notifier)
+                      //         .updateProductSearchWords(keywords: _keywords);
+                      //   }
+                      //
+                      //   final productState = ref.read(productNotifierProvider);
+                      //   final serviceState = ref.read(
+                      //     serviceInfoNotifierProvider,
+                      //   );
+                      //
+                      //   // ❌ Handle errors
+                      //   if (!success) {
+                      //     if (!isService && productState.error != null) {
+                      //       AppSnackBar.error(context, productState.error!);
+                      //     } else if (isService && serviceState.error != null) {
+                      //       AppSnackBar.error(context, serviceState.error!);
+                      //     }
+                      //     return;
+                      //   }
+                      //
+                      //   // ================================
+                      //   //        SUCCESS FLOW
+                      //   // ================================
+                      //   final productSession =
+                      //       RegistrationProductSeivice.instance;
+                      //   final regSession = RegistrationSession.instance;
+                      //
+                      //   // Company + Non-premium → Subscription Screen
+                      //   if (regSession.isCompanyBusiness &&
+                      //       productSession.isNonPremium) {
+                      //     final id = await AppPrefs.getBusinessProfileId();
+                      //     AppLogger.log.i('Business Profile Id');
+                      //     AppLogger.log.i(id);
+                      //     Navigator.push(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //         builder:
+                      //             (context) => SubscriptionScreen(
+                      //               businessProfileId: id.toString() ?? '',
+                      //             ),
+                      //       ),
+                      //     );
+                      //     // context.goNamed(
+                      //     //   AppRoutes.subscriptionScreen,
+                      //     //   extra: true,
+                      //     // );
+                      //     return;
+                      //   }
+                      //
+                      //   // ================================
+                      //   //      SEPARATE NAVIGATION
+                      //   // ================================
+                      //   if (isService) {
+                      //     AppLogger.log.i(
+                      //       'App Servikces Passing ${serviceState.serviceInfoResponse?.data.shopId}',
+                      //     );
+                      //     context.goNamed(
+                      //       AppRoutes.shopsDetails,
+                      //       extra: {
+                      //         'backDisabled': true,
+                      //         'fromSubscriptionSkip': false,
+                      //         'shopId':
+                      //             serviceState.serviceInfoResponse?.data.shopId,
+                      //       },
+                      //     );
+                      //   } else {
+                      //     context.goNamed(
+                      //       AppRoutes.shopsDetails,
+                      //       extra: {
+                      //         'backDisabled': true,
+                      //         'fromSubscriptionSkip': false,
+                      //         'shopId':
+                      //             productState.productResponse?.data.shopId,
+                      //       },
+                      //     );
+                      //   }
+                      // },
                       text:
                           isLoading
                               ? ThreeDotsLoader()

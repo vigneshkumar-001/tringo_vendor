@@ -1,58 +1,17 @@
-
-import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CounterNotifier extends Notifier<int> {
-  @override
-  int build() {
-    return 0; // initial state
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+
+final internetStatusProvider = StreamProvider<bool>((ref) async* {
+  final connectivity = Connectivity();
+  final internet = InternetConnection();
+
+  // initial
+  yield await internet.hasInternetAccess;
+
+  // changes
+  await for (final _ in connectivity.onConnectivityChanged) {
+    yield await internet.hasInternetAccess;
   }
-
-  void increment() {
-    state++;
-  }
-
-  void decrement() {
-    state--;
-  }
-}
-final counterProvider =
-NotifierProvider<CounterNotifier, int>(
-  CounterNotifier.new,
-);
-
-
-class CounterScreen extends ConsumerWidget {
-  const CounterScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final count = ref.watch(counterProvider);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Counter')),
-      body: Center(
-        child: Text(
-          count.toString(),
-          style: const TextStyle(fontSize: 48),
-        ),
-      ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: () =>
-                ref.read(counterProvider.notifier).increment(),
-            child: const Icon(Icons.add),
-          ),
-          const SizedBox(height: 10),
-          FloatingActionButton(
-            onPressed: () =>
-                ref.read(counterProvider.notifier).decrement(),
-            child: const Icon(Icons.remove),
-          ),
-        ],
-      ),
-    );
-  }
-}
+});

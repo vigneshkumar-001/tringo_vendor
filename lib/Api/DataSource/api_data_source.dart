@@ -540,7 +540,6 @@ class ApiDataSource {
   //     return Left(ServerFailure(e.toString()));
   //   }
   // }
-
   Future<Either<Failure, UserImageResponse>> userProfileUpload({
     required File imageFile,
   }) async {
@@ -549,8 +548,9 @@ class ApiDataSource {
         return Left(ServerFailure('Image file does not exist.'));
       }
 
-      String url = ApiUrl.imageUrl;
-      FormData formData = FormData.fromMap({
+      final url = ApiUrl.imageUrl;
+
+      final formData = FormData.fromMap({
         'images': await MultipartFile.fromFile(
           imageFile.path,
           filename: imageFile.path.split('/').last,
@@ -558,27 +558,72 @@ class ApiDataSource {
       });
 
       final response = await Request.formData(url, formData, 'POST', true);
-      Map<String, dynamic> responseData =
+
+      final Map<String, dynamic> responseData =
           jsonDecode(response.data) as Map<String, dynamic>;
+
       if (response.statusCode == 200) {
         if (responseData['status'] == true) {
           return Right(UserImageResponse.fromJson(responseData));
-        } else {
-          return Left(ServerFailure(responseData['message']));
         }
-      } else if (response is Response && response.statusCode == 409) {
-        return Left(ServerFailure(responseData['message']));
-      } else if (response is Response) {
-        return Left(ServerFailure(responseData['message'] ?? "Unknown error"));
-      } else {
-        return Left(ServerFailure("Unexpected error"));
+        return Left(
+          ServerFailure(
+            (responseData['message'] ?? 'Upload failed').toString(),
+          ),
+        );
       }
+
+      // Non-200 but got response body
+      return Left(
+        ServerFailure((responseData['message'] ?? 'Upload failed').toString()),
+      );
     } catch (e) {
-      // CommonLogger.log.e(e);
-      print(e);
-      return Left(ServerFailure('Something went wrong'));
+      // ✅ IMPORTANT: keep original error text for isOfflineMessage()
+      final msg = e.toString();
+      AppLogger.log.e("userProfileUpload error => $msg");
+      return Left(ServerFailure(msg));
     }
   }
+
+  // Future<Either<Failure, UserImageResponse>> userProfileUpload({
+  //   required File imageFile,
+  // }) async
+  // {
+  //   try {
+  //     if (!await imageFile.exists()) {
+  //       return Left(ServerFailure('Image file does not exist.'));
+  //     }
+  //
+  //     String url = ApiUrl.imageUrl;
+  //     FormData formData = FormData.fromMap({
+  //       'images': await MultipartFile.fromFile(
+  //         imageFile.path,
+  //         filename: imageFile.path.split('/').last,
+  //       ),
+  //     });
+  //
+  //     final response = await Request.formData(url, formData, 'POST', true);
+  //     Map<String, dynamic> responseData =
+  //         jsonDecode(response.data) as Map<String, dynamic>;
+  //     if (response.statusCode == 200) {
+  //       if (responseData['status'] == true) {
+  //         return Right(UserImageResponse.fromJson(responseData));
+  //       } else {
+  //         return Left(ServerFailure(responseData['message']));
+  //       }
+  //     } else if (response is Response && response.statusCode == 409) {
+  //       return Left(ServerFailure(responseData['message']));
+  //     } else if (response is Response) {
+  //       return Left(ServerFailure(responseData['message'] ?? "Unknown error"));
+  //     } else {
+  //       return Left(ServerFailure("Unexpected error"));
+  //     }
+  //   } catch (e) {
+  //     // CommonLogger.log.e(e);
+  //     AppLogger.log.e(e);
+  //     return Left(ServerFailure('Something went wrong'));
+  //   }
+  // }
 
   Future<Either<Failure, EmployeeListResponse>> getEmployeeList() async {
     try {
@@ -775,40 +820,45 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
-
   Future<Either<Failure, OwnerOtpResponse>> ownerInfoOtpRequest({
     required String phone,
     required String code,
   }) async {
-    String url = ApiUrl.ownerInfoNumberOtpRequest;
+    try {
+      final response = await Request.sendRequest(
+        ApiUrl.ownerInfoNumberOtpRequest,
+        {"ownerPhoneNumber": "+91$phone", "code": code},
+        'POST',
+        true,
+      );
 
-    final response = await Request.sendRequest(
-      url,
-      {"ownerPhoneNumber": "+91$phone", "code": code},
-      'Post',
-      true,
-    );
-
-    if (response is! DioException) {
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.data['status'] == true) {
           return Right(OwnerOtpResponse.fromJson(response.data));
-        } else {
-          return Left(
-            ServerFailure(response.data['message'] ?? "Login failed"),
-          );
         }
-      } else {
+        return Left(ServerFailure(response.data['message'] ?? "OTP failed"));
+      }
+
+      return Left(ServerFailure("Unexpected server response"));
+    } on DioException catch (e) {
+      // ⛔ timeout handling
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
         return Left(
-          ServerFailure(response.data['message'] ?? "Something went wrong"),
+          ServerFailure("Request timed out. Check your internet connection."),
         );
       }
-    } else {
-      final errorData = response.response?.data;
-      if (errorData is Map && errorData.containsKey('message')) {
-        return Left(ServerFailure(errorData['message']));
+
+      // ⛔ server error message
+      final data = e.response?.data;
+      if (data is Map && data['message'] != null) {
+        return Left(ServerFailure(data['message']));
       }
-      return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+
+      return Left(ServerFailure("Network error occurred"));
+    } catch (_) {
+      return Left(ServerFailure("Unexpected error"));
     }
   }
 
@@ -2249,9 +2299,7 @@ class ApiDataSource {
 
       dynamic response = await Request.sendRequest(
         url,
-        {"planId": planId,
-          "businessProfileId" : businessProfileId
-        },
+        {"planId": planId, "businessProfileId": businessProfileId},
         'POST',
         true,
       );
@@ -2321,7 +2369,6 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
-
 
   Future<Either<Failure, AppVersionResponse>> getAppVersion({
     required String appName,

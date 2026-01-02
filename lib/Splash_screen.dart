@@ -11,6 +11,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'Core/Const/app_color.dart';
 import 'Core/Const/app_images.dart';
+import 'Core/Offline_Data/Screens/offline_demo_screen.dart';
+import 'Core/Utility/app_prefs.dart';
 import 'Core/Widgets/app_go_routes.dart';
 import 'Core/Widgets/common_container.dart';
 import 'Core/permissions/permission_service.dart';
@@ -70,6 +72,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       context.go(AppRoutes.loginPath);
       return;
     }
+    final offlineSessionId = await AppPrefs.getOfflineSessionId();
+    final hasOfflineSession =
+        offlineSessionId != null && offlineSessionId.trim().isNotEmpty;
 
     await ref
         .read(employeeHomeNotifier.notifier)
@@ -77,6 +82,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await ref.read(subscriptionNotifier.notifier).getPlanList();
     //  EMPLOYEE → always home
     if (role == 'EMPLOYEE') {
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder:
+      //         (_) => OfflineDemoScreen(
+      //
+      //     ),
+      //   ),
+      // );
       context.goNamed(AppRoutes.home);
       return;
     }
