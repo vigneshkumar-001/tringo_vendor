@@ -129,7 +129,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
     // ✅ ROLE + OFFLINE REDIRECT LOGIC
     redirect: (context, state) async {
-
       final isOnline = ref.read(internetStatusProvider).value ?? true;
       final prefs = await SharedPreferences.getInstance();
       final role = (prefs.getString('role') ?? '').toUpperCase();
@@ -167,11 +166,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return isOnNoInternet ? null : AppRoutes.noInternetPath;
       }
 
-
-
       return null;
     },
-
 
     routes: [
       // ✅ OFFLINE: No Internet (for non-employee)
