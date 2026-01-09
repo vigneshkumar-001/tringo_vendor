@@ -344,7 +344,7 @@ class ApiDataSource {
       /// ---- Build payload only for the current screen ----
       switch (screen) {
         case VendorRegisterScreen.screen1:
-          // Screen 1 – owner basic info
+          // Support Screen 1 – owner basic info
           addIfNotEmpty("vendorName", vendorName);
           addIfNotEmpty("ownerNameTamil", vendorNameTamil);
           addIfNotEmpty("phoneNumber", phoneNumber);
@@ -356,7 +356,7 @@ class ApiDataSource {
           break;
 
         case VendorRegisterScreen.screen2:
-          // Screen 2 – bank details only
+          // Support Screen 2 – bank details only
           addIfNotEmpty("bankAccountNumber", bankAccountNumber);
           addIfNotEmpty("bankName", bankAccountNumber);
           addIfNotEmpty("bankAccountName", bankAccountName);
@@ -365,7 +365,7 @@ class ApiDataSource {
           break;
 
         case VendorRegisterScreen.screen3:
-          // Screen 3 – company & location only
+          // Support Screen 3 – company & location only
           addIfNotEmpty("companyName", companyName);
           addIfNotEmpty("addressLine1", companyAddress);
           addIfNotEmpty("gpsLatitude", gpsLatitude);
@@ -379,7 +379,7 @@ class ApiDataSource {
           break;
 
         case VendorRegisterScreen.screen4:
-          // Screen 4 – avatar only
+          // Support Screen 4 – avatar only
           addIfNotEmpty("avatarUrl", avatarUrl);
           break;
       }

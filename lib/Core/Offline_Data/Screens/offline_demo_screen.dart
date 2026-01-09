@@ -917,7 +917,7 @@ class _OfflineDemoScreenState extends ConsumerState<OfflineDemoScreen> {
 // import 'package:tringo_vendor_new/Core/Widgets/common_container.dart';
 //
 // import '../../Core/Utility/app_snackbar.dart';
-// import '../../Presentation/Owner Screen/Screens/owner_info_screens.dart';
+// import '../../Presentation/Owner Support Screen/Screens/owner_info_screens.dart';
 //
 // import '../Const/app_color.dart';
 // import '../Const/app_images.dart';

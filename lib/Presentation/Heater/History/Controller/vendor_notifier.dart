@@ -155,7 +155,7 @@ final vendorNotifierProvider = NotifierProvider<VendorNotifier, VendorState>(
 // import 'package:tringo_vendor_new/Presentation/Heater/History/Model/vendor_history_response.dart';
 //
 // import '../../../../Api/DataSource/api_data_source.dart';
-// import '../../../Login Screen/Controller/login_notifier.dart';
+// import '../../../Login Support Screen/Controller/login_notifier.dart';
 //
 // class VendorState {
 //   final bool isLoading;

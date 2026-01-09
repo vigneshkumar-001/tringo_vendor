@@ -335,8 +335,8 @@ import '../../../Core/Const/app_images.dart';
 import '../../../Core/Utility/app_loader.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
-import '../../Home Screen/Contoller/employee_home_notifier.dart';
-import '../../Login Screen/Controller/login_notifier.dart';
+import '../../Home Support Screen/Contoller/employee_home_notifier.dart';
+import '../../Login Support Screen/Controller/login_notifier.dart';
 import '../../subscription/Controller/subscription_notifier.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
@@ -640,8 +640,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 // import '../../../Core/Utility/app_textstyles.dart';
 // import '../../../Core/Widgets/app_go_routes.dart';
 // import '../../../Core/Widgets/heater_bottom_navigation_bar.dart';
-// import '../../Home Screen/Contoller/employee_home_notifier.dart';
-// import '../../Login Screen/Controller/login_notifier.dart';
+// import '../../Home Support Screen/Contoller/employee_home_notifier.dart';
+// import '../../Login Support Screen/Controller/login_notifier.dart';
 // import '../../subscription/Controller/subscription_notifier.dart';
 //
 // class OtpScreen extends ConsumerStatefulWidget {
