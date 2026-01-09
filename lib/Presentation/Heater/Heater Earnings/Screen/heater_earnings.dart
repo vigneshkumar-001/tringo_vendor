@@ -53,7 +53,7 @@ class _NoDataScreensState extends State<NoDataScreens> {
 // import '../../../../Core/Const/app_images.dart';
 // import '../../../../Core/Utility/app_textstyles.dart';
 // import '../../../../Core/Utility/sortby_popup_screen.dart';
-// import '../../../No Data Screen/Screen/no_data_screen.dart';
+// import '../../../No Data Support Screen/Support Screen/no_data_screen.dart';
 //
 // class HeaterEarnings extends StatefulWidget {
 //   const HeaterEarnings({super.key});

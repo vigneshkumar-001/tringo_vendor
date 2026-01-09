@@ -1596,7 +1596,7 @@ bool _toBool(dynamic v) {
 //     );
 //   }
 //
-//   /// ✅ one-click sync chain (Demo Screen use this)
+//   /// ✅ one-click sync chain (Demo Support Screen use this)
 //   Future<String?> pushOwnerShopPhotos(String sessionId) async {
 //     final bp = (await AppPrefs.getBusinessProfileId())?.trim() ?? "";
 //     if (bp.isEmpty) {

@@ -48,7 +48,7 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
 
   Future<void> registerVendor({
     required VendorRegisterScreen screen,
-    // Screen 1
+    // Support Screen 1
     required String vendorName,
     required String vendorNameTamil,
     required String phoneNumber,
@@ -57,14 +57,14 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     required String gender,
     required String aadharNumber,
     required String aadharDocumentUrl, // original URL if already exists
-    // Screen 2
+    // Support Screen 2
     required String bankAccountNumber,
     required String bankName,
     required String bankAccountName,
     required String bankBranch,
     required String bankIfsc,
 
-    // Screen 3
+    // Support Screen 3
     required String companyName,
     required String companyAddress,
     required String gpsLatitude,
