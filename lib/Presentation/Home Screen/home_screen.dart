@@ -395,7 +395,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    _planLabel(item),
+                    item.planCategory,
+                    // _planLabel(item),
                     style: AppTextStyles.mulish(
                       fontWeight: FontWeight.w700,
                       fontSize: 11,

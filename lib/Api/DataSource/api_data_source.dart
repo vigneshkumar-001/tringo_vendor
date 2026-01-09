@@ -820,6 +820,7 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
   Future<Either<Failure, OwnerOtpResponse>> ownerInfoOtpRequest({
     required String phone,
     required String code,
@@ -925,7 +926,7 @@ class ApiDataSource {
         return Left(ServerFailure(response.message ?? "Unknown Dio error"));
       }
     } catch (e) {
-      AppLogger.log.i(e);
+      AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -2440,16 +2441,21 @@ class ApiDataSource {
       if (code == 200 || code == 201) {
         final data = response.data;
         if (data is Map && data['status'] == true) {
-          return Right(ContactResponse.fromJson(Map<String, dynamic>.from(data)));
+          return Right(
+            ContactResponse.fromJson(Map<String, dynamic>.from(data)),
+          );
         }
-        return Left(ServerFailure("${response.data?['message'] ?? "Sync failed"}"));
+        return Left(
+          ServerFailure("${response.data?['message'] ?? "Sync failed"}"),
+        );
       }
 
-      return Left(ServerFailure("${response.data?['message'] ?? "Something went wrong"}"));
+      return Left(
+        ServerFailure("${response.data?['message'] ?? "Something went wrong"}"),
+      );
     } catch (e) {
       AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
     }
   }
-
 }

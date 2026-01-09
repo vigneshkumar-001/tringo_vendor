@@ -238,7 +238,7 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
                     height: 30,
                     color: AppColor.black,
                   ),
-                  label: 'More',
+                  label: 'Offline',
                 ),
               ],
             ),

@@ -479,6 +479,7 @@ class CommonContainer {
   }
 
   static Widget fillingContainer({
+    Key? key,
     String? text,
     String? text1,
     double? textSize = 14,
@@ -731,6 +732,7 @@ class CommonContainer {
                                                 Opacity(
                                                   opacity: 0,
                                                   child: TextFormField(
+                                                    key: key,
                                                     controller: controller,
                                                     validator: validator,
                                                     readOnly: true,
@@ -844,6 +846,7 @@ class CommonContainer {
                                               ],
                                             )
                                             : TextFormField(
+                                              key: key,
                                               controller: controller,
                                               readOnly: true,
                                               style: TextStyle(
@@ -868,6 +871,7 @@ class CommonContainer {
                                 : AbsorbPointer(
                                   absorbing: isDropdown || isDOB || readOnly,
                                   child: TextFormField(
+                                    key: key,
                                     focusNode: focusNode,
                                     controller: controller,
                                     readOnly: readOnly,
@@ -2613,40 +2617,43 @@ class CommonContainer {
               children: [
                 Stack(
                   children: [
-               dummyImage == true?     ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(child: Image.asset(image, height: 135)),
-                    ):
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: CachedNetworkImage(
-                        imageUrl: image, // 👈 your URL string here
-                        width: 130,
-                        height: 130,
-                        fit: BoxFit.cover, // same effect as FittedBox.cover
-                        placeholder:
-                            (context, url) => Container(
-                              width: 130,
-                              height: 130,
-                              color: Colors.grey[300],
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                    dummyImage == true
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            child: Image.asset(image, height: 135),
+                          ),
+                        )
+                        : ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: CachedNetworkImage(
+                            imageUrl: image, // 👈 your URL string here
+                            width: 130,
+                            height: 130,
+                            fit: BoxFit.cover, // same effect as FittedBox.cover
+                            placeholder:
+                                (context, url) => Container(
+                                  width: 130,
+                                  height: 130,
+                                  color: Colors.grey[300],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                        errorWidget:
-                            (context, url, error) => Container(
-                              width: 130,
-                              height: 130,
-                              color: Colors.grey[300],
-                              child: const Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
-                              ),
-                            ),
-                      ),
-                    ),
+                            errorWidget:
+                                (context, url, error) => Container(
+                                  width: 130,
+                                  height: 130,
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                          ),
+                        ),
 
                     // if (Ad)
                     //   Positioned(
