@@ -155,7 +155,7 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                           children: [
                             CommonContainer.topLeftArrow(
                               onTap: () {
-                                Navigator.of(context).pop();
+                                context.goNamed(AppRoutes.home,);
                                 // if (widget.backDisabled) {
                                 //   ScaffoldMessenger.of(context).showSnackBar(
                                 //     const SnackBar(

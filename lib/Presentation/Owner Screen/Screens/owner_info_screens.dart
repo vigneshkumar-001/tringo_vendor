@@ -62,7 +62,8 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
   final int otpLength = 4;
   late List<TextEditingController> otpControllers;
   late List<FocusNode> otpFocusNodes;
-
+  Timer? _tamilDebounce;
+  int _tamilReqId = 0;
   late final String ownershipType;
   late final String businessTypeForApi;
   @override
@@ -109,7 +110,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
     emailIdController.dispose();
     dateOfBirthController.dispose();
     genderController.dispose();
-
+    _tamilDebounce?.cancel();
     for (final c in otpControllers) {
       c.dispose();
     }
@@ -328,29 +329,74 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                       ),
 
                       const SizedBox(height: 10),
-
                       CommonContainer.fillingContainer(
-                        onChanged: (value) async {
-                          setState(() => isTamilNameLoading = true);
-                          final result =
-                              await TanglishTamilHelper.transliterate(value);
+                        onChanged: (value) {
+                          // ✅ Debounce: wait user stops typing for 400ms
+                          _tamilDebounce?.cancel();
+                          _tamilDebounce = Timer(
+                            const Duration(milliseconds: 400),
+                            () async {
+                              final text = value.trim();
 
-                          setState(() {
-                            tamilNameSuggestion = result;
-                            isTamilNameLoading = false;
-                          });
+                              // if empty, clear and stop loading
+                              if (text.isEmpty) {
+                                if (!mounted) return;
+                                setState(() {
+                                  tamilNameSuggestion = [];
+                                  isTamilNameLoading = false;
+                                });
+                                return;
+                              }
+
+                              final int reqId = ++_tamilReqId;
+
+                              if (!mounted) return;
+                              setState(() => isTamilNameLoading = true);
+
+                              try {
+                                final result =
+                                    await TanglishTamilHelper.transliterate(
+                                      text,
+                                    );
+
+                                // ✅ ignore old responses
+                                if (!mounted || reqId != _tamilReqId) return;
+
+                                setState(() => tamilNameSuggestion = result);
+                              } finally {
+                                if (!mounted || reqId != _tamilReqId) return;
+                                setState(() => isTamilNameLoading = false);
+                              }
+                            },
+                          );
                         },
                         text: 'Tamil',
                         verticalDivider: true,
                         controller: tamilNameController,
                         context: context,
-                        // validator:
-                        //     (v) =>
-                        //         v == null || v.trim().isEmpty
-                        //             ? 'Enter Tamil name'
-                        //             : null,
                       ),
 
+                      // CommonContainer.fillingContainer(
+                      //   onChanged: (value) async {
+                      //     setState(() => isTamilNameLoading = true);
+                      //     final result =
+                      //         await TanglishTamilHelper.transliterate(value);
+                      //
+                      //     setState(() {
+                      //       tamilNameSuggestion = result;
+                      //       isTamilNameLoading = false;
+                      //     });
+                      //   },
+                      //   text: 'Tamil',
+                      //   verticalDivider: true,
+                      //   controller: tamilNameController,
+                      //   context: context,
+                      //   // validator:
+                      //   //     (v) =>
+                      //   //         v == null || v.trim().isEmpty
+                      //   //             ? 'Enter Tamil name'
+                      //   //             : null,
+                      // ),
                       if (isTamilNameLoading)
                         const Padding(
                           padding: EdgeInsets.all(8.0),
@@ -388,7 +434,6 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         ),
 
                       const SizedBox(height: 30),
-
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         transitionBuilder:
@@ -398,7 +443,7 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                             ),
                         child: OwnerVerifyField(
                           controller: mobileController,
-                          focusNode: mobileFocusNode, // ✅
+                          focusNode: mobileFocusNode,
                           isLoading: ownerState.isSendingOtp,
                           isOtpVerifying: ownerState.isVerifyingOtp,
                           onSendOtp: (mobile) {
@@ -414,22 +459,117 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                                   code: otp,
                                 );
 
-                            if (ok && widget.fromOffline && context.mounted) {
-                              Navigator.pop(context, true);
-                            }
+                            if (!ok || !widget.fromOffline || !context.mounted)
+                              return ok;
+
+                            final sid = widget.offlineSessionId;
+                            if (sid == null || sid.trim().isEmpty) return ok;
+
+                            final db = ref.read(offlineSyncDbProvider);
+
+                            final oldOwner =
+                                await db.getPayload(sid, SyncStepType.owner) ??
+                                {};
+
+                            final updatedOwner = <String, dynamic>{
+                              ...oldOwner,
+
+                              // ✅ update all possible keys
+                              "phoneNumber": mobile,
+                              "phone": mobile,
+                              "mobile": mobile,
+                              "mobileNumber": mobile,
+
+                              // ✅ MOST IMPORTANT for your OfflineDemoScreen (you are reading this key)
+                              "ownerPhoneNumber": mobile,
+                            };
+
+                            await db.upsertStep(
+                              sessionId: sid,
+                              type: SyncStepType.owner,
+                              payload: updatedOwner,
+                            );
+
+                            Navigator.pop(context, true);
                             return ok;
                           },
-
-                          // onVerifyOtp: (mobile, otp) {
-                          //   return ref
-                          //       .read(ownerInfoNotifierProvider.notifier)
-                          //       .ownerInfoOtpRequest(
-                          //         phoneNumber: mobile,
-                          //         code: otp,
-                          //       );
-                          // },
                         ),
                       ),
+
+                      // AnimatedSwitcher(
+                      //   duration: const Duration(milliseconds: 400),
+                      //   transitionBuilder:
+                      //       (child, animation) => FadeTransition(
+                      //         opacity: animation,
+                      //         child: child,
+                      //       ),
+                      //   child: OwnerVerifyField(
+                      //     controller: mobileController,
+                      //     focusNode: mobileFocusNode, // ✅
+                      //     isLoading: ownerState.isSendingOtp,
+                      //     isOtpVerifying: ownerState.isVerifyingOtp,
+                      //     onSendOtp: (mobile) {
+                      //       return ref
+                      //           .read(ownerInfoNotifierProvider.notifier)
+                      //           .ownerInfoNumberRequest(phoneNumber: mobile);
+                      //     },
+                      //     onVerifyOtp: (mobile, otp) async {
+                      //       final ok = await ref
+                      //           .read(ownerInfoNotifierProvider.notifier)
+                      //           .ownerInfoOtpRequest(
+                      //         phoneNumber: mobile,
+                      //         code: otp,
+                      //       );
+                      //
+                      //       if (!ok || !widget.fromOffline || !context.mounted) return ok;
+                      //
+                      //       final sid = widget.offlineSessionId;
+                      //       if (sid == null || sid.trim().isEmpty) {
+                      //         // offline session id missing, can't update db
+                      //         return ok;
+                      //       }
+                      //
+                      //       final db = ref.read(offlineSyncDbProvider);
+                      //
+                      //       final oldOwner = await db.getPayload(sid, SyncStepType.owner) ?? {};
+                      //
+                      //       final updatedOwner = <String, dynamic>{
+                      //         ...oldOwner,
+                      //         "phoneNumber": mobile,
+                      //         "phone": mobile,
+                      //         "mobile": mobile,
+                      //         "mobileNumber": mobile,
+                      //       };
+                      //
+                      //       await db.upsertStep(
+                      //         sessionId: sid,
+                      //         type: SyncStepType.owner,
+                      //         payload: updatedOwner,
+                      //       );
+                      //
+                      //       Navigator.pop(context, true);
+                      //       return ok;
+                      //     },
+                      //
+                      //
+                      //
+                      //     // onVerifyOtp: (mobile, otp) async {
+                      //     //   final ok = await ref
+                      //     //       .read(ownerInfoNotifierProvider.notifier)
+                      //     //       .ownerInfoOtpRequest(
+                      //     //         phoneNumber: mobile,
+                      //     //         code: otp,
+                      //     //       );
+                      //     //
+                      //     //   if (ok && widget.fromOffline && context.mounted) {
+                      //     //     Navigator.pop(context, true);
+                      //     //   }
+                      //     //   return ok;
+                      //     // },
+                      //
+                      //
+                      //   ),
+                      // ),
                       const SizedBox(height: 30),
 
                       Text(

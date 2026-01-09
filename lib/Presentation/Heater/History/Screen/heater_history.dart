@@ -842,12 +842,7 @@ class _HeaterHistoryState extends ConsumerState<HeaterHistory> {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  item.planCategory ==
-                                                          'FREEMIUM'
-                                                      ? 'FREEMIUM'
-                                                      : (item.planDurationDays
-                                                              ?.toString() ??
-                                                          ''),
+                                                  item.planCategory,
                                                   maxLines: 1,
                                                   overflow:
                                                       TextOverflow.ellipsis,

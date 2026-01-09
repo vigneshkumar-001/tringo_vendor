@@ -172,13 +172,13 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                             }
 
                             //  Now use go_router to show ShopsDetails
-                            router.goNamed(
-                              AppRoutes.shopsDetails,
-                              extra: {
-                                'backDisabled': false,
-                                'fromSubscriptionSkip': true,
-                              },
-                            );
+                            // router.goNamed(
+                            //   AppRoutes.shopsDetails,
+                            //   extra: {
+                            //     'backDisabled': false,
+                            //     'fromSubscriptionSkip': true,
+                            //   },
+                            // );
                           },
                           child: Container(
                             decoration: BoxDecoration(

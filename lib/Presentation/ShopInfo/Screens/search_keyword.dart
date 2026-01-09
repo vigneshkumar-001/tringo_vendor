@@ -363,9 +363,14 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                         if (success) {
                           final shopId = await AppPrefs.getSopId();
                           if (widget.page == 'shopDetailsEdit') {
+                            final businessProfileId = await AppPrefs.getBusinessProfileId();
+
                             context.goNamed(
                               AppRoutes.shopDetailsEdit,
-                              extra: shopId,
+                              extra: <String, dynamic>{
+                                'shopId': shopId,
+                                'businessProfileId': businessProfileId,
+                              },
                             );
                           } else {
                             context.pushNamed(
