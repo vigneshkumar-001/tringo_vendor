@@ -16,6 +16,7 @@ import '../Model/whatsapp_response.dart';
 /// --- STATE ---
 class LoginState {
   final bool isLoading;
+  final bool reSendOtpLoading;
   final LoginResponse? loginResponse;
   final OtpResponse? otpResponse;
   final String? error;
@@ -25,6 +26,7 @@ class LoginState {
 
   const LoginState({
     this.isLoading = false,
+    this.reSendOtpLoading = false,
     this.loginResponse,
     this.otpResponse,
     this.error,
@@ -37,6 +39,7 @@ class LoginState {
 
   LoginState copyWith({
     bool? isLoading,
+    bool? reSendOtpLoading,
     LoginResponse? loginResponse,
     OtpResponse? otpResponse,
     String? error,
@@ -46,6 +49,7 @@ class LoginState {
   }) {
     return LoginState(
       isLoading: isLoading ?? this.isLoading,
+      reSendOtpLoading: reSendOtpLoading ?? this.reSendOtpLoading,
       loginResponse: loginResponse ?? this.loginResponse,
       otpResponse: otpResponse ?? this.otpResponse,
       error: error,
@@ -253,16 +257,16 @@ class LoginNotifier extends Notifier<LoginState> {
 
 
   Future<void> resendOtp({required String contact}) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(reSendOtpLoading: true, error: null);
 
     final result = await api.resendOtp(contact: contact);
 
     result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, error: failure.message);
+        state = state.copyWith(reSendOtpLoading: false, error: failure.message);
       },
       (response) {
-        state = state.copyWith(isLoading: false, resendOtpResponse: response);
+        state = state.copyWith(reSendOtpLoading: false, resendOtpResponse: response);
       },
     );
   }

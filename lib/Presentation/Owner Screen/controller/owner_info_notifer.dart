@@ -142,8 +142,7 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
     required String ownerNameTamil,
     required String email,
     required String ownerPhoneNumber,
-  }) async
-  {
+  }) async {
     if (state.isVerifyingOtp) return false;
 
     state = state.copyWith(isLoading: true, error: null);
@@ -162,7 +161,7 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
     );
 
     return result.fold(
-          (failure) async {
+      (failure) async {
         state = state.copyWith(isLoading: false, error: failure.message);
 
         if (isOfflineMessage(failure.message)) {
@@ -183,7 +182,9 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
             "phoneVerificationToken": (verification ?? "").toString(),
           };
 
-          final sessionId = await engine.enqueueOwner(ownerPayload: ownerPayload);
+          final sessionId = await engine.enqueueOwner(
+            ownerPayload: ownerPayload,
+          );
           await AppPrefs.setOfflineSessionId(sessionId);
 
           return true; // continue next screen even offline

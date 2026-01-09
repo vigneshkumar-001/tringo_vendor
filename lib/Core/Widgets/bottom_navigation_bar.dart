@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tringo_vendor_new/Core/Offline_Data/offline_demo_screens.dart';
 
 import '../../Presentation/About Me/Screen/employee_about_me.dart';
 import '../../Presentation/Employee History/Screen/employee_history.dart';
@@ -11,6 +12,7 @@ import '../../Presentation/No Data Screen/Screen/no_data_screen.dart';
 import '../../Presentation/Register Screen/Screen/register_screen.dart';
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
+import '../Offline_Data/Screens/offline_demo_screen.dart';
 
 class CommonBottomNavigation extends StatefulWidget {
   final int initialIndex;
@@ -88,7 +90,7 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
         return EmployeeAboutMe();
 
       case 4:
-        return const MoreScreen();
+        return const OfflineDemoScreen();
 
       default:
         return const SizedBox.shrink();
@@ -236,7 +238,7 @@ class CommonBottomNavigationState extends State<CommonBottomNavigation>
                     height: 30,
                     color: AppColor.black,
                   ),
-                  label: 'More',
+                  label: 'Offline',
                 ),
               ],
             ),

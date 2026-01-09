@@ -114,7 +114,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
     super.dispose();
   }
 }
-
+final GlobalKey<NavigatorState> rootNavKey = GlobalKey<NavigatorState>();
 /// ✅ Use provider-based router (important for redirect)
 final goRouterProvider = Provider<GoRouter>((ref) {
   // watch so router rebuilds with provider changes
@@ -122,6 +122,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final isOnline = internetAsync.value ?? true;
 
   return GoRouter(
+    navigatorKey: rootNavKey, // ✅ IMPORTANT
     initialLocation: AppRoutes.splashScreenPath,
 
     // ✅ refreshes redirects when provider updates
@@ -129,7 +130,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
     // ✅ ROLE + OFFLINE REDIRECT LOGIC
     redirect: (context, state) async {
-
       final isOnline = ref.read(internetStatusProvider).value ?? true;
       final prefs = await SharedPreferences.getInstance();
       final role = (prefs.getString('role') ?? '').toUpperCase();
@@ -167,11 +167,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return isOnNoInternet ? null : AppRoutes.noInternetPath;
       }
 
-
-
       return null;
     },
-
 
     routes: [
       // ✅ OFFLINE: No Internet (for non-employee)
@@ -305,31 +302,48 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return AddProductList(isService: extra?['isService'] ?? false);
         },
       ),
+      // GoRoute(
+      //   path: AppRoutes.shopsDetailsPath,
+      //   name: AppRoutes.shopsDetails,
+      //   builder: (context, state) {
+      //     final extra = state.extra;
+      //
+      //     bool backDisabled = false;
+      //     bool fromSubscription = false;
+      //     String? shopId;
+      //
+      //     if (extra is Map<String, dynamic>) {
+      //       backDisabled = extra['backDisabled'] as bool? ?? false;
+      //       fromSubscription = extra['fromSubscriptionSkip'] as bool? ?? false;
+      //       shopId = extra['shopId'] as String?;
+      //     } else if (extra is bool) {
+      //       fromSubscription = extra;
+      //     }
+      //
+      //     return ShopsDetails(
+      //       backDisabled: backDisabled,
+      //       fromSubscriptionSkip: fromSubscription,
+      //       shopId: shopId,
+      //     );
+      //   },
+      // ),
       GoRoute(
         path: AppRoutes.shopsDetailsPath,
         name: AppRoutes.shopsDetails,
         builder: (context, state) {
-          final extra = state.extra;
-
-          bool backDisabled = false;
-          bool fromSubscription = false;
-          String? shopId;
-
-          if (extra is Map<String, dynamic>) {
-            backDisabled = extra['backDisabled'] as bool? ?? false;
-            fromSubscription = extra['fromSubscriptionSkip'] as bool? ?? false;
-            shopId = extra['shopId'] as String?;
-          } else if (extra is bool) {
-            fromSubscription = extra;
-          }
+          final Map<String, dynamic> extra =
+              state.extra as Map<String, dynamic>? ?? {};
 
           return ShopsDetails(
-            backDisabled: backDisabled,
-            fromSubscriptionSkip: fromSubscription,
-            shopId: shopId,
+            backDisabled: extra['backDisabled'] as bool? ?? false,
+            fromSubscriptionSkip:
+            extra['fromSubscriptionSkip'] as bool? ?? false,
+            shopId: extra['shopId'] as String?,
           );
         },
       ),
+
+
       GoRoute(
         path: AppRoutes.heaterRegister1Path,
         name: AppRoutes.heaterRegister1,
@@ -413,7 +427,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.shopDetailsEditPath,
         name: AppRoutes.shopDetailsEdit,
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
+          final extra = state.extra as Map<String, dynamic>; // ← LINE 429
           final String shopId = extra['shopId'];
           final String businessProfileId = extra['businessProfileId'];
 
@@ -423,6 +437,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+
     ],
   );
 });
