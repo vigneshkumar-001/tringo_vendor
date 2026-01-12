@@ -328,110 +328,90 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                         //             : null,
                       ),
 
-                      const SizedBox(height: 10),
-                      CommonContainer.fillingContainer(
-                        onChanged: (value) {
-                          // ✅ Debounce: wait user stops typing for 400ms
-                          _tamilDebounce?.cancel();
-                          _tamilDebounce = Timer(
-                            const Duration(milliseconds: 400),
-                            () async {
-                              final text = value.trim();
-
-                              // if empty, clear and stop loading
-                              if (text.isEmpty) {
-                                if (!mounted) return;
-                                setState(() {
-                                  tamilNameSuggestion = [];
-                                  isTamilNameLoading = false;
-                                });
-                                return;
-                              }
-
-                              final int reqId = ++_tamilReqId;
-
-                              if (!mounted) return;
-                              setState(() => isTamilNameLoading = true);
-
-                              try {
-                                final result =
-                                    await TanglishTamilHelper.transliterate(
-                                      text,
-                                    );
-
-                                // ✅ ignore old responses
-                                if (!mounted || reqId != _tamilReqId) return;
-
-                                setState(() => tamilNameSuggestion = result);
-                              } finally {
-                                if (!mounted || reqId != _tamilReqId) return;
-                                setState(() => isTamilNameLoading = false);
-                              }
-                            },
-                          );
-                        },
-                        text: 'Tamil',
-                        verticalDivider: true,
-                        controller: tamilNameController,
-                        context: context,
-                      ),
-
+                      // const SizedBox(height: 10),
                       // CommonContainer.fillingContainer(
-                      //   onChanged: (value) async {
-                      //     setState(() => isTamilNameLoading = true);
-                      //     final result =
-                      //         await TanglishTamilHelper.transliterate(value);
+                      //   onChanged: (value) {
+                      //     // ✅ Debounce: wait user stops typing for 400ms
+                      //     _tamilDebounce?.cancel();
+                      //     _tamilDebounce = Timer(
+                      //       const Duration(milliseconds: 400),
+                      //       () async {
+                      //         final text = value.trim();
                       //
-                      //     setState(() {
-                      //       tamilNameSuggestion = result;
-                      //       isTamilNameLoading = false;
-                      //     });
+                      //         // if empty, clear and stop loading
+                      //         if (text.isEmpty) {
+                      //           if (!mounted) return;
+                      //           setState(() {
+                      //             tamilNameSuggestion = [];
+                      //             isTamilNameLoading = false;
+                      //           });
+                      //           return;
+                      //         }
+                      //
+                      //         final int reqId = ++_tamilReqId;
+                      //
+                      //         if (!mounted) return;
+                      //         setState(() => isTamilNameLoading = true);
+                      //
+                      //         try {
+                      //           final result =
+                      //               await TanglishTamilHelper.transliterate(
+                      //                 text,
+                      //               );
+                      //
+                      //           // ✅ ignore old responses
+                      //           if (!mounted || reqId != _tamilReqId) return;
+                      //
+                      //           setState(() => tamilNameSuggestion = result);
+                      //         } finally {
+                      //           if (!mounted || reqId != _tamilReqId) return;
+                      //           setState(() => isTamilNameLoading = false);
+                      //         }
+                      //       },
+                      //     );
                       //   },
                       //   text: 'Tamil',
                       //   verticalDivider: true,
                       //   controller: tamilNameController,
                       //   context: context,
-                      //   // validator:
-                      //   //     (v) =>
-                      //   //         v == null || v.trim().isEmpty
-                      //   //             ? 'Enter Tamil name'
-                      //   //             : null,
                       // ),
-                      if (isTamilNameLoading)
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-
-                      if (tamilNameSuggestion.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          constraints: const BoxConstraints(maxHeight: 150),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.grey),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: tamilNameSuggestion.length,
-                            itemBuilder: (context, index) {
-                              final suggestion = tamilNameSuggestion[index];
-                              return ListTile(
-                                title: Text(suggestion),
-                                onTap: () {
-                                  TanglishTamilHelper.applySuggestion(
-                                    controller: tamilNameController,
-                                    suggestion: suggestion,
-                                    onSuggestionApplied: () {
-                                      setState(() => tamilNameSuggestion = []);
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
+                      //
+                      //
+                      // if (isTamilNameLoading)
+                      //   const Padding(
+                      //     padding: EdgeInsets.all(8.0),
+                      //     child: CircularProgressIndicator(strokeWidth: 2),
+                      //   ),
+                      //
+                      // if (tamilNameSuggestion.isNotEmpty)
+                      //   Container(
+                      //     margin: const EdgeInsets.only(top: 4),
+                      //     constraints: const BoxConstraints(maxHeight: 150),
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.white,
+                      //       borderRadius: BorderRadius.circular(15),
+                      //       border: Border.all(color: Colors.grey),
+                      //     ),
+                      //     child: ListView.builder(
+                      //       shrinkWrap: true,
+                      //       itemCount: tamilNameSuggestion.length,
+                      //       itemBuilder: (context, index) {
+                      //         final suggestion = tamilNameSuggestion[index];
+                      //         return ListTile(
+                      //           title: Text(suggestion),
+                      //           onTap: () {
+                      //             TanglishTamilHelper.applySuggestion(
+                      //               controller: tamilNameController,
+                      //               suggestion: suggestion,
+                      //               onSuggestionApplied: () {
+                      //                 setState(() => tamilNameSuggestion = []);
+                      //               },
+                      //             );
+                      //           },
+                      //         );
+                      //       },
+                      //     ),
+                      //   ),
 
                       const SizedBox(height: 30),
                       AnimatedSwitcher(
