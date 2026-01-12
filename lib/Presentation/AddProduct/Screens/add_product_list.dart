@@ -204,7 +204,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
           Row(
             children: [
               Text(
-                '${index + 1}. Feature',
+                '${index + 1}. Description',
                 style: AppTextStyles.mulish(color: AppColor.mildBlack),
               ),
               const Spacer(),
@@ -230,10 +230,17 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                 ),
               ),
               SizedBox(width: 15),
-              Text(
-                'Heading',
-                style: AppTextStyles.mulish(color: AppColor.mildBlack),
+              CommonContainer.containerTitle(
+                context: context,
+                title: '',
+                image: AppImages.iImage,
+                infoMessage:
+                    'Add relevant search keywords customers might use to find your shop.',
               ),
+              // Text(
+              //   'Heading',
+              //   style: AppTextStyles.mulish(color: AppColor.mildBlack),
+              // ),
             ],
           ),
           SizedBox(height: 10),
@@ -251,10 +258,17 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                 ),
               ),
               SizedBox(width: 15),
-              Text(
-                'Answer',
-                style: AppTextStyles.mulish(color: AppColor.mildBlack),
+              CommonContainer.containerTitle(
+                context: context,
+                title: '',
+                image: AppImages.iImage,
+                infoMessage:
+                    'Add relevant search keywords customers might use to find your shop.',
               ),
+              // Text(
+              //   'Answer',
+              //   style: AppTextStyles.mulish(color: AppColor.mildBlack),
+              // ),
             ],
           ),
         ],

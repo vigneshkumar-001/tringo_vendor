@@ -37,6 +37,9 @@ import '../../Presentation/subscription/Screen/subscription_screen.dart';
 import '../../Splash_screen.dart';
 import '../../dummy_screen.dart';
 import '../../main.dart';
+import '../Const/app_color.dart';
+import '../Const/app_images.dart';
+import '../Utility/app_textstyles.dart';
 import 'heater_bottom_navigation_bar.dart';
 
 // ✅ IMPORTANT: make sure these providers exist in your project
@@ -114,7 +117,9 @@ class GoRouterRefreshStream extends ChangeNotifier {
     super.dispose();
   }
 }
+
 final GlobalKey<NavigatorState> rootNavKey = GlobalKey<NavigatorState>();
+
 /// ✅ Use provider-based router (important for redirect)
 final goRouterProvider = Provider<GoRouter>((ref) {
   // watch so router rebuilds with provider changes
@@ -337,12 +342,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return ShopsDetails(
             backDisabled: extra['backDisabled'] as bool? ?? false,
             fromSubscriptionSkip:
-            extra['fromSubscriptionSkip'] as bool? ?? false,
+                extra['fromSubscriptionSkip'] as bool? ?? false,
             shopId: extra['shopId'] as String?,
           );
         },
       ),
-
 
       GoRoute(
         path: AppRoutes.heaterRegister1Path,
@@ -437,7 +441,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-
     ],
   );
 });
@@ -451,9 +454,25 @@ class NoInternetScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('No Internet Connection', style: TextStyle(fontSize: 18)),
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 170),
+          child: Column(
+            children: [
+              // Image.asset(AppImages.noDataGif),
+              SizedBox(height: 30),
+              Text(
+                'No Internet Connection',
+                style: AppTextStyles.mulish(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.darkBlue,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

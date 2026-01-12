@@ -473,66 +473,66 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                                     : null,
                       ),
 
-                      const SizedBox(height: 10),
-
-                      /// TAMIL NAME
-                      CommonContainer.fillingContainer(
-                        onChanged: (value) async {
-                          setState(() => isTamilNameLoading = true);
-                          final result =
-                              await TanglishTamilHelper.transliterate(value);
-
-                          setState(() {
-                            tamilNameSuggestion = result;
-                            isTamilNameLoading = false;
-                          });
-                        },
-                        text: 'Tamil',
-                        verticalDivider: true,
-                        controller: tamilNameController,
-                        context: context,
-                        validator:
-                            (v) =>
-                                v == null || v.trim().isEmpty
-                                    ? 'Enter Tamil name'
-                                    : null,
-                      ),
-
-                      if (isTamilNameLoading)
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-
-                      if (tamilNameSuggestion.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          constraints: const BoxConstraints(maxHeight: 150),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.grey),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: tamilNameSuggestion.length,
-                            itemBuilder: (context, index) {
-                              final suggestion = tamilNameSuggestion[index];
-                              return ListTile(
-                                title: Text(suggestion),
-                                onTap: () {
-                                  TanglishTamilHelper.applySuggestion(
-                                    controller: tamilNameController,
-                                    suggestion: suggestion,
-                                    onSuggestionApplied: () {
-                                      setState(() => tamilNameSuggestion = []);
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
+                      // const SizedBox(height: 10),
+                      //
+                      // /// TAMIL NAME
+                      // CommonContainer.fillingContainer(
+                      //   onChanged: (value) async {
+                      //     setState(() => isTamilNameLoading = true);
+                      //     final result =
+                      //         await TanglishTamilHelper.transliterate(value);
+                      //
+                      //     setState(() {
+                      //       tamilNameSuggestion = result;
+                      //       isTamilNameLoading = false;
+                      //     });
+                      //   },
+                      //   text: 'Tamil',
+                      //   verticalDivider: true,
+                      //   controller: tamilNameController,
+                      //   context: context,
+                      //   validator:
+                      //       (v) =>
+                      //           v == null || v.trim().isEmpty
+                      //               ? 'Enter Tamil name'
+                      //               : null,
+                      // ),
+                      //
+                      // if (isTamilNameLoading)
+                      //   const Padding(
+                      //     padding: EdgeInsets.all(8.0),
+                      //     child: CircularProgressIndicator(strokeWidth: 2),
+                      //   ),
+                      //
+                      // if (tamilNameSuggestion.isNotEmpty)
+                      //   Container(
+                      //     margin: const EdgeInsets.only(top: 4),
+                      //     constraints: const BoxConstraints(maxHeight: 150),
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.white,
+                      //       borderRadius: BorderRadius.circular(15),
+                      //       border: Border.all(color: Colors.grey),
+                      //     ),
+                      //     child: ListView.builder(
+                      //       shrinkWrap: true,
+                      //       itemCount: tamilNameSuggestion.length,
+                      //       itemBuilder: (context, index) {
+                      //         final suggestion = tamilNameSuggestion[index];
+                      //         return ListTile(
+                      //           title: Text(suggestion),
+                      //           onTap: () {
+                      //             TanglishTamilHelper.applySuggestion(
+                      //               controller: tamilNameController,
+                      //               suggestion: suggestion,
+                      //               onSuggestionApplied: () {
+                      //                 setState(() => tamilNameSuggestion = []);
+                      //               },
+                      //             );
+                      //           },
+                      //         );
+                      //       },
+                      //     ),
+                      //   ),
 
                       SizedBox(height: 30),
 
