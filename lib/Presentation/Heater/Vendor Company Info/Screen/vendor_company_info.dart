@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -106,6 +107,81 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
   bool validateTimes() {
     if (_openTod == null || _closeTod == null) return false;
     return _toMinutes(_closeTod!) > _toMinutes(_openTod!);
+  }
+
+  Future<void> _openGoogleMapsFromGpsField() async {
+    try {
+      // 1) Try from existing text (lat,lng)
+      double? lat;
+      double? lng;
+
+      final t = _gpsController.text.trim();
+      final parts = t.split(',');
+      if (parts.length == 2) {
+        lat = double.tryParse(parts[0].trim());
+        lng = double.tryParse(parts[1].trim());
+      }
+
+      // 2) If not available, get current location
+      if (lat == null || lng == null) {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location services are disabled.')),
+          );
+          return;
+        }
+
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission == LocationPermission.denied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permission denied.')),
+          );
+          return;
+        }
+        if (permission == LocationPermission.deniedForever) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permissions are permanently denied.'),
+            ),
+          );
+          return;
+        }
+
+        final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        lat = pos.latitude;
+        lng = pos.longitude;
+
+        // Optional: field-la update pannalam
+        setState(() {
+          _gpsController.text =
+              '${lat!.toStringAsFixed(6)}, ${lng!.toStringAsFixed(6)}';
+          _gpsFetched = true;
+        });
+      }
+
+      // 3) Launch Google Maps app
+      final uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+      );
+
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open Google Maps')),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Google Maps open error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to open Google Maps')),
+      );
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -471,10 +547,15 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       SizedBox(height: 10),
 
                       GestureDetector(
+                        // onTap: () async {
+                        //   setState(() => _isFetchingGps = true);
+                        //   await _getCurrentLocation();
+                        //   setState(() => _isFetchingGps = false);
+                        // },
                         onTap: () async {
                           setState(() => _isFetchingGps = true);
-                          await _getCurrentLocation();
-                          setState(() => _isFetchingGps = false);
+                          await _openGoogleMapsFromGpsField();
+                          if (mounted) setState(() => _isFetchingGps = false);
                         },
                         child: AbsorbPointer(
                           child: CommonContainer.fillingContainer(
@@ -483,7 +564,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                                 _gpsController.text.isEmpty
                                     ? (_isFetchingGps
                                         ? ''
-                                        : 'Get by GPS') // 👈 important
+                                        : 'Shop Location') // 👈 important
                                     : '', // after GPS, no label
                             textColor:
                                 _gpsController.text.isEmpty
@@ -522,6 +603,35 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       ),
                       SizedBox(height: 10),
 
+                      // AnimatedSwitcher(
+                      //   duration: const Duration(milliseconds: 400),
+                      //   transitionBuilder:
+                      //       (child, animation) => FadeTransition(
+                      //     opacity: animation,
+                      //     child: child,
+                      //   ),
+                      //   child: OwnerVerifyField(
+                      //     controller: _primaryMobileController,
+                      //     isLoading: state.isSendingOtp,
+                      //     isOtpVerifying: state.isVerifyingOtp,
+                      //     onSendOtp: (mobile) {
+                      //       return ref
+                      //           .read(addEmployeeNotifier.notifier)
+                      //           .employeeAddNumberRequest(
+                      //         phoneNumber: mobile,
+                      //       );
+                      //     },
+                      //     onVerifyOtp: (mobile, otp) {
+                      //       return ref
+                      //           .read(addEmployeeNotifier.notifier)
+                      //           .employeeAddOtpRequest(
+                      //         phoneNumber: mobile,
+                      //         code: otp,
+                      //       );
+                      //     },
+                      //   ),
+                      // ),
+
                       CommonContainer.fillingContainer(
                         controller: _primaryMobileController,
                         verticalDivider: true,
@@ -535,15 +645,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                           return null;
                         },
                       ),
-                      // CommonContainer.fillingContainer(
-                      //   controller: _primaryMobileController,
-                      //   verticalDivider: true,
-                      //   isMobile: true,
-                      //   text: 'Mobile No',
-                      //   // validator: (value) => value == null || value.isEmpty
-                      //   //     ? 'Please Enter Primary Mobile Number'
-                      //   //     : null,
-                      // ),
+
                       const SizedBox(height: 25),
                       Text(
                         'Alternate Mobile Number',
@@ -670,7 +772,6 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
-
                                 screen: VendorRegisterScreen.screen3,
                                 vendorName: '',
                                 vendorNameTamil: '',
@@ -678,7 +779,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                                 aadharNumber: '',
                                 aadharDocumentUrl: '',
                                 bankAccountNumber: '',
-                            bankName: '',
+                                bankName: '',
                                 bankAccountName: '',
                                 bankBranch: '',
                                 bankIfsc: '',
@@ -707,8 +808,9 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                               context,
                               "Owner information saved successfully",
                             );
-                            context.push(AppRoutes.vendorCompanyPhotoPath); // ✅ correct next screen
-
+                            context.push(
+                              AppRoutes.vendorCompanyPhotoPath,
+                            ); // ✅ correct next screen
 
                             AppLogger.log.i(
                               "Owner Info Saved  ${newState.vendorResponse?.toJson()}",

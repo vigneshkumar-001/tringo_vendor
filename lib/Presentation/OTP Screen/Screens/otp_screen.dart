@@ -31,6 +31,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   Timer? _timer;
   int _secondsRemaining = 30;
   bool _canResend = false;
+  String verifyCode = '';
+  String? otpError;
+  String? lastLoginPage;
 
   late final ProviderSubscription<LoginState> _loginSub;
 
@@ -56,75 +59,75 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     });
 
     // ✅ Listener WITHOUT ref.read INSIDE
-    _loginSub = ref.listenManual<LoginState>(
-      loginNotifierProvider,
-          (previous, next) async {
+    _loginSub = ref.listenManual<LoginState>(loginNotifierProvider, (
+      previous,
+      next,
+    ) async {
+      if (!mounted) return;
+
+      /// ❌ Error
+      if (next.error != null) {
+        AppSnackBar.error(context, next.error!);
+        if (!mounted) return;
+        _loginNotifier.resetState();
+        return;
+      }
+
+      /// ✅ OTP VERIFIED
+      if (next.otpResponse != null) {
+        final data = next.otpResponse!.data;
+        final role = (data?.role ?? '').toUpperCase();
+        final isNewOwner = data?.isNewOwner ?? false;
+
+        AppSnackBar.success(context, 'OTP verified successfully!');
+
+        // ✅ NAVIGATE FIRST
+        if (role == 'VENDOR') {
+          if (isNewOwner) {
+            context.goNamed(AppRoutes.privacyPolicy);
+          } else {
+            context.goNamed(AppRoutes.heaterHomeScreen);
+          }
+        } else if (role == 'EMPLOYEE') {
+          context.goNamed(AppRoutes.home);
+        }
+
+        // ⚠️ After navigation, widget may unmount → check mounted again
         if (!mounted) return;
 
-        /// ❌ Error
-        if (next.error != null) {
-          AppSnackBar.error(context, next.error!);
-          if (!mounted) return;
-          _loginNotifier.resetState();
-          return;
-        }
+        // ✅ SAFE ASYNC CALLS (no ref.read)
+        try {
+          await _employeeHomeNotifier.employeeHome(
+            date: '',
+            page: '1',
+            limit: '6',
+            q: '',
+          );
+        } catch (_) {}
 
-        /// ✅ OTP VERIFIED
-        if (next.otpResponse != null) {
-          final data = next.otpResponse!.data;
-          final role = (data?.role ?? '').toUpperCase();
-          final isNewOwner = data?.isNewOwner ?? false;
+        if (!mounted) return;
 
-          AppSnackBar.success(context, 'OTP verified successfully!');
+        try {
+          await _subscriptionNotifier.getPlanList();
+        } catch (_) {}
 
-          // ✅ NAVIGATE FIRST
-          if (role == 'VENDOR') {
-            if (isNewOwner) {
-              context.goNamed(AppRoutes.privacyPolicy);
-            } else {
-              context.goNamed(AppRoutes.heaterHomeScreen);
-            }
-          } else if (role == 'EMPLOYEE') {
-            context.goNamed(AppRoutes.home);
-          }
+        if (!mounted) return;
 
-          // ⚠️ After navigation, widget may unmount → check mounted again
-          if (!mounted) return;
+        _loginNotifier.resetState();
+        return;
+      }
 
-          // ✅ SAFE ASYNC CALLS (no ref.read)
-          try {
-            await _employeeHomeNotifier.employeeHome(
-              date: '',
-              page: '1',
-              limit: '6',
-              q: '',
-            );
-          } catch (_) {}
+      /// 🔁 RESEND OTP
+      if (next.resendOtpResponse != null) {
+        final waitSeconds = next.resendOtpResponse!.data?.waitSeconds ?? 30;
 
-          if (!mounted) return;
+        AppSnackBar.success(context, 'OTP resent successfully!');
+        if (!mounted) return;
 
-          try {
-            await _subscriptionNotifier.getPlanList();
-          } catch (_) {}
-
-          if (!mounted) return;
-
-          _loginNotifier.resetState();
-          return;
-        }
-
-        /// 🔁 RESEND OTP
-        if (next.resendOtpResponse != null) {
-          final waitSeconds = next.resendOtpResponse!.data?.waitSeconds ?? 30;
-
-          AppSnackBar.success(context, 'OTP resent successfully!');
-          if (!mounted) return;
-
-          _startTimer(waitSeconds);
-          _loginNotifier.resetState();
-        }
-      },
-    );
+        _startTimer(waitSeconds);
+        _loginNotifier.resetState();
+      }
+    });
   }
 
   @override
@@ -164,11 +167,14 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(loginNotifierProvider);
-
+    final notifier = ref.read(loginNotifierProvider.notifier);
     final mobile = widget.phoneNumber;
-    final masked = mobile.length <= 3
-        ? mobile
-        : 'x' * (mobile.length - 3) + mobile.substring(mobile.length - 3);
+
+    late final String maskMobileNumber;
+    final masked =
+        mobile.length <= 3
+            ? mobile
+            : 'x' * (mobile.length - 3) + mobile.substring(mobile.length - 3);
 
     return Scaffold(
       body: SafeArea(
@@ -201,63 +207,196 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                         ),
                         const SizedBox(height: 80),
                         Padding(
-                          padding: const EdgeInsets.only(left: 35),
-                          child: Text(
-                            'Enter 4 Digit OTP\nsent to your given Mobile Number',
-                            style: AppTextStyles.mulish(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 24,
-                              color: AppColor.darkBlue,
-                            ),
+                          padding: const EdgeInsets.only(left: 35, top: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Enter 4 Digit OTP',
+                                    style: AppTextStyles.mulish(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 24,
+                                      color: AppColor.darkBlue,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'sent to',
+                                    style: AppTextStyles.mulish(
+                                      fontSize: 24,
+                                      color: AppColor.darkBlue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                'your given Mobile Number',
+                                style: AppTextStyles.mulish(
+                                  fontSize: 24,
+                                  color: AppColor.darkBlue,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 35),
+                        // Padding(
+                        //   padding: const EdgeInsets.symmetric(horizontal: 35),
+                        //   child: PinCodeTextField(
+                        //     appContext: context,
+                        //     length: 4,
+                        //     controller: otp,
+                        //     keyboardType: TextInputType.number,
+                        //     autoFocus: true,
+                        //     enableActiveFill: true,
+                        //     pinTheme: PinTheme(
+                        //       shape: PinCodeFieldShape.box,
+                        //       borderRadius: BorderRadius.circular(17),
+                        //       fieldHeight: 55,
+                        //       fieldWidth: 55,
+                        //       activeFillColor: Colors.white,
+                        //       inactiveFillColor: Colors.white,
+                        //       selectedFillColor: Colors.white,
+                        //       activeColor: AppColor.darkBlue,
+                        //       inactiveColor: AppColor.darkBlue,
+                        //       selectedColor: AppColor.darkBlue,
+                        //     ),
+                        //   ),
+                        // ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 35),
                           child: PinCodeTextField(
                             appContext: context,
                             length: 4,
+                            autoFocus: otp.text.isEmpty,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            autoDisposeControllers: false,
+                            blinkWhenObscuring: true,
                             controller: otp,
                             keyboardType: TextInputType.number,
-                            autoFocus: true,
+                            cursorColor: AppColor.black,
+                            animationDuration: const Duration(
+                              milliseconds: 300,
+                            ),
                             enableActiveFill: true,
                             pinTheme: PinTheme(
                               shape: PinCodeFieldShape.box,
                               borderRadius: BorderRadius.circular(17),
                               fieldHeight: 55,
                               fieldWidth: 55,
-                              activeFillColor: Colors.white,
-                              inactiveFillColor: Colors.white,
-                              selectedFillColor: Colors.white,
-                              activeColor: AppColor.darkBlue,
-                              inactiveColor: AppColor.darkBlue,
                               selectedColor: AppColor.darkBlue,
+                              activeColor: AppColor.darkBlue,
+                              activeFillColor: AppColor.white,
+                              inactiveColor: AppColor.darkBlue,
+                              selectedFillColor: AppColor.white,
+                              inactiveFillColor: AppColor.white,
+                              fieldOuterPadding: const EdgeInsets.symmetric(
+                                horizontal: 9,
+                              ),
                             ),
+                            boxShadows: [
+                              BoxShadow(
+                                offset: const Offset(0, 1),
+                                color: AppColor.skyBlue,
+                                blurRadius: 5,
+                              ),
+                            ],
+                            onCompleted: (value) {
+                              verifyCode = value;
+                            },
+                            onChanged: (value) {
+                              verifyCode = value;
+                              if (otpError != null && value.isNotEmpty) {
+                                setState(() {
+                                  otpError = null;
+                                });
+                              }
+                            },
+                            beforeTextPaste: (text) {
+                              return true;
+                            },
                           ),
                         ),
-                        const SizedBox(height: 35),
+
+                        // const SizedBox(height: 35),
+                        // Padding(
+                        //   padding: const EdgeInsets.symmetric(horizontal: 35),
+                        //   child: Row(
+                        //     children: [
+                        //       InkWell(
+                        //         onTap:
+                        //             _canResend && !state.isLoading
+                        //                 ? () => _loginNotifier.resendOtp(
+                        //                   contact: widget.phoneNumber,
+                        //                 )
+                        //                 : null,
+                        //         child: Text(
+                        //           'Resend OTP',
+                        //           style: AppTextStyles.mulish(
+                        //             fontWeight: FontWeight.w800,
+                        //             color:
+                        //                 _canResend
+                        //                     ? AppColor.skyBlue
+                        //                     : AppColor.gray84,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //       const Spacer(),
+                        //       if (!_canResend)
+                        //         Text(
+                        //           '00:${_secondsRemaining.toString().padLeft(2, '0')}',
+                        //           style: AppTextStyles.mulish(
+                        //             fontWeight: FontWeight.w800,
+                        //             color: AppColor.darkBlue,
+                        //           ),
+                        //         ),
+                        //     ],
+                        //   ),
+                        // ),
+                        const SizedBox(height: 12),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 35),
                           child: Row(
                             children: [
                               InkWell(
-                                onTap: _canResend && !state.isLoading
-                                    ? () => _loginNotifier.resendOtp(
-                                  contact: widget.phoneNumber,
-                                )
-                                    : null,
+                                onTap:
+                                    _canResend
+                                        ? () {
+                                          // mark as resend call
+                                          lastLoginPage = 'resendOtp';
+                                          notifier.loginUser(
+                                            phoneNumber: widget.phoneNumber,
+                                            page: 'resendOtp',
+                                          );
+                                          _startTimer(30);
+                                        }
+                                        : null,
                                 child: Text(
-                                  'Resend OTP',
+                                  'Resend',
                                   style: AppTextStyles.mulish(
                                     fontWeight: FontWeight.w800,
-                                    color: _canResend
-                                        ? AppColor.skyBlue
-                                        : AppColor.gray84,
+                                    color:
+                                        _canResend
+                                            ? AppColor.skyBlue
+                                            : AppColor.gray84,
                                   ),
                                 ),
                               ),
-                              const Spacer(),
-                              if (!_canResend)
+                              const SizedBox(width: 5),
+                              Text(
+                                _canResend ? 'OTP' : 'code in',
+                                style: AppTextStyles.mulish(
+                                  fontWeight: FontWeight.w800,
+                                  color:
+                                      _canResend
+                                          ? AppColor.skyBlue
+                                          : AppColor.gray84,
+                                ),
+                              ),
+                              if (!_canResend) ...[
+                                const SizedBox(width: 4),
                                 Text(
                                   '00:${_secondsRemaining.toString().padLeft(2, '0')}',
                                   style: AppTextStyles.mulish(
@@ -265,21 +404,37 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                                     color: AppColor.darkBlue,
                                   ),
                                 ),
+                              ],
+                              const Spacer(),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        // Padding(
+                        //   padding: const EdgeInsets.symmetric(horizontal: 35),
+                        //   child: Text(
+                        //     'OTP sent to $masked. Please enter the OTP.',
+                        //     style: AppTextStyles.mulish(
+                        //       fontSize: 14,
+                        //       color: AppColor.darkGrey,
+                        //     ),
+                        //   ),
+                        // ),
+
+                        const SizedBox(height: 15),
+
+                        // Info text
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 35),
                           child: Text(
-                            'OTP sent to $masked. Please enter the OTP.',
+                            'OTP sent to $masked, please check and enter below. '
+                                'If you’ve not received OTP, you can resend after the timer ends.',
                             style: AppTextStyles.mulish(
                               fontSize: 14,
                               color: AppColor.darkGrey,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 35),
+                        const SizedBox(height: 30),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 35),
                           child: CommonContainer.button(
@@ -295,11 +450,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                                 otp: enteredOtp,
                               );
                             },
-                            text: state.isLoading
-                                ? const ThreeDotsLoader()
-                                : const Text('Verify Now'),
+                            text:
+                                state.isLoading
+                                    ? const ThreeDotsLoader()
+                                    : const Text('Verify Now'),
                           ),
                         ),
+
                         const SizedBox(height: 50),
                       ],
                     ),
@@ -319,8 +476,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   }
 }
 
-
-
 /*import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -335,8 +490,8 @@ import '../../../Core/Const/app_images.dart';
 import '../../../Core/Utility/app_loader.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
-import '../../Home Screen/Contoller/employee_home_notifier.dart';
-import '../../Login Screen/Controller/login_notifier.dart';
+import '../../Home Support Screen/Contoller/employee_home_notifier.dart';
+import '../../Login Support Screen/Controller/login_notifier.dart';
 import '../../subscription/Controller/subscription_notifier.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
@@ -624,7 +779,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   }
 }*/
 
-
 ///old///
 // import 'dart:async';
 //
@@ -640,8 +794,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 // import '../../../Core/Utility/app_textstyles.dart';
 // import '../../../Core/Widgets/app_go_routes.dart';
 // import '../../../Core/Widgets/heater_bottom_navigation_bar.dart';
-// import '../../Home Screen/Contoller/employee_home_notifier.dart';
-// import '../../Login Screen/Controller/login_notifier.dart';
+// import '../../Home Support Screen/Contoller/employee_home_notifier.dart';
+// import '../../Login Support Screen/Controller/login_notifier.dart';
 // import '../../subscription/Controller/subscription_notifier.dart';
 //
 // class OtpScreen extends ConsumerStatefulWidget {

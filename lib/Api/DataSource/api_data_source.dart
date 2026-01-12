@@ -90,42 +90,88 @@ class ApiDataSource {
     String page = "",
   }) async {
     try {
-      String url = page == "resendOtp" ? ApiUrl.resendOtp : ApiUrl.register;
+      final url = page == "resendOtp" ? ApiUrl.resendOtp : ApiUrl.register;
 
       final response = await Request.sendRequest(
         url,
-        {"contact": "+91$phone", "purpose": "vendor"},
+        {"contact": "+91$phone", "purpose": "owner"},
         'Post',
         false,
-      ).timeout(const Duration(seconds: 10)); // explicitly set timeout
+      );
 
-      if (response is! DioException) {
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          if (response.data['status'] == true) {
-            return Right(LoginResponse.fromJson(response.data));
-          } else {
-            return Left(
-              ServerFailure(response.data['message'] ?? "Login failed"),
-            );
-          }
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data['status'] == true) {
+          return Right(LoginResponse.fromJson(response.data));
         } else {
           return Left(
-            ServerFailure(response.data['message'] ?? "Something went wrong"),
+            ServerFailure(response.data['message'] ?? "Login failed"),
           );
         }
-      } else {
-        final errorData = response.response?.data;
-        if (errorData is Map && errorData.containsKey('message')) {
-          return Left(ServerFailure(errorData['message']));
-        }
-        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
       }
-    } on TimeoutException {
-      return Left(ServerFailure("Request timed out. Please try again."));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+
+      return Left(
+        ServerFailure(response.data['message'] ?? "Something went wrong"),
+      );
+    } on DioException catch (e) {
+      // 🔴 NO INTERNET
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.unknown) {
+        return Left(ServerFailure("No internet connection. Please try again"));
+      }
+
+      final errorData = e.response?.data;
+      if (errorData is Map && errorData['message'] != null) {
+        return Left(ServerFailure(errorData['message']));
+      }
+
+      return Left(ServerFailure("Request failed"));
+    } catch (_) {
+      return Left(ServerFailure("Unexpected error occurred"));
     }
   }
+
+  // Future<Either<Failure, LoginResponse>> mobileNumberLogin(
+  //   String phone,
+  //   String simToken, {
+  //   String page = "",
+  // }) async {
+  //   try {
+  //     String url = page == "resendOtp" ? ApiUrl.resendOtp : ApiUrl.register;
+  //
+  //     final response = await Request.sendRequest(
+  //       url,
+  //       {"contact": "+91$phone", "purpose": "vendor"},
+  //       'Post',
+  //       false,
+  //     ).timeout(const Duration(seconds: 10)); // explicitly set timeout
+  //
+  //     if (response is! DioException) {
+  //       if (response.statusCode == 200 || response.statusCode == 201) {
+  //         if (response.data['status'] == true) {
+  //           return Right(LoginResponse.fromJson(response.data));
+  //         } else {
+  //           return Left(
+  //             ServerFailure(response.data['message'] ?? "Login failed"),
+  //           );
+  //         }
+  //       } else {
+  //         return Left(
+  //           ServerFailure(response.data['message'] ?? "Something went wrong"),
+  //         );
+  //       }
+  //     } else {
+  //       final errorData = response.response?.data;
+  //       if (errorData is Map && errorData.containsKey('message')) {
+  //         return Left(ServerFailure(errorData['message']));
+  //       }
+  //       return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+  //     }
+  //   } on TimeoutException {
+  //     return Left(ServerFailure("Request timed out. Please try again."));
+  //   } catch (e) {
+  //     return Left(ServerFailure(e.toString()));
+  //   }
+  // }
 
   Future<Either<Failure, OtpResponse>> otp({
     required String contact,
@@ -270,29 +316,70 @@ class ApiDataSource {
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
 
-      AppLogger.log.i(response);
-
       final data = response.data;
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (data['status'] == true) {
           return Right(WhatsappResponse.fromJson(data));
         } else {
-          return Left(ServerFailure(data['message'] ?? "Login failed"));
+          return Left(ServerFailure(data['message'] ?? "Verification failed"));
         }
-      } else {
-        return Left(ServerFailure(data['message'] ?? "Something went wrong"));
       }
-    } on DioException catch (dioError) {
-      final errorData = dioError.response?.data;
-      if (errorData is Map && errorData.containsKey('message')) {
+
+      return Left(ServerFailure(data['message'] ?? "Something went wrong"));
+    }
+    // 🔴 NETWORK / INTERNET ERRORS
+    on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.unknown) {
+        return Left(ServerFailure("No internet connection. Please try again"));
+      }
+
+      final errorData = e.response?.data;
+      if (errorData is Map && errorData['message'] != null) {
         return Left(ServerFailure(errorData['message']));
       }
-      return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+
+      return Left(ServerFailure("Request failed"));
+    } catch (_) {
+      return Left(ServerFailure("Unexpected error occurred"));
     }
   }
+
+  // Future<Either<Failure, WhatsappResponse>> whatsAppNumberVerify({
+  //   required String contact,
+  //   required String purpose,
+  // }) async {
+  //   try {
+  //     final url = ApiUrl.whatsAppVerify;
+  //
+  //     final payload = {"contact": "+91$contact", "purpose": purpose};
+  //
+  //     final response = await Request.sendRequest(url, payload, 'Post', true);
+  //
+  //     AppLogger.log.i(response);
+  //
+  //     final data = response.data;
+  //
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       if (data['status'] == true) {
+  //         return Right(WhatsappResponse.fromJson(data));
+  //       } else {
+  //         return Left(ServerFailure(data['message'] ?? "Login failed"));
+  //       }
+  //     } else {
+  //       return Left(ServerFailure(data['message'] ?? "Something went wrong"));
+  //     }
+  //   } on DioException catch (dioError) {
+  //     final errorData = dioError.response?.data;
+  //     if (errorData is Map && errorData.containsKey('message')) {
+  //       return Left(ServerFailure(errorData['message']));
+  //     }
+  //     return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
+  //   } catch (e) {
+  //     return Left(ServerFailure(e.toString()));
+  //   }
+  // }
 
   Future<Either<Failure, VendorResponse>> heaterRegister({
     required VendorRegisterScreen screen,
@@ -344,7 +431,7 @@ class ApiDataSource {
       /// ---- Build payload only for the current screen ----
       switch (screen) {
         case VendorRegisterScreen.screen1:
-          // Screen 1 – owner basic info
+          // Support Screen 1 – owner basic info
           addIfNotEmpty("vendorName", vendorName);
           addIfNotEmpty("ownerNameTamil", vendorNameTamil);
           addIfNotEmpty("phoneNumber", phoneNumber);
@@ -356,7 +443,7 @@ class ApiDataSource {
           break;
 
         case VendorRegisterScreen.screen2:
-          // Screen 2 – bank details only
+          // Support Screen 2 – bank details only
           addIfNotEmpty("bankAccountNumber", bankAccountNumber);
           addIfNotEmpty("bankName", bankAccountNumber);
           addIfNotEmpty("bankAccountName", bankAccountName);
@@ -365,7 +452,7 @@ class ApiDataSource {
           break;
 
         case VendorRegisterScreen.screen3:
-          // Screen 3 – company & location only
+          // Support Screen 3 – company & location only
           addIfNotEmpty("companyName", companyName);
           addIfNotEmpty("addressLine1", companyAddress);
           addIfNotEmpty("gpsLatitude", gpsLatitude);
@@ -379,7 +466,7 @@ class ApiDataSource {
           break;
 
         case VendorRegisterScreen.screen4:
-          // Screen 4 – avatar only
+          // Support Screen 4 – avatar only
           addIfNotEmpty("avatarUrl", avatarUrl);
           break;
       }

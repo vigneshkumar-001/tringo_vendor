@@ -37,6 +37,9 @@ import '../../Presentation/subscription/Screen/subscription_screen.dart';
 import '../../Splash_screen.dart';
 import '../../dummy_screen.dart';
 import '../../main.dart';
+import '../Const/app_color.dart';
+import '../Const/app_images.dart';
+import '../Utility/app_textstyles.dart';
 import 'heater_bottom_navigation_bar.dart';
 
 // ✅ IMPORTANT: make sure these providers exist in your project
@@ -114,7 +117,9 @@ class GoRouterRefreshStream extends ChangeNotifier {
     super.dispose();
   }
 }
+
 final GlobalKey<NavigatorState> rootNavKey = GlobalKey<NavigatorState>();
+
 /// ✅ Use provider-based router (important for redirect)
 final goRouterProvider = Provider<GoRouter>((ref) {
   // watch so router rebuilds with provider changes
@@ -337,12 +342,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return ShopsDetails(
             backDisabled: extra['backDisabled'] as bool? ?? false,
             fromSubscriptionSkip:
-            extra['fromSubscriptionSkip'] as bool? ?? false,
+                extra['fromSubscriptionSkip'] as bool? ?? false,
             shopId: extra['shopId'] as String?,
           );
         },
       ),
-
 
       GoRoute(
         path: AppRoutes.heaterRegister1Path,
@@ -437,7 +441,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-
     ],
   );
 });
@@ -451,9 +454,25 @@ class NoInternetScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('No Internet Connection', style: TextStyle(fontSize: 18)),
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 170),
+          child: Column(
+            children: [
+              // Image.asset(AppImages.noDataGif),
+              SizedBox(height: 30),
+              Text(
+                'No Internet Connection',
+                style: AppTextStyles.mulish(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.darkBlue,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -462,30 +481,30 @@ class NoInternetScreen extends StatelessWidget {
 // // lib/Core/Routing/app_go_routes.dart
 // import 'package:go_router/go_router.dart';
 // import 'package:tringo_vendor_new/Core/Widgets/bottom_navigation_bar.dart';
-// import 'package:tringo_vendor_new/Presentation/Shop%20Details%20Edit/Screen/shop_details_edit.dart';
+// import 'package:tringo_vendor_new/Presentation/Shop%20Details%20Edit/Support Screen/shop_details_edit.dart';
 //
 // import '../../Presentation/AddProduct/Screens/add_product_list.dart';
 // import '../../Presentation/AddProduct/Screens/product_category_screens.dart';
-// import '../../Presentation/Heater/Add Vendor Employee/Screen/employee_approval_pending.dart';
-// import '../../Presentation/Heater/Add Vendor Employee/Screen/employee_approval_rejected.dart';
-// import '../../Presentation/Heater/Add Vendor Employee/Screen/heater_add_employee.dart';
-// import '../../Presentation/Heater/Employee Details/Screen/heater_employee_details.dart';
-// import '../../Presentation/Heater/Employee details-edit/Screen/heater_employee_details_edit.dart';
-// import '../../Presentation/Heater/Heater Register/Screen/heater_register_1.dart';
-// import '../../Presentation/Heater/Heater Register/Screen/heater_register_2.dart';
-// import '../../Presentation/Heater/Vendor Company Info/Screen/vendor_company_info.dart';
-// import '../../Presentation/Heater/Vendor Company Info/Screen/vendor_company_photo.dart';
-// import '../../Presentation/Home Screen/home_screen.dart';
-// import '../../Presentation/Login Screen/Screens/login_mobile_number.dart';
-// import '../../Presentation/Mobile Nomber Verify/Screen/mobile_number_verify.dart';
-// import '../../Presentation/OTP Screen/Screens/otp_screen.dart';
-// import '../../Presentation/Owner Screen/Screens/owner_info_screens.dart';
-// import '../../Presentation/Privacy Policy/Screen/privacy_policy.dart';
+// import '../../Presentation/Heater/Add Vendor Employee/Support Screen/employee_approval_pending.dart';
+// import '../../Presentation/Heater/Add Vendor Employee/Support Screen/employee_approval_rejected.dart';
+// import '../../Presentation/Heater/Add Vendor Employee/Support Screen/heater_add_employee.dart';
+// import '../../Presentation/Heater/Employee Details/Support Screen/heater_employee_details.dart';
+// import '../../Presentation/Heater/Employee details-edit/Support Screen/heater_employee_details_edit.dart';
+// import '../../Presentation/Heater/Heater Register/Support Screen/heater_register_1.dart';
+// import '../../Presentation/Heater/Heater Register/Support Screen/heater_register_2.dart';
+// import '../../Presentation/Heater/Vendor Company Info/Support Screen/vendor_company_info.dart';
+// import '../../Presentation/Heater/Vendor Company Info/Support Screen/vendor_company_photo.dart';
+// import '../../Presentation/Home Support Screen/home_screen.dart';
+// import '../../Presentation/Login Support Screen/Screens/login_mobile_number.dart';
+// import '../../Presentation/Mobile Nomber Verify/Support Screen/mobile_number_verify.dart';
+// import '../../Presentation/OTP Support Screen/Screens/otp_screen.dart';
+// import '../../Presentation/Owner Support Screen/Screens/owner_info_screens.dart';
+// import '../../Presentation/Privacy Policy/Support Screen/privacy_policy.dart';
 // import '../../Presentation/ShopInfo/Screens/search_keyword.dart';
 // import '../../Presentation/ShopInfo/Screens/shop_category_info.dart';
 // import '../../Presentation/ShopInfo/Screens/shop_photo_info.dart';
-// import '../../Presentation/Shops Details/Screen/shops_details.dart';
-// import '../../Presentation/subscription/Screen/subscription_screen.dart';
+// import '../../Presentation/Shops Details/Support Screen/shops_details.dart';
+// import '../../Presentation/subscription/Support Screen/subscription_screen.dart';
 // import '../../Splash_screen.dart';
 // import 'heater_bottom_navigation_bar.dart';
 //

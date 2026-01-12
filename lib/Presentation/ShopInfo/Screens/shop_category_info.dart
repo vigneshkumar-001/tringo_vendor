@@ -9,6 +9,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Controller/shop_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_list_response.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Screens/shop_photo_info.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
 import '../../../Core/Utility/app_loader.dart';
@@ -156,6 +157,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
   TimeOfDay? _openTod;
   TimeOfDay? _closeTod;
+  bool _gpsFetched = false;
 
   int _toMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
 
@@ -183,6 +185,81 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
         );
       }
     });
+  }
+
+  Future<void> _openGoogleMapsFromGpsField() async {
+    try {
+      // 1) Try from existing text (lat,lng)
+      double? lat;
+      double? lng;
+
+      final t = _gpsController.text.trim();
+      final parts = t.split(',');
+      if (parts.length == 2) {
+        lat = double.tryParse(parts[0].trim());
+        lng = double.tryParse(parts[1].trim());
+      }
+
+      // 2) If not available, get current location
+      if (lat == null || lng == null) {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location services are disabled.')),
+          );
+          return;
+        }
+
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission == LocationPermission.denied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permission denied.')),
+          );
+          return;
+        }
+        if (permission == LocationPermission.deniedForever) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permissions are permanently denied.'),
+            ),
+          );
+          return;
+        }
+
+        final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        lat = pos.latitude;
+        lng = pos.longitude;
+
+        // Optional: field-la update pannalam
+        setState(() {
+          _gpsController.text =
+              '${lat!.toStringAsFixed(6)}, ${lng!.toStringAsFixed(6)}';
+          _gpsFetched = true;
+        });
+      }
+
+      // 3) Launch Google Maps app
+      final uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+      );
+
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open Google Maps')),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Google Maps open error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to open Google Maps')),
+      );
+    }
   }
 
   void _prefillFields() {
@@ -1011,6 +1088,36 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Shop name',
+                            style: AppTextStyles.mulish(
+                              color: AppColor.mildBlack,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '( As per Govt Certificate )',
+                            style: AppTextStyles.mulish(
+                              color: AppColor.mediumLightGray,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // ✅ FIXED VALIDATOR (uses controller)
+                      CommonContainer.fillingContainer(
+                        controller: _shopNameEnglishController,
+                        text: 'English',
+                        validator:
+                            (_) => _requiredFromController(
+                              'Shop Name in English',
+                              _shopNameEnglishController,
+                            ),
+                      ),
+                      const SizedBox(height: 25),
                       Text(
                         'Shop Category',
                         style: AppTextStyles.mulish(color: AppColor.mildBlack),
@@ -1154,118 +1261,86 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           ),
                         ),
 
-                      const SizedBox(height: 25),
-
-                      Row(
-                        children: [
-                          Text(
-                            'Shop name',
-                            style: AppTextStyles.mulish(
-                              color: AppColor.mildBlack,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            '( As per Govt Certificate )',
-                            style: AppTextStyles.mulish(
-                              color: AppColor.mediumLightGray,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      // ✅ FIXED VALIDATOR (uses controller)
-                      CommonContainer.fillingContainer(
-                        controller: _shopNameEnglishController,
-                        text: 'English',
-                        validator:
-                            (_) => _requiredFromController(
-                              'Shop Name in English',
-                              _shopNameEnglishController,
-                            ),
-                      ),
-                      const SizedBox(height: 15),
-
-                      CommonContainer.fillingContainer(
-                        controller: tamilNameController,
-                        text: 'Tamil',
-                        isTamil: true,
-                        validator:
-                            (_) => tamilRequired(
-                              "Shop Tamil Name",
-                              tamilNameController.text,
-                            ),
-                        onChanged: (value) {
-                          _tamilDebounce?.cancel();
-                          _tamilDebounce = Timer(
-                            const Duration(milliseconds: 400),
-                            () async {
-                              final text = value.trim();
-                              if (text.isEmpty) {
-                                if (!mounted) return;
-                                setState(() {
-                                  tamilNameSuggestion = [];
-                                  isTamilNameLoading = false;
-                                });
-                                return;
-                              }
-                              final int reqId = ++_tamilReqId;
-                              if (!mounted) return;
-                              setState(() => isTamilNameLoading = true);
-                              try {
-                                final result =
-                                    await TanglishTamilHelper.transliterate(
-                                      text,
-                                    );
-                                if (!mounted || reqId != _tamilReqId) return;
-                                setState(() {
-                                  tamilNameSuggestion = result;
-                                  _tamilPrefilled = true;
-                                });
-                              } finally {
-                                if (!mounted || reqId != _tamilReqId) return;
-                                setState(() => isTamilNameLoading = false);
-                              }
-                            },
-                          );
-                        },
-                      ),
-                      if (isTamilNameLoading)
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      if (tamilNameSuggestion.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          constraints: const BoxConstraints(maxHeight: 150),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.grey),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: tamilNameSuggestion.length,
-                            itemBuilder: (context, index) {
-                              final suggestion = tamilNameSuggestion[index];
-                              return ListTile(
-                                title: Text(suggestion),
-                                onTap: () {
-                                  TanglishTamilHelper.applySuggestion(
-                                    controller: tamilNameController,
-                                    suggestion: suggestion,
-                                    onSuggestionApplied: () {
-                                      setState(() => tamilNameSuggestion = []);
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-
+                      // const SizedBox(height: 15),
+                      //
+                      // CommonContainer.fillingContainer(
+                      //   controller: tamilNameController,
+                      //   text: 'Tamil',
+                      //   isTamil: true,
+                      //   validator:
+                      //       (_) => tamilRequired(
+                      //         "Shop Tamil Name",
+                      //         tamilNameController.text,
+                      //       ),
+                      //   onChanged: (value) {
+                      //     _tamilDebounce?.cancel();
+                      //     _tamilDebounce = Timer(
+                      //       const Duration(milliseconds: 400),
+                      //       () async {
+                      //         final text = value.trim();
+                      //         if (text.isEmpty) {
+                      //           if (!mounted) return;
+                      //           setState(() {
+                      //             tamilNameSuggestion = [];
+                      //             isTamilNameLoading = false;
+                      //           });
+                      //           return;
+                      //         }
+                      //         final int reqId = ++_tamilReqId;
+                      //         if (!mounted) return;
+                      //         setState(() => isTamilNameLoading = true);
+                      //         try {
+                      //           final result =
+                      //               await TanglishTamilHelper.transliterate(
+                      //                 text,
+                      //               );
+                      //           if (!mounted || reqId != _tamilReqId) return;
+                      //           setState(() {
+                      //             tamilNameSuggestion = result;
+                      //             _tamilPrefilled = true;
+                      //           });
+                      //         } finally {
+                      //           if (!mounted || reqId != _tamilReqId) return;
+                      //           setState(() => isTamilNameLoading = false);
+                      //         }
+                      //       },
+                      //     );
+                      //   },
+                      // ),
+                      // if (isTamilNameLoading)
+                      //   const Padding(
+                      //     padding: EdgeInsets.all(8.0),
+                      //     child: CircularProgressIndicator(strokeWidth: 2),
+                      //   ),
+                      // if (tamilNameSuggestion.isNotEmpty)
+                      //   Container(
+                      //     margin: const EdgeInsets.only(top: 4),
+                      //     constraints: const BoxConstraints(maxHeight: 150),
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.white,
+                      //       borderRadius: BorderRadius.circular(15),
+                      //       border: Border.all(color: Colors.grey),
+                      //     ),
+                      //     child: ListView.builder(
+                      //       shrinkWrap: true,
+                      //       itemCount: tamilNameSuggestion.length,
+                      //       itemBuilder: (context, index) {
+                      //         final suggestion = tamilNameSuggestion[index];
+                      //         return ListTile(
+                      //           title: Text(suggestion),
+                      //           onTap: () {
+                      //             TanglishTamilHelper.applySuggestion(
+                      //               controller: tamilNameController,
+                      //               suggestion: suggestion,
+                      //               onSuggestionApplied: () {
+                      //                 setState(() => tamilNameSuggestion = []);
+                      //               },
+                      //             );
+                      //           },
+                      //         );
+                      //       },
+                      //     ),
+                      //   ),
                       const SizedBox(height: 25),
 
                       Text(
@@ -1284,94 +1359,94 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                               _descriptionEnglishController,
                             ),
                       ),
-                      const SizedBox(height: 15),
 
-                      CommonContainer.fillingContainer(
-                        controller: descriptionTamilController,
-                        maxLine: 4,
-                        text: 'Tamil',
-                        isTamil: true,
-                        validator:
-                            (_) => tamilRequired(
-                              "Description Tamil Name",
-                              descriptionTamilController.text,
-                            ),
-                        onChanged: (value) {
-                          _descTamilDebounce?.cancel();
-                          _descTamilDebounce = Timer(
-                            const Duration(milliseconds: 400),
-                            () async {
-                              final text = value.trim();
-                              if (text.isEmpty) {
-                                if (!mounted) return;
-                                setState(() {
-                                  descriptionTamilSuggestion = [];
-                                  isDescriptionTamilLoading = false;
-                                });
-                                return;
-                              }
-                              final int reqId = ++_descTamilReqId;
-                              if (!mounted) return;
-                              setState(() => isDescriptionTamilLoading = true);
-                              try {
-                                final result =
-                                    await TanglishTamilHelper.transliterate(
-                                      text,
-                                    );
-                                if (!mounted || reqId != _descTamilReqId)
-                                  return;
-                                setState(
-                                  () => descriptionTamilSuggestion = result,
-                                );
-                              } finally {
-                                if (!mounted || reqId != _descTamilReqId)
-                                  return;
-                                setState(
-                                  () => isDescriptionTamilLoading = false,
-                                );
-                              }
-                            },
-                          );
-                        },
-                      ),
-                      if (isDescriptionTamilLoading)
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      if (descriptionTamilSuggestion.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          constraints: const BoxConstraints(maxHeight: 150),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.grey),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: descriptionTamilSuggestion.length,
-                            itemBuilder: (context, index) {
-                              final suggestion =
-                                  descriptionTamilSuggestion[index];
-                              return ListTile(
-                                title: Text(suggestion),
-                                onTap: () {
-                                  TanglishTamilHelper.applySuggestion(
-                                    controller: descriptionTamilController,
-                                    suggestion: suggestion,
-                                    onSuggestionApplied: () {
-                                      setState(
-                                        () => descriptionTamilSuggestion = [],
-                                      );
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-
+                      // const SizedBox(height: 15),
+                      //
+                      // CommonContainer.fillingContainer(
+                      //   controller: descriptionTamilController,
+                      //   maxLine: 4,
+                      //   text: 'Tamil',
+                      //   isTamil: true,
+                      //   validator:
+                      //       (_) => tamilRequired(
+                      //         "Description Tamil Name",
+                      //         descriptionTamilController.text,
+                      //       ),
+                      //   onChanged: (value) {
+                      //     _descTamilDebounce?.cancel();
+                      //     _descTamilDebounce = Timer(
+                      //       const Duration(milliseconds: 400),
+                      //       () async {
+                      //         final text = value.trim();
+                      //         if (text.isEmpty) {
+                      //           if (!mounted) return;
+                      //           setState(() {
+                      //             descriptionTamilSuggestion = [];
+                      //             isDescriptionTamilLoading = false;
+                      //           });
+                      //           return;
+                      //         }
+                      //         final int reqId = ++_descTamilReqId;
+                      //         if (!mounted) return;
+                      //         setState(() => isDescriptionTamilLoading = true);
+                      //         try {
+                      //           final result =
+                      //               await TanglishTamilHelper.transliterate(
+                      //                 text,
+                      //               );
+                      //           if (!mounted || reqId != _descTamilReqId)
+                      //             return;
+                      //           setState(
+                      //             () => descriptionTamilSuggestion = result,
+                      //           );
+                      //         } finally {
+                      //           if (!mounted || reqId != _descTamilReqId)
+                      //             return;
+                      //           setState(
+                      //             () => isDescriptionTamilLoading = false,
+                      //           );
+                      //         }
+                      //       },
+                      //     );
+                      //   },
+                      // ),
+                      // if (isDescriptionTamilLoading)
+                      //   const Padding(
+                      //     padding: EdgeInsets.all(8.0),
+                      //     child: CircularProgressIndicator(strokeWidth: 2),
+                      //   ),
+                      // if (descriptionTamilSuggestion.isNotEmpty)
+                      //   Container(
+                      //     margin: const EdgeInsets.only(top: 4),
+                      //     constraints: const BoxConstraints(maxHeight: 150),
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.white,
+                      //       borderRadius: BorderRadius.circular(15),
+                      //       border: Border.all(color: Colors.grey),
+                      //     ),
+                      //     child: ListView.builder(
+                      //       shrinkWrap: true,
+                      //       itemCount: descriptionTamilSuggestion.length,
+                      //       itemBuilder: (context, index) {
+                      //         final suggestion =
+                      //             descriptionTamilSuggestion[index];
+                      //         return ListTile(
+                      //           title: Text(suggestion),
+                      //           onTap: () {
+                      //             TanglishTamilHelper.applySuggestion(
+                      //               controller: descriptionTamilController,
+                      //               suggestion: suggestion,
+                      //               onSuggestionApplied: () {
+                      //                 setState(
+                      //                   () => descriptionTamilSuggestion = [],
+                      //                 );
+                      //               },
+                      //             );
+                      //           },
+                      //         );
+                      //       },
+                      //     ),
+                      //   ),
                       const SizedBox(height: 25),
 
                       Text(
@@ -1390,89 +1465,89 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                               _addressEnglishController,
                             ),
                       ),
-                      const SizedBox(height: 15),
 
-                      CommonContainer.fillingContainer(
-                        controller: addressTamilNameController,
-                        maxLine: 4,
-                        text: 'Tamil',
-                        isTamil: true,
-                        validator:
-                            (_) => tamilRequired(
-                              "Address Tamil Name",
-                              addressTamilNameController.text,
-                            ),
-                        onChanged: (value) {
-                          _addressTamilDebounce?.cancel();
-                          _addressTamilDebounce = Timer(
-                            const Duration(milliseconds: 400),
-                            () async {
-                              final text = value.trim();
-                              if (text.isEmpty) {
-                                if (!mounted) return;
-                                setState(() {
-                                  addressTamilSuggestion = [];
-                                  isAddressLoading = false;
-                                });
-                                return;
-                              }
-                              final int reqId = ++_addressTamilReqId;
-                              if (!mounted) return;
-                              setState(() => isAddressLoading = true);
-                              try {
-                                final result =
-                                    await TanglishTamilHelper.transliterate(
-                                      text,
-                                    );
-                                if (!mounted || reqId != _addressTamilReqId)
-                                  return;
-                                setState(() => addressTamilSuggestion = result);
-                              } finally {
-                                if (!mounted || reqId != _addressTamilReqId)
-                                  return;
-                                setState(() => isAddressLoading = false);
-                              }
-                            },
-                          );
-                        },
-                      ),
-                      if (isAddressLoading)
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      if (addressTamilSuggestion.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          constraints: const BoxConstraints(maxHeight: 150),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.grey),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: addressTamilSuggestion.length,
-                            itemBuilder: (context, index) {
-                              final suggestion = addressTamilSuggestion[index];
-                              return ListTile(
-                                title: Text(suggestion),
-                                onTap: () {
-                                  TanglishTamilHelper.applySuggestion(
-                                    controller: addressTamilNameController,
-                                    suggestion: suggestion,
-                                    onSuggestionApplied: () {
-                                      setState(
-                                        () => addressTamilSuggestion = [],
-                                      );
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-
+                      // const SizedBox(height: 15),
+                      //
+                      // CommonContainer.fillingContainer(
+                      //   controller: addressTamilNameController,
+                      //   maxLine: 4,
+                      //   text: 'Tamil',
+                      //   isTamil: true,
+                      //   validator:
+                      //       (_) => tamilRequired(
+                      //         "Address Tamil Name",
+                      //         addressTamilNameController.text,
+                      //       ),
+                      //   onChanged: (value) {
+                      //     _addressTamilDebounce?.cancel();
+                      //     _addressTamilDebounce = Timer(
+                      //       const Duration(milliseconds: 400),
+                      //       () async {
+                      //         final text = value.trim();
+                      //         if (text.isEmpty) {
+                      //           if (!mounted) return;
+                      //           setState(() {
+                      //             addressTamilSuggestion = [];
+                      //             isAddressLoading = false;
+                      //           });
+                      //           return;
+                      //         }
+                      //         final int reqId = ++_addressTamilReqId;
+                      //         if (!mounted) return;
+                      //         setState(() => isAddressLoading = true);
+                      //         try {
+                      //           final result =
+                      //               await TanglishTamilHelper.transliterate(
+                      //                 text,
+                      //               );
+                      //           if (!mounted || reqId != _addressTamilReqId)
+                      //             return;
+                      //           setState(() => addressTamilSuggestion = result);
+                      //         } finally {
+                      //           if (!mounted || reqId != _addressTamilReqId)
+                      //             return;
+                      //           setState(() => isAddressLoading = false);
+                      //         }
+                      //       },
+                      //     );
+                      //   },
+                      // ),
+                      // if (isAddressLoading)
+                      //   const Padding(
+                      //     padding: EdgeInsets.all(8.0),
+                      //     child: CircularProgressIndicator(strokeWidth: 2),
+                      //   ),
+                      // if (addressTamilSuggestion.isNotEmpty)
+                      //   Container(
+                      //     margin: const EdgeInsets.only(top: 4),
+                      //     constraints: const BoxConstraints(maxHeight: 150),
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.white,
+                      //       borderRadius: BorderRadius.circular(15),
+                      //       border: Border.all(color: Colors.grey),
+                      //     ),
+                      //     child: ListView.builder(
+                      //       shrinkWrap: true,
+                      //       itemCount: addressTamilSuggestion.length,
+                      //       itemBuilder: (context, index) {
+                      //         final suggestion = addressTamilSuggestion[index];
+                      //         return ListTile(
+                      //           title: Text(suggestion),
+                      //           onTap: () {
+                      //             TanglishTamilHelper.applySuggestion(
+                      //               controller: addressTamilNameController,
+                      //               suggestion: suggestion,
+                      //               onSuggestionApplied: () {
+                      //                 setState(
+                      //                   () => addressTamilSuggestion = [],
+                      //                 );
+                      //               },
+                      //             );
+                      //           },
+                      //         );
+                      //       },
+                      //     ),
+                      //   ),
                       const SizedBox(height: 25),
 
                       Text(
@@ -1484,13 +1559,18 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       GestureDetector(
                         onTap: () async {
                           setState(() => _isFetchingGps = true);
-                          await _getCurrentLocation();
-                          setState(() => _isFetchingGps = false);
+                          await _openGoogleMapsFromGpsField();
+                          if (mounted) setState(() => _isFetchingGps = false);
                         },
+                        // onTap: () async {
+                        //   setState(() => _isFetchingGps = true);
+                        //   await _getCurrentLocation();
+                        //   setState(() => _isFetchingGps = false);
+                        // },
                         child: AbsorbPointer(
                           child: CommonContainer.fillingContainer(
                             controller: _gpsController,
-                            text: _isFetchingGps ? '' : 'Get by GPS',
+                            text: _isFetchingGps ? '' : 'Shop Location',
                             textColor:
                                 _gpsController.text.isEmpty
                                     ? AppColor.skyBlue
@@ -1532,6 +1612,35 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       const SizedBox(height: 10),
 
                       if (isEditFromAboutMe) ...[
+                        // AnimatedSwitcher(
+                        //   duration: const Duration(milliseconds: 400),
+                        //   transitionBuilder:
+                        //       (child, animation) => FadeTransition(
+                        //     opacity: animation,
+                        //     child: child,
+                        //   ),
+                        //   child: OwnerVerifyField(
+                        //     controller: _primaryMobileController,
+                        //     isLoading: state.isSendingOtp,
+                        //     isOtpVerifying: state.isVerifyingOtp,
+                        //     onSendOtp: (mobile) {
+                        //       return ref
+                        //           .read(addEmployeeNotifier.notifier)
+                        //           .employeeAddNumberRequest(
+                        //         phoneNumber: mobile,
+                        //       );
+                        //     },
+                        //     onVerifyOtp: (mobile, otp) {
+                        //       return ref
+                        //           .read(addEmployeeNotifier.notifier)
+                        //           .employeeAddOtpRequest(
+                        //         phoneNumber: mobile,
+                        //         code: otp,
+                        //       );
+                        //     },
+                        //   ),
+                        // ),
+
                         CommonContainer.fillingContainer(
                           controller: _primaryMobileController,
                           verticalDivider: false,
@@ -1541,6 +1650,34 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           validator: (_) => null,
                         ),
                       ] else ...[
+                        // AnimatedSwitcher(
+                        //   duration: const Duration(milliseconds: 400),
+                        //   transitionBuilder:
+                        //       (child, animation) => FadeTransition(
+                        //     opacity: animation,
+                        //     child: child,
+                        //   ),
+                        //   child: OwnerVerifyField(
+                        //     controller: _primaryMobileController,
+                        //     isLoading: state.isSendingOtp,
+                        //     isOtpVerifying: state.isVerifyingOtp,
+                        //     onSendOtp: (mobile) {
+                        //       return ref
+                        //           .read(addEmployeeNotifier.notifier)
+                        //           .employeeAddNumberRequest(
+                        //         phoneNumber: mobile,
+                        //       );
+                        //     },
+                        //     onVerifyOtp: (mobile, otp) {
+                        //       return ref
+                        //           .read(addEmployeeNotifier.notifier)
+                        //           .employeeAddOtpRequest(
+                        //         phoneNumber: mobile,
+                        //         code: otp,
+                        //       );
+                        //     },
+                        //   ),
+                        // ),
                         CommonContainer.fillingContainer(
                           controller: _primaryMobileController,
                           verticalDivider: true,

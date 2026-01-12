@@ -8,7 +8,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'Core/Const/app_color.dart';
 
+import 'Core/Const/app_images.dart';
+import 'Core/Utility/app_textstyles.dart';
 import 'Core/Widgets/app_go_routes.dart';
+import 'Core/Widgets/common_container.dart';
 import 'dummy_screen.dart';
 
 void main() {
@@ -44,11 +47,24 @@ class NoInternetScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          "No Internet Connection",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 160),
+          child: Column(
+            children: [
+              Image.asset(AppImages.noDataGif),
+              SizedBox(height: 30),
+              Text(
+                'No Internet Connection',
+                style: AppTextStyles.mulish(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColor.darkBlue,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
