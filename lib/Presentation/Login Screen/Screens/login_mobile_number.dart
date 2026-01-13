@@ -106,11 +106,11 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber> {
         final fullPhone = '$_selectedDialCode$raw';
         final simToken = generateSimToken(fullPhone);
 
-        context.pushNamed(
-          AppRoutes.mobileNumberVerify,
-          extra: {'phone': raw, 'simToken': simToken},
-        );
-
+        // context.pushNamed(
+        //   AppRoutes.mobileNumberVerify,
+        //   extra: {'phone': raw, 'simToken': simToken},
+        // );
+        context.pushNamed(AppRoutes.otp, extra: raw);
         ref.read(loginNotifierProvider.notifier).resetState();
       }
     });
