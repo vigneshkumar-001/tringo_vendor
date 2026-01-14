@@ -317,8 +317,8 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                       const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
-                        text: 'English',
-                        verticalDivider: true,
+                        text: '',
+                        verticalDivider: false,
                         controller: englishNameController,
                         context: context,
                         // validator:

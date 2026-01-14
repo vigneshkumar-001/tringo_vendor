@@ -16,8 +16,6 @@ class VendorResponse {
   }
 }
 
-
-
 class VendorData {
   final String id;
   final DateTime createdAt;
@@ -32,15 +30,15 @@ class VendorData {
   final String? primaryState;
   final String? avatarUrl;
 
-  final String? gender;                 // 🔄 made nullable
+  final String? gender; // 🔄 made nullable
   final DateTime? dateOfBirth;
   final bool isActive;
   final String? addressLine1;
   final double? gpsLatitude;
   final double? gpsLongitude;
 
-  final String? aadharNumber;           // 🔄 made nullable
-  final String? aadharDocumentUrl;      // 🔄 made nullable
+  final String? aadharNumber; // 🔄 made nullable
+  final String? aadharDocumentUrl; // 🔄 made nullable
 
   final String? bankAccountNumber;
   final String? bankName;
@@ -48,6 +46,7 @@ class VendorData {
   final String? bankBranch;
   final String? bankIfsc;
   final String? companyContactNumber;
+  final String? companyContactVerificationToken;
   final String? alternatePhone;
   final String? companyEmail;
   final String? gstNumber;
@@ -77,6 +76,7 @@ class VendorData {
     this.bankBranch,
     this.bankIfsc,
     this.companyContactNumber,
+    this.companyContactVerificationToken,
     this.alternatePhone,
     this.companyEmail,
     this.gstNumber,
@@ -119,14 +119,14 @@ class VendorData {
       primaryState: json['primaryState'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
 
-      gender: json['gender'] as String?,                 // ✅ safe
-      dateOfBirth: parseDate(json['dateOfBirth']),       // ✅ safe
-      isActive: parseIsActive(json['isActive']),         // ✅ supports int/bool/string
+      gender: json['gender'] as String?, // ✅ safe
+      dateOfBirth: parseDate(json['dateOfBirth']), // ✅ safe
+      isActive: parseIsActive(json['isActive']), // ✅ supports int/bool/string
       addressLine1: json['addressLine1'] as String?,
-      gpsLatitude: parseDouble(json['gpsLatitude']),     // ✅ safe
-      gpsLongitude: parseDouble(json['gpsLongitude']),   // ✅ safe
+      gpsLatitude: parseDouble(json['gpsLatitude']), // ✅ safe
+      gpsLongitude: parseDouble(json['gpsLongitude']), // ✅ safe
 
-      aadharNumber: json['aadharNumber'] as String?,           // ✅ safe
+      aadharNumber: json['aadharNumber'] as String?, // ✅ safe
       aadharDocumentUrl: json['aadharDocumentUrl'] as String?, // ✅ safe
 
       bankAccountNumber: json['bankAccountNumber'] as String?,
@@ -135,6 +135,8 @@ class VendorData {
       bankBranch: json['bankBranch'] as String?,
       bankIfsc: json['bankIfsc'] as String?,
       companyContactNumber: json['companyContactNumber'] as String?,
+      companyContactVerificationToken:
+          json['companyContactVerificationToken'] as String?,
       alternatePhone: json['alternatePhone'] as String?,
       companyEmail: json['companyEmail'] as String?,
       gstNumber: json['gstNumber'] as String?,
@@ -167,13 +169,13 @@ class VendorData {
       'bankBranch': bankBranch,
       'bankIfsc': bankIfsc,
       'companyContactNumber': companyContactNumber,
+      'companyContactVerificationToken': companyContactVerificationToken,
       'alternatePhone': alternatePhone,
       'companyEmail': companyEmail,
       'gstNumber': gstNumber,
     };
   }
 }
-
 
 class VendorUser {
   final String id;

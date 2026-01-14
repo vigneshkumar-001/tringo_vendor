@@ -254,7 +254,9 @@ class Request {
     dio.interceptors.add(
       InterceptorsWrapper(
         onResponse: (response, handler) async {
-          AppLogger.log.i("GET RESPONSE\nAPI: $url\nDATA: ${response.data} \n Token = $token \n session Token = $sessionToken");
+          AppLogger.log.i(
+            "GET RESPONSE\nAPI: $url\nDATA: ${response.data} \n Token = $token \n session Token = $sessionToken",
+          );
 
           if (_isInvalidSessionResponse(response.data)) {
             await _forceLogout(reason: "Invalid session token (GET body)");

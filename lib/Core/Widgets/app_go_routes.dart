@@ -198,8 +198,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.loginPath,
         name: AppRoutes.login,
-        builder: (context, state) => LoginMobileNumber(),
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>? ?? {};
+          final phone = args['phone'] as String? ?? '';
+          final simToken = args['simToken'] as String? ?? '';
+
+          return LoginMobileNumber(loginNumber: phone, simToken: simToken);
+        },
       ),
+      // GoRoute(
+      //   path: AppRoutes.loginPath,
+      //   name: AppRoutes.login,
+      //   builder: (context, state) => LoginMobileNumber(),
+      // ),
       GoRoute(
         path: AppRoutes.otpPath,
         name: AppRoutes.otp,
