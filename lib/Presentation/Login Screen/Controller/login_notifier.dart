@@ -5,9 +5,11 @@ import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import '../../../../../Api/DataSource/api_data_source.dart';
 
 import '../../../Api/Repository/failure.dart';
+import '../../../Core/Utility/app_prefs.dart';
 import '../../../Core/contacts/contacts_service.dart';
 import '../../../Core/contacts/contacts_sync_manager.dart';
 import '../Model/contact_response.dart';
+import '../Model/login_new_response.dart';
 import '../Model/login_response.dart';
 import '../Model/otp_response.dart';
 import '../Model/resend_otp_response.dart';
@@ -18,6 +20,7 @@ class LoginState {
   final bool isLoading;
   final bool reSendOtpLoading;
   final LoginResponse? loginResponse;
+  final OtpLoginResponse? otpLoginResponse;
   final OtpResponse? otpResponse;
   final String? error;
   final WhatsappResponse? whatsappResponse;
@@ -28,6 +31,7 @@ class LoginState {
     this.isLoading = false,
     this.reSendOtpLoading = false,
     this.loginResponse,
+    this.otpLoginResponse,
     this.otpResponse,
     this.error,
     this.whatsappResponse,
@@ -41,6 +45,7 @@ class LoginState {
     bool? isLoading,
     bool? reSendOtpLoading,
     LoginResponse? loginResponse,
+    OtpLoginResponse? otpLoginResponse,
     OtpResponse? otpResponse,
     String? error,
     WhatsappResponse? whatsappResponse,
@@ -56,6 +61,7 @@ class LoginState {
       whatsappResponse: whatsappResponse ?? this.whatsappResponse,
       resendOtpResponse: resendOtpResponse ?? this.resendOtpResponse,
       contactResponse: contactResponse ?? this.contactResponse,
+      otpLoginResponse: otpLoginResponse ?? this.otpLoginResponse,
     );
   }
 }
@@ -99,6 +105,101 @@ class LoginNotifier extends Notifier<LoginState> {
     );
   }
 
+  Future<void> loginNewUser({
+    required String phoneNumber,
+    String? simToken,
+    String? page,
+  }) async
+  {
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      otpLoginResponse: null,
+    );
+
+    final result = await api.mobileNewNumberLogin(
+      phoneNumber,
+      simToken ?? "",
+      page: page ?? "",
+    );
+
+    result.fold(
+          (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          error: failure.message,
+          otpLoginResponse: null,
+        );
+      },
+          (response) async {
+        state = state.copyWith(
+          isLoading: false,
+          otpLoginResponse: response,
+          error: null,
+        );
+
+        final prefs = await SharedPreferences.getInstance();
+        await AppPrefs.setToken(response.data?.accessToken ?? '');
+        await AppPrefs.setRefreshToken(response.data?.refreshToken ?? '');
+        await AppPrefs.setSessionToken(response.data?.sessionToken ?? '');
+        await AppPrefs.setRole(response.data?.role ?? '');
+
+        AppLogger.log.i('✅ SIM login token stored');
+
+        //  HERE: contacts sync for SIM-direct login
+        final alreadySynced = prefs.getBool('contacts_synced') ?? false;
+
+        // Optional: only sync when SIM verified true
+        final simVerified = response.data?.simVerified == true;
+
+        if (!alreadySynced && simVerified) {
+          try {
+            AppLogger.log.i("✅ Contact sync started (SIM login)");
+
+            final contacts = await ContactsService.getAllContacts();
+            AppLogger.log.i("📞 contacts fetched = ${contacts.length}");
+
+            if (contacts.isEmpty) {
+              AppLogger.log.w(
+                "⚠️ Contacts empty / permission denied. Will retry later.",
+              );
+              return;
+            }
+
+            final limited = contacts.take(500).toList();
+
+            final items = limited
+                .map((c) => {"name": c.name, "phone": "+91${c.phone}"})
+                .toList();
+
+            // ✅ chunk to reduce payload size (recommended)
+            const chunkSize = 200;
+            for (var i = 0; i < items.length; i += chunkSize) {
+              final chunk = items.sublist(
+                i,
+                (i + chunkSize > items.length) ? items.length : i + chunkSize,
+              );
+
+              final res = await api.syncContacts(items: chunk);
+
+              res.fold(
+                    (l) => AppLogger.log.e("❌ batch sync fail: ${l.message}"),
+                    (r) => AppLogger.log.i(
+                  "✅ batch ok total=${r.data.total} inserted=${r.data.inserted} touched=${r.data.touched} skipped=${r.data.skipped}",
+                ),
+              );
+            }
+
+            await prefs.setBool('contacts_synced', true);
+            AppLogger.log.i("✅ Contacts synced (SIM login): ${limited.length}");
+          } catch (e) {
+            AppLogger.log.e("❌ Contact sync failed (SIM login): $e");
+          }
+        }
+      },
+    );
+  }
+
   Future<void> verifyOtp({required String contact, required String otp}) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -109,11 +210,11 @@ class LoginNotifier extends Notifier<LoginState> {
       final result = await api.otp(contact: contact, otp: otp);
 
       await result.fold<Future<void>>(
-            (failure) async {
+        (failure) async {
           if (!ref.mounted) return;
           state = state.copyWith(isLoading: false, error: failure.message);
         },
-            (response) async {
+        (response) async {
           final prefs = await SharedPreferences.getInstance();
           if (!ref.mounted) return;
 
@@ -148,9 +249,6 @@ class LoginNotifier extends Notifier<LoginState> {
     }
   }
 
-
-
-
   Future<void> syncContact({
     required String name,
     required String phone,
@@ -181,8 +279,6 @@ class LoginNotifier extends Notifier<LoginState> {
     );
   }
 
-
-
   Future<void> resendOtp({required String contact}) async {
     state = state.copyWith(reSendOtpLoading: true, error: null);
 
@@ -193,7 +289,10 @@ class LoginNotifier extends Notifier<LoginState> {
         state = state.copyWith(reSendOtpLoading: false, error: failure.message);
       },
       (response) {
-        state = state.copyWith(reSendOtpLoading: false, resendOtpResponse: response);
+        state = state.copyWith(
+          reSendOtpLoading: false,
+          resendOtpResponse: response,
+        );
       },
     );
   }

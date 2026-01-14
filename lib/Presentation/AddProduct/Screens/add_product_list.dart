@@ -235,7 +235,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                 title: '',
                 image: AppImages.iImage,
                 infoMessage:
-                    'Add relevant search keywords customers might use to find your shop.',
+                    'For Example – Product Title: Smartphone.',
               ),
               // Text(
               //   'Heading',
@@ -263,7 +263,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                 title: '',
                 image: AppImages.iImage,
                 infoMessage:
-                    'Add relevant search keywords customers might use to find your shop.',
+                    'For Example – Product Description: “A smart device for calling, messaging, photos, and internet use.”',
               ),
               // Text(
               //   'Answer',

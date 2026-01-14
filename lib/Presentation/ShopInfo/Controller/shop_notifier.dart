@@ -14,40 +14,55 @@ import '../../../Core/Utility/app_prefs.dart';
 import '../../Owner Screen/Model/owner_otp_response.dart';
 import '../Model/search_keywords_response.dart';
 import '../Model/shop_info_photos_response.dart';
+import '../Model/shop_number_otp_response.dart';
+import '../Model/shop_number_verify_response.dart';
 
 class ShopCategoryState {
   final bool isLoading;
   final String? imageUrl;
+  final bool isSendingOtp;
+  final bool isVerifyingOtp;
   final String? error;
   final OwnerRegisterResponse? ownerRegisterResponse;
   final CategoryListResponse? categoryListResponse;
   final ShopInfoPhotosResponse? shopInfoPhotosResponse;
   final ShopCategoryApiResponse? shopCategoryApiResponse;
+  final ShopNumberVerifyResponse? shopNumberVerifyResponse;
+  final ShopNumberOtpResponse? shopNumberOtpResponse;
 
   const ShopCategoryState({
     this.isLoading = false,
+    this.isSendingOtp = false,
+    this.isVerifyingOtp = false,
     this.error,
     this.ownerRegisterResponse,
     this.imageUrl,
     this.categoryListResponse,
     this.shopInfoPhotosResponse,
     this.shopCategoryApiResponse,
+    this.shopNumberVerifyResponse,
+    this.shopNumberOtpResponse,
   });
 
   factory ShopCategoryState.initial() => const ShopCategoryState();
   ShopCategoryState copyWith({
     bool? isLoading,
+    bool? isSendingOtp,
+    bool? isVerifyingOtp,
+    bool clearError = false,
+    String? error,
     OwnerRegisterResponse? ownerRegisterResponse,
     CategoryListResponse? categoryListResponse,
     ShopInfoPhotosResponse? shopInfoPhotosResponse,
     ShopCategoryApiResponse? shopCategoryApiResponse,
-
-    String? error,
+    ShopNumberVerifyResponse? shopNumberVerifyResponse,
+    ShopNumberOtpResponse? shopNumberOtpResponse,
   }) {
     return ShopCategoryState(
-      error: error,
       isLoading: isLoading ?? this.isLoading,
-
+      error: clearError ? null : (error ?? this.error),
+      isSendingOtp: isSendingOtp ?? this.isSendingOtp,
+      isVerifyingOtp: isVerifyingOtp ?? this.isVerifyingOtp,
       ownerRegisterResponse:
           ownerRegisterResponse ?? this.ownerRegisterResponse,
       categoryListResponse: categoryListResponse ?? this.categoryListResponse,
@@ -55,6 +70,10 @@ class ShopCategoryState {
           shopInfoPhotosResponse ?? this.shopInfoPhotosResponse,
       shopCategoryApiResponse:
           shopCategoryApiResponse ?? this.shopCategoryApiResponse,
+      shopNumberVerifyResponse:
+          shopNumberVerifyResponse ?? this.shopNumberVerifyResponse,
+      shopNumberOtpResponse:
+          shopNumberOtpResponse ?? this.shopNumberOtpResponse,
     );
   }
 }
@@ -64,6 +83,14 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
 
   @override
   ShopCategoryState build() => ShopCategoryState.initial();
+
+  String _onlyIndian10(String input) {
+    var p = input.trim();
+    p = p.replaceAll(RegExp(r'[^0-9]'), '');
+    if (p.startsWith('91') && p.length == 12) p = p.substring(2);
+    if (p.length > 10) p = p.substring(p.length - 10);
+    return p;
+  }
 
   Future<bool> shopInfoRegister({
     required String businessProfileId,
@@ -343,103 +370,6 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     }
   }
 
-  // Future<bool> uploadShopImages({
-  //   required List<File?> images,
-  //   required BuildContext context,
-  //   String? shopId,
-  //   List<String?>? existingUrls, // ✅ NEW
-  // }) async
-  // {
-  //   // existingUrls will be used in edit mode so old images won't be lost
-  //   final safeExisting = List<String?>.filled(4, null);
-  //   final inputExisting = existingUrls ?? const [];
-  //
-  //   for (int i = 0; i < 4; i++) {
-  //     if (i < inputExisting.length) {
-  //       final u = inputExisting[i];
-  //       if (u != null && u.trim().isNotEmpty) safeExisting[i] = u.trim();
-  //     }
-  //   }
-  //
-  //   // if no picked images and no existing urls => nothing to upload
-  //   final nothingPicked = images.isEmpty || images.every((e) => e == null);
-  //   final noExisting = safeExisting.every((e) => e == null);
-  //
-  //   if (nothingPicked && noExisting) {
-  //     state = const ShopCategoryState(
-  //       isLoading: false,
-  //       error: 'No images selected',
-  //     );
-  //     return false;
-  //   }
-  //
-  //   state = const ShopCategoryState(isLoading: true);
-  //
-  //   try {
-  //     final types = ["SIGN_BOARD", "OUTSIDE", "INSIDE", "INSIDE"];
-  //     final List<Map<String, String>> items = [];
-  //
-  //     for (int i = 0; i < 4; i++) {
-  //       final file = (i < images.length) ? images[i] : null;
-  //
-  //       // ✅ If user picked new file => upload and use new URL
-  //       if (file != null) {
-  //         final uploadResult = await apiDataSource.userProfileUpload(
-  //           imageFile: file,
-  //         );
-  //
-  //         final uploadedUrl = uploadResult.fold<String?>(
-  //           (failure) => null,
-  //           (success) => success.message,
-  //         );
-  //
-  //         if (uploadedUrl != null && uploadedUrl.trim().isNotEmpty) {
-  //           items.add({"type": types[i], "url": uploadedUrl.trim()});
-  //         }
-  //         continue;
-  //       }
-  //
-  //       // ✅ If no new file, keep old url (important for edit flow)
-  //       final oldUrl = safeExisting[i];
-  //       if (oldUrl != null && oldUrl.trim().isNotEmpty) {
-  //         items.add({"type": types[i], "url": oldUrl.trim()});
-  //       }
-  //     }
-  //
-  //     if (items.isEmpty) {
-  //       state = const ShopCategoryState(
-  //         isLoading: false,
-  //         error: 'Upload failed',
-  //       );
-  //       return false;
-  //     }
-  //
-  //     final apiResult = await apiDataSource.shopPhotoUpload(
-  //       items: items,
-  //       apiShopId: shopId,
-  //     );
-  //
-  //     return apiResult.fold(
-  //       (failure) {
-  //         state = ShopCategoryState(isLoading: false, error: failure.message);
-  //         AppLogger.log.e(failure.message);
-  //         return false;
-  //       },
-  //       (response) {
-  //         state = ShopCategoryState(
-  //           isLoading: false,
-  //           shopInfoPhotosResponse: response,
-  //         );
-  //         return response.status == true;
-  //       },
-  //     );
-  //   } catch (e) {
-  //     state = ShopCategoryState(isLoading: false, error: e.toString());
-  //     return false;
-  //   }
-  // }
-  //
-
   Future<bool> searchKeywords({required List<String> keywords}) async {
     state = const ShopCategoryState(isLoading: true, error: null);
 
@@ -472,6 +402,72 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
           shopCategoryApiResponse: response,
         );
         return true;
+      },
+    );
+  }
+
+  Future<String?> shopAddNumberRequest({
+    required String phoneNumber,
+    required String type,
+  }) async {
+    if (state.isSendingOtp) return "OTP_ALREADY_SENDING";
+    final phone10 = _onlyIndian10(phoneNumber);
+
+    state = state.copyWith(isSendingOtp: true, clearError: true);
+
+    final result = await apiDataSource.shopAddNumberRequest(
+      phone: phone10,
+      type: type,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isSendingOtp: false, error: failure.message);
+        return failure.message;
+      },
+      (response) {
+        state = state.copyWith(
+          isSendingOtp: false,
+          shopNumberVerifyResponse: response,
+        );
+        return null; // ✅ success
+      },
+    );
+  }
+
+  Future<bool> shopAddOtpRequest({
+    required String phoneNumber,
+    required String type,
+    required String code,
+  }) async {
+    if (state.isVerifyingOtp) return false;
+
+    final phone10 = _onlyIndian10(phoneNumber);
+
+    state = state.copyWith(isVerifyingOtp: true, clearError: true);
+
+    final result = await apiDataSource.shopAddOtpRequest(
+      phone: phone10,
+      type: type,
+      code: code,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isVerifyingOtp: false, error: failure.message);
+        return false;
+      },
+      (response) async {
+        final token = response.data?.verificationToken ?? '';
+        if (token.isNotEmpty) {
+          await AppPrefs.setVerificationToken(token);
+        }
+
+        state = state.copyWith(
+          isVerifyingOtp: false,
+          shopNumberOtpResponse: response,
+        );
+        return response.data?.verified == true; // ✅ verified true/false
       },
     );
   }

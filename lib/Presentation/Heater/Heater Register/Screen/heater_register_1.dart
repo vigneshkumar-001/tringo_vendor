@@ -462,14 +462,14 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
 
                       /// ENGLISH NAME
                       CommonContainer.fillingContainer(
-                        text: 'English',
-                        verticalDivider: true,
+                        text: ' ',
+                        verticalDivider: false,
                         controller: englishNameController,
                         context: context,
                         validator:
                             (v) =>
                                 v == null || v.trim().isEmpty
-                                    ? 'Enter English name'
+                                    ? 'Enter name'
                                     : null,
                       ),
 

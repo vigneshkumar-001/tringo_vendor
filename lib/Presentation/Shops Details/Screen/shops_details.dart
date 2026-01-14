@@ -824,7 +824,10 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                       ),
 
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 20,
+                        ),
                         child: Builder(
                           builder: (context) {
                             final reviews = shop?.reviews ?? [];

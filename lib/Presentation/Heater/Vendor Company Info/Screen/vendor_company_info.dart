@@ -14,11 +14,15 @@ import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_loader.dart';
+import '../../../../Core/Utility/app_prefs.dart';
 import '../../../../Core/Utility/app_snackbar.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Utility/thanglish_to_tamil.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
+import '../../../../Core/Widgets/owner_verify_feild.dart';
+import '../../../ShopInfo/Controller/shop_notifier.dart';
+import '../../Add Vendor Employee/Controller/add_employee_notifier.dart';
 
 class VendorCompanyInfo extends ConsumerStatefulWidget {
   const VendorCompanyInfo({super.key});
@@ -101,6 +105,18 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
     }
   }
 
+  String _normalizeIndianPhone10(String input) {
+    var p = input.trim();
+    p = p.replaceAll(RegExp(r'[^0-9]'), '');
+    if (p.startsWith('91') && p.length == 12) {
+      p = p.substring(2);
+    }
+    if (p.length > 10) {
+      p = p.substring(p.length - 10);
+    }
+    return p;
+  }
+
   TimeOfDay? _openTod;
   TimeOfDay? _closeTod;
   int _toMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
@@ -126,9 +142,9 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
       if (lat == null || lng == null) {
         bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
         if (!serviceEnabled) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location services are disabled.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Turn on Location.')));
           return;
         }
 
@@ -188,9 +204,10 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location services are disabled.')),
-        );
+        AppSnackBar.info(context, 'Turn on Location.');
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Location services are disabled.')),
+        // );
         return;
       }
 
@@ -513,12 +530,13 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       ),
                       SizedBox(height: 10),
                       CommonContainer.fillingContainer(
+                        verticalDivider: false,
                         controller: _shopNameEnglishController,
-                        text: 'English',
+                        text: '',
                         validator:
                             (value) =>
                                 value == null || value.isEmpty
-                                    ? 'Please Enter Shop Name in English'
+                                    ? 'Please Enter Shop Name'
                                     : null,
                       ),
                       SizedBox(height: 15),
@@ -529,13 +547,14 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       ),
                       SizedBox(height: 10),
                       CommonContainer.fillingContainer(
+                        verticalDivider: false,
                         controller: _addressEnglishController,
                         maxLine: 4,
-                        text: 'English',
+                        text: '',
                         validator:
                             (value) =>
                                 value == null || value.isEmpty
-                                    ? 'Please Enter Address in English'
+                                    ? 'Please Enter Address'
                                     : null,
                       ),
 
@@ -546,47 +565,57 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       ),
                       SizedBox(height: 10),
 
-                      GestureDetector(
-                        // onTap: () async {
-                        //   setState(() => _isFetchingGps = true);
-                        //   await _getCurrentLocation();
-                        //   setState(() => _isFetchingGps = false);
-                        // },
-                        onTap: () async {
+                      GpsInputField(
+                        controller: _gpsController,
+                        isLoading: _isFetchingGps,
+                        onMapTap: () async {
                           setState(() => _isFetchingGps = true);
                           await _openGoogleMapsFromGpsField();
                           if (mounted) setState(() => _isFetchingGps = false);
                         },
-                        child: AbsorbPointer(
-                          child: CommonContainer.fillingContainer(
-                            controller: _gpsController,
-                            text:
-                                _gpsController.text.isEmpty
-                                    ? (_isFetchingGps
-                                        ? ''
-                                        : 'Shop Location') // 👈 important
-                                    : '', // after GPS, no label
-                            textColor:
-                                _gpsController.text.isEmpty
-                                    ? AppColor
-                                        .skyBlue // blue while empty
-                                    : AppColor.mildBlack, // dark after fill
-                            textFontWeight: FontWeight.w700,
-                            suffixWidget:
-                                _isFetchingGps
-                                    ? SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppColor.skyBlue,
-                                      ),
-                                    )
-                                    : null,
-                            validator: (_) => null,
-                          ),
-                        ),
                       ),
+
+                      // GestureDetector(
+                      //   // onTap: () async {
+                      //   //   setState(() => _isFetchingGps = true);
+                      //   //   await _getCurrentLocation();
+                      //   //   setState(() => _isFetchingGps = false);
+                      //   // },
+                      //   onTap: () async {
+                      //     setState(() => _isFetchingGps = true);
+                      //     await _openGoogleMapsFromGpsField();
+                      //     if (mounted) setState(() => _isFetchingGps = false);
+                      //   },
+                      //   child: AbsorbPointer(
+                      //     child: CommonContainer.fillingContainer(
+                      //       controller: _gpsController,
+                      //       text:
+                      //           _gpsController.text.isEmpty
+                      //               ? (_isFetchingGps
+                      //                   ? ''
+                      //                   : 'Shop Location') // 👈 important
+                      //               : '', // after GPS, no label
+                      //       textColor:
+                      //           _gpsController.text.isEmpty
+                      //               ? AppColor
+                      //                   .skyBlue // blue while empty
+                      //               : AppColor.mildBlack, // dark after fill
+                      //       textFontWeight: FontWeight.w700,
+                      //       suffixWidget:
+                      //           _isFetchingGps
+                      //               ? SizedBox(
+                      //                 width: 16,
+                      //                 height: 16,
+                      //                 child: CircularProgressIndicator(
+                      //                   strokeWidth: 2,
+                      //                   color: AppColor.skyBlue,
+                      //                 ),
+                      //               )
+                      //               : null,
+                      //       validator: (_) => null,
+                      //     ),
+                      //   ),
+                      // ),
 
                       // if (_gpsErrorText != null)
                       //   Padding(
@@ -597,55 +626,58 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       //     ),
                       //   ),
                       SizedBox(height: 25),
-                      Text(
-                        'Primary Mobile Number',
-                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
 
-                      // AnimatedSwitcher(
-                      //   duration: const Duration(milliseconds: 400),
-                      //   transitionBuilder:
-                      //       (child, animation) => FadeTransition(
-                      //     opacity: animation,
-                      //     child: child,
-                      //   ),
-                      //   child: OwnerVerifyField(
-                      //     controller: _primaryMobileController,
-                      //     isLoading: state.isSendingOtp,
-                      //     isOtpVerifying: state.isVerifyingOtp,
-                      //     onSendOtp: (mobile) {
-                      //       return ref
-                      //           .read(addEmployeeNotifier.notifier)
-                      //           .employeeAddNumberRequest(
-                      //         phoneNumber: mobile,
-                      //       );
-                      //     },
-                      //     onVerifyOtp: (mobile, otp) {
-                      //       return ref
-                      //           .read(addEmployeeNotifier.notifier)
-                      //           .employeeAddOtpRequest(
-                      //         phoneNumber: mobile,
-                      //         code: otp,
-                      //       );
-                      //     },
-                      //   ),
+                      // Text(
+                      //   'Primary Mobile Number',
+                      //   style: AppTextStyles.mulish(color: AppColor.mildBlack),
                       // ),
-
-                      CommonContainer.fillingContainer(
-                        controller: _primaryMobileController,
-                        verticalDivider: true,
-                        isMobile: true, // mobile behavior +91 etc
-                        text: 'Verify by OTP',
-                        keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter Primary Mobile Number';
-                          }
-                          return null;
-                        },
+                      // SizedBox(height: 10),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        transitionBuilder:
+                            (child, animation) => FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            ),
+                        child: OwnerVerifyField(
+                          controller: _primaryMobileController,
+                          isLoading: state.isSendingOtp,
+                          isOtpVerifying: state.isVerifyingOtp,
+                          onSendOtp: (mobile) {
+                            final phone10 = _normalizeIndianPhone10(mobile);
+                            return ref
+                                .read(heaterRegisterNotifier.notifier)
+                                .shopAddNumberRequest(
+                                  type: "VENDOR_COMPANY_PHONE",
+                                  phoneNumber: phone10,
+                                );
+                          },
+                          onVerifyOtp: (mobile, otp) {
+                            final phone10 = _normalizeIndianPhone10(mobile);
+                            return ref
+                                .read(heaterRegisterNotifier.notifier)
+                                .shopAddOtpRequest(
+                                  phoneNumber: phone10,
+                                  type: "VENDOR_COMPANY_PHONE",
+                                  code: otp,
+                                );
+                          },
+                        ),
                       ),
 
+                      // CommonContainer.fillingContainer(
+                      //   controller: _primaryMobileController,
+                      //   verticalDivider: true,
+                      //   isMobile: true, // mobile behavior +91 etc
+                      //   text: 'Verify by OTP',
+                      //   keyboardType: TextInputType.phone,
+                      //   validator: (value) {
+                      //     if (value == null || value.isEmpty) {
+                      //       return 'Please Enter Primary Mobile Number';
+                      //     }
+                      //     return null;
+                      //   },
+                      // ),
                       const SizedBox(height: 25),
                       Text(
                         'Alternate Mobile Number',
@@ -722,7 +754,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                         verticalDivider: false,
                         isMobile: true,
                         text: '',
-                        keyboardType: TextInputType.phone,
+                        keyboardType: TextInputType.text,
                         // validator: (value) {
                         //   if (value == null || value.isEmpty) {
                         //     return 'Please Enter GST Number';
@@ -769,6 +801,33 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                             longitude = parts[1].trim();
                           }
 
+                          // final primaryMobile10 = _normalizeIndianPhone10(
+                          //   _primaryMobileController.text,
+                          // );
+
+                          final verificationToken =
+                              await AppPrefs.getVerificationToken();
+                          final verifiedPhone =
+                              await AppPrefs.getVerifiedCompanyPhone();
+
+                          if (verificationToken == null ||
+                              verificationToken.isEmpty) {
+                            AppSnackBar.error(
+                              context,
+                              "Please verify OTP for company phone number",
+                            );
+                            return;
+                          }
+
+                          if (verifiedPhone == null ||
+                              verifiedPhone != _primaryMobileController.text) {
+                            AppSnackBar.error(
+                              context,
+                              "Phone changed. Please verify OTP again",
+                            );
+                            return;
+                          }
+                          AppLogger.log.w(_primaryMobileController.text);
                           await ref
                               .read(heaterRegisterNotifier.notifier)
                               .registerVendor(
@@ -789,7 +848,10 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                                 gpsLongitude: longitude,
                                 primaryCity: '',
                                 primaryState: '',
-                                companyContactNumber: primaryMobile,
+                                companyContactNumber:
+                                    _primaryMobileController.text,
+                                companyContactVerificationToken:
+                                    verificationToken,
                                 alternatePhone: alternateMobileNumber,
                                 companyEmail: email,
                                 gstNumber: gSTNumber,
@@ -841,6 +903,104 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class GpsInputField extends StatelessWidget {
+  final TextEditingController controller;
+  final bool isLoading;
+  final VoidCallback onMapTap;
+  final String hintText;
+
+  const GpsInputField({
+    super.key,
+    required this.controller,
+    required this.isLoading,
+    required this.onMapTap,
+    this.hintText = 'Enter lat,lng or pick from map',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColor.lowGery1,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.transparent, width: 1.5),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: Row(
+        children: [
+          // ✅ LEFT: editable text field
+          Expanded(
+            child: TextFormField(
+              controller: controller,
+              keyboardType: TextInputType.text,
+              style: AppTextStyles.textWith700(fontSize: 16),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: hintText,
+                hintStyle: AppTextStyles.mulish(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.skyBlue,
+                ),
+              ),
+            ),
+          ),
+
+          // ✅ divider
+          Container(
+            width: 2,
+            height: 30,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.grey.shade200,
+                  Colors.grey.shade300,
+                  Colors.grey.shade200,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+
+          // ✅ RIGHT: map button only
+          InkWell(
+            onTap: isLoading ? null : onMapTap,
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLoading)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else ...[
+                    const Icon(Icons.location_on, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Shop Location',
+                      style: AppTextStyles.mulish(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColor.mildBlack,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

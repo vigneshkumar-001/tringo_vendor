@@ -4,6 +4,7 @@ class ApiUrl {
   static const String base = "https://bknd.tringobiz.com/";
   static const String register = "${base}api/v1/auth/request-otp";
   static const String verifyOtp = "${base}api/v1/auth/verify-otp";
+  static const String requestLogin = "${base}api/v1/auth/request-login";
   static const String whatsAppVerify = "${base}api/v1/auth/check-whatsapp";
   static const String resendOtp = "${base}api/v1/auth/resend-otp";
   static const String version = "${base}api/v1/app/version";
@@ -31,12 +32,19 @@ class ApiUrl {
   static const String plans = "${base}api/v1/subscriptions/plans";
   static const String purchase = "${base}api/v1/subscriptions/purchase";
 
+  static const String shopNumberVerify =
+      "${base}api/v1/auth/phone-verification/request";
+  static const String shopNumberOtpVerify =
+      "${base}api/v1/auth/phone-verification/verify";
+
   static const String categoriesShop =
       "${base}api/v1/public/categories?type=shop";
   static const String employeeOverview =
       "${base}api/v1/vendor/dashboard/overview";
-  static String imageUrl =
-      "https://next.fenizotechnologies.com/Adrox/api/image-save";
+  static const String imageUrl = "${base}api/media/image-save";
+
+  // static String imageUrl =
+  //     "https://next.fenizotechnologies.com/Adrox/api/image-save";
 
   static String heaterEmployeeEdit({required String employeeId}) {
     return "${base}api/v1/vendor/employees/$employeeId";
