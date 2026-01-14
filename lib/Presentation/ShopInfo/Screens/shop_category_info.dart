@@ -1631,10 +1631,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       //   ),
                       // ),
                       const SizedBox(height: 25),
-                      // Text(
-                      //   'Primary Mobile Number',
-                      //   style: AppTextStyles.mulish(color: AppColor.mildBlack),
-                      // ),
+                        Text(
+                          'Primary Mobile Number',
+                          style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                        ),
                       const SizedBox(height: 10),
                       if (isEditFromAboutMe) ...[
                         AnimatedSwitcher(
