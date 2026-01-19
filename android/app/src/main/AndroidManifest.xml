@@ -17,6 +17,10 @@
         android:label="Tringo Vendor"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAoOiPmmtlMJ7dqbk3yW13itbM1B5grOdc"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

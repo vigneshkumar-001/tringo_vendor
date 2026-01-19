@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 
 import '../../../../Core/Utility/app_snackbar.dart';
 import '../../../../Core/Widgets/common_container.dart';
@@ -78,6 +79,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         final data = next.otpResponse!.data;
         final role = (data?.role ?? '').toUpperCase();
         final isNewOwner = data?.isNewOwner ?? false;
+        AppLogger.log.w(isNewOwner);
 
         AppSnackBar.success(context, 'OTP verified successfully!');
 
@@ -170,55 +172,55 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final notifier = ref.read(loginNotifierProvider.notifier);
     final mobile = widget.phoneNumber;
 
-    ref.listen<LoginState>(loginNotifierProvider, (previous, next) async {
-      final notifier = ref.read(loginNotifierProvider.notifier);
-
-      // Error case
-      if (next.error != null) {
-        AppSnackBar.error(context, next.error!);
-        notifier.resetState();
-      }
-      // OTP verified
-      else if (next.otpResponse != null) {
-        AppSnackBar.success(context, 'OTP verified successfully!');
-
-        // final prefs = await SharedPreferences.getInstance();
-        // final alreadySynced = prefs.getBool('contacts_synced') ?? false;
-        //
-        // if (!alreadySynced) {
-        //   try {
-        //     // ✅ permission first
-        //     final contacts = await ContactsService.getAllContacts();
-        //
-        //     final limited = contacts.take(200).toList();
-        //     for (final c in limited) {
-        //       await ref
-        //           .read(apiDataSourceProvider)
-        //           .syncContacts(name: c.name, phone: c.phone);
-        //     }
-        //
-        //     await prefs.setBool('contacts_synced', true);
-        //     AppLogger.log.i("✅ Contacts synced: ${limited.length}");
-        //   } catch (e) {
-        //     AppLogger.log.e("❌ Contact sync failed: $e");
-        //   }
-        // }
-        context.goNamed(AppRoutes.privacyPolicy);
-        notifier.resetState();
-      }
-      // Login response (used for resend OTP)
-      else if (next.loginResponse != null) {
-        if (lastLoginPage == 'resendOtp') {
-          AppSnackBar.success(context, 'OTP resent successfully!');
-
-          otp.clear(); // ✅ clear old OTP in field
-          verifyCode = ''; // ✅ reset local value
-          _startTimer(30);
-        }
-        lastLoginPage = null;
-        notifier.resetState();
-      }
-    });
+    // ref.listen<LoginState>(loginNotifierProvider, (previous, next) async {
+    //   final notifier = ref.read(loginNotifierProvider.notifier);
+    //
+    //   // Error case
+    //   if (next.error != null) {
+    //     AppSnackBar.error(context, next.error!);
+    //     notifier.resetState();
+    //   }
+    //   // OTP verified
+    //   else if (next.otpResponse != null) {
+    //     AppSnackBar.success(context, 'OTP verified successfully!');
+    //
+    //     // final prefs = await SharedPreferences.getInstance();
+    //     // final alreadySynced = prefs.getBool('contacts_synced') ?? false;
+    //     //
+    //     // if (!alreadySynced) {
+    //     //   try {
+    //     //     // ✅ permission first
+    //     //     final contacts = await ContactsService.getAllContacts();
+    //     //
+    //     //     final limited = contacts.take(200).toList();
+    //     //     for (final c in limited) {
+    //     //       await ref
+    //     //           .read(apiDataSourceProvider)
+    //     //           .syncContacts(name: c.name, phone: c.phone);
+    //     //     }
+    //     //
+    //     //     await prefs.setBool('contacts_synced', true);
+    //     //     AppLogger.log.i("✅ Contacts synced: ${limited.length}");
+    //     //   } catch (e) {
+    //     //     AppLogger.log.e("❌ Contact sync failed: $e");
+    //     //   }
+    //     // }
+    //     context.goNamed(AppRoutes.privacyPolicy);
+    //     notifier.resetState();
+    //   }
+    //   // Login response (used for resend OTP)
+    //   else if (next.loginResponse != null) {
+    //     if (lastLoginPage == 'resendOtp') {
+    //       AppSnackBar.success(context, 'OTP resent successfully!');
+    //
+    //       otp.clear(); // ✅ clear old OTP in field
+    //       verifyCode = ''; // ✅ reset local value
+    //       _startTimer(30);
+    //     }
+    //     lastLoginPage = null;
+    //     notifier.resetState();
+    //   }
+    // });
     // phoneNumber is non-nullable, so no ??
     final String mobileNumber = widget.phoneNumber;
     late final String maskMobileNumber;
