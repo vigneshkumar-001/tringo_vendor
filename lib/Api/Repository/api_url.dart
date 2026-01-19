@@ -31,6 +31,7 @@ class ApiUrl {
   static const String heaterEmployee = "${base}api/v1/vendor/employees";
   static const String plans = "${base}api/v1/subscriptions/plans";
   static const String purchase = "${base}api/v1/subscriptions/purchase";
+  static const String accountDelete = "${base}api/v1/auth/me";
 
   static const String shopNumberVerify =
       "${base}api/v1/auth/phone-verification/request";
