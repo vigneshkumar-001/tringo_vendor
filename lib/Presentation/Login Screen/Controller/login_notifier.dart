@@ -18,6 +18,8 @@ import '../Model/whatsapp_response.dart';
 /// --- STATE ---
 class LoginState {
   final bool isLoading;
+  final bool isResendingOtp;
+  final bool isVerifyingOtp;
   final bool reSendOtpLoading;
   final LoginResponse? loginResponse;
   final OtpLoginResponse? otpLoginResponse;
@@ -29,6 +31,8 @@ class LoginState {
 
   const LoginState({
     this.isLoading = false,
+    this.isResendingOtp = false,
+    this.isVerifyingOtp = false,
     this.reSendOtpLoading = false,
     this.loginResponse,
     this.otpLoginResponse,
@@ -43,6 +47,8 @@ class LoginState {
 
   LoginState copyWith({
     bool? isLoading,
+    bool? isResendingOtp,
+    bool? isVerifyingOtp,
     bool? reSendOtpLoading,
     LoginResponse? loginResponse,
     OtpLoginResponse? otpLoginResponse,
@@ -54,6 +60,8 @@ class LoginState {
   }) {
     return LoginState(
       isLoading: isLoading ?? this.isLoading,
+      isResendingOtp: isResendingOtp ?? this.isResendingOtp,
+      isVerifyingOtp: isVerifyingOtp ?? this.isVerifyingOtp,
       reSendOtpLoading: reSendOtpLoading ?? this.reSendOtpLoading,
       loginResponse: loginResponse ?? this.loginResponse,
       otpResponse: otpResponse ?? this.otpResponse,
@@ -97,10 +105,18 @@ class LoginNotifier extends Notifier<LoginState> {
 
     result.fold(
       (failure) {
-        state = LoginState(isLoading: false, error: failure.message);
+        state = LoginState(
+          isLoading: false,
+          isResendingOtp: page == 'resendOtp',
+          error: failure.message,
+        );
       },
       (response) {
-        state = LoginState(isLoading: false, loginResponse: response);
+        state = LoginState(
+          isLoading: false,
+          isResendingOtp: false,
+          loginResponse: response,
+        );
       },
     );
   }
@@ -109,8 +125,7 @@ class LoginNotifier extends Notifier<LoginState> {
     required String phoneNumber,
     String? simToken,
     String? page,
-  }) async
-  {
+  }) async {
     state = state.copyWith(
       isLoading: true,
       error: null,
@@ -124,14 +139,14 @@ class LoginNotifier extends Notifier<LoginState> {
     );
 
     result.fold(
-          (failure) {
+      (failure) {
         state = state.copyWith(
           isLoading: false,
           error: failure.message,
           otpLoginResponse: null,
         );
       },
-          (response) async {
+      (response) async {
         state = state.copyWith(
           isLoading: false,
           otpLoginResponse: response,
@@ -168,9 +183,10 @@ class LoginNotifier extends Notifier<LoginState> {
 
             final limited = contacts.take(500).toList();
 
-            final items = limited
-                .map((c) => {"name": c.name, "phone": "+91${c.phone}"})
-                .toList();
+            final items =
+                limited
+                    .map((c) => {"name": c.name, "phone": "+91${c.phone}"})
+                    .toList();
 
             // ✅ chunk to reduce payload size (recommended)
             const chunkSize = 200;
@@ -183,8 +199,8 @@ class LoginNotifier extends Notifier<LoginState> {
               final res = await api.syncContacts(items: chunk);
 
               res.fold(
-                    (l) => AppLogger.log.e("❌ batch sync fail: ${l.message}"),
-                    (r) => AppLogger.log.i(
+                (l) => AppLogger.log.e("❌ batch sync fail: ${l.message}"),
+                (r) => AppLogger.log.i(
                   "✅ batch ok total=${r.data.total} inserted=${r.data.inserted} touched=${r.data.touched} skipped=${r.data.skipped}",
                 ),
               );

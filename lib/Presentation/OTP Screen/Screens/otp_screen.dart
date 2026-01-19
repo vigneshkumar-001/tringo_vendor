@@ -170,11 +170,68 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final notifier = ref.read(loginNotifierProvider.notifier);
     final mobile = widget.phoneNumber;
 
+    ref.listen<LoginState>(loginNotifierProvider, (previous, next) async {
+      final notifier = ref.read(loginNotifierProvider.notifier);
+
+      // Error case
+      if (next.error != null) {
+        AppSnackBar.error(context, next.error!);
+        notifier.resetState();
+      }
+      // OTP verified
+      else if (next.otpResponse != null) {
+        AppSnackBar.success(context, 'OTP verified successfully!');
+
+        // final prefs = await SharedPreferences.getInstance();
+        // final alreadySynced = prefs.getBool('contacts_synced') ?? false;
+        //
+        // if (!alreadySynced) {
+        //   try {
+        //     // ✅ permission first
+        //     final contacts = await ContactsService.getAllContacts();
+        //
+        //     final limited = contacts.take(200).toList();
+        //     for (final c in limited) {
+        //       await ref
+        //           .read(apiDataSourceProvider)
+        //           .syncContacts(name: c.name, phone: c.phone);
+        //     }
+        //
+        //     await prefs.setBool('contacts_synced', true);
+        //     AppLogger.log.i("✅ Contacts synced: ${limited.length}");
+        //   } catch (e) {
+        //     AppLogger.log.e("❌ Contact sync failed: $e");
+        //   }
+        // }
+        context.goNamed(AppRoutes.privacyPolicy);
+        notifier.resetState();
+      }
+      // Login response (used for resend OTP)
+      else if (next.loginResponse != null) {
+        if (lastLoginPage == 'resendOtp') {
+          AppSnackBar.success(context, 'OTP resent successfully!');
+
+          otp.clear(); // ✅ clear old OTP in field
+          verifyCode = ''; // ✅ reset local value
+          _startTimer(30);
+        }
+        lastLoginPage = null;
+        notifier.resetState();
+      }
+    });
+    // phoneNumber is non-nullable, so no ??
+    final String mobileNumber = widget.phoneNumber;
     late final String maskMobileNumber;
-    final masked =
-        mobile.length <= 3
-            ? mobile
-            : 'x' * (mobile.length - 3) + mobile.substring(mobile.length - 3);
+
+    if (mobileNumber.length <= 3) {
+      maskMobileNumber = mobileNumber;
+    } else {
+      maskMobileNumber =
+          'x' * (mobileNumber.length - 3) +
+              mobileNumber.substring(mobileNumber.length - 3);
+    }
+
+
 
     return Scaffold(
       body: SafeArea(
@@ -426,7 +483,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 35),
                           child: Text(
-                            'OTP sent to $masked, please check and enter below. '
+                            'OTP sent to $maskMobileNumber, please check and enter below. '
                                 'If you’ve not received OTP, you can resend after the timer ends.',
                             style: AppTextStyles.mulish(
                               fontSize: 14,
