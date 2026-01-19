@@ -97,7 +97,7 @@ class ApiDataSource {
 
       final response = await Request.sendRequest(
         url,
-        {"contact": "+91$phone", "purpose": "vendor"},
+        {"contact": "+91$phone", "purpose": "vendor", "simToken": simToken},
         'Post',
         false,
       );
