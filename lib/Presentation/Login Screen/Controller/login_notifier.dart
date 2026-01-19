@@ -257,6 +257,7 @@ class LoginNotifier extends Notifier<LoginState> {
         },
       );
     } catch (e) {
+      print(e);
       if (!ref.mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     } finally {

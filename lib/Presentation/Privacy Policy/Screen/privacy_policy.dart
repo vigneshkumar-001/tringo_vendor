@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
@@ -136,7 +137,11 @@ Sed euismod lectus ut mi varius, a tempor mi rhoncus. Sed sodales sollicitudin e
 
                           InkWell(
                             borderRadius: BorderRadius.circular(15),
-                            onTap: () {
+                            onTap: () async {
+                              // final SharedPreferences prefs =
+                              // await SharedPreferences.getInstance();
+                              // prefs.clear( );
+
                               context.pushNamed(AppRoutes.heaterRegister1);
                               // Navigator.push(
                               //   context,

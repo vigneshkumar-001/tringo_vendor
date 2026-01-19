@@ -1316,16 +1316,17 @@ class ApiDataSource {
     required String type,
     required String code,
   }) async {
-    String url = ApiUrl.shopNumberOtpVerify;
+    final url = ApiUrl.shopNumberOtpVerify;
 
-    final response = await Request.sendRequest(
-      url,
-      {"phone": "+91$phone", "code": code, "type": type},
-      'Post',
-      true,
-    );
+    try {
+      final response = await Request.sendRequest(
+        url,
+        {"phone": "+91$phone", "code": code, "type": type},
+        'Post',
+        true,
+      );
 
-    if (response is! DioException) {
+      // assuming response is a Dio Response
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (response.data['status'] == true) {
           return Right(ShopNumberOtpResponse.fromJson(response.data));
@@ -1334,17 +1335,29 @@ class ApiDataSource {
             ServerFailure(response.data['message'] ?? "Login failed"),
           );
         }
-      } else {
-        return Left(
-          ServerFailure(response.data['message'] ?? "Something went wrong"),
-        );
       }
-    } else {
-      final errorData = response.response?.data;
-      if (errorData is Map && errorData.containsKey('message')) {
-        return Left(ServerFailure(errorData['message']));
+
+      return Left(
+        ServerFailure(response.data?['message'] ?? "Something went wrong"),
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+
+      // best-effort message extraction
+      if (data is Map && data['message'] != null) {
+        return Left(ServerFailure(data['message'].toString()));
       }
-      return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+
+      // 522 often means gateway/origin timeout
+      if (e.response?.statusCode == 522) {
+        return Left(ServerFailure("Server timeout (522). Please try again."));
+      }
+
+      return Left(ServerFailure(e.message ?? "Network error"));
+    } catch (e) {
+      print(e);
+      AppLogger.log.e(e);
+      return Left(ServerFailure("Unexpected error: $e"));
     }
   }
 
@@ -1460,6 +1473,8 @@ class ApiDataSource {
       }
       return Left(ServerFailure(e.message ?? "Network error"));
     } catch (e) {
+      AppLogger.log.e(e);
+      print(e);
       return Left(ServerFailure(e.toString()));
     }
   }

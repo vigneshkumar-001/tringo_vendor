@@ -412,8 +412,11 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                       //       },
                       //     ),
                       //   ),
-
                       const SizedBox(height: 30),
+                      Text(
+                        'Mobile No',
+                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                      ),  const SizedBox(height: 10),
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         transitionBuilder:

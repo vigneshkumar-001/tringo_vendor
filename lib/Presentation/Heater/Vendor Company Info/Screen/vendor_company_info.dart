@@ -17,6 +17,7 @@ import '../../../../Core/Utility/app_loader.dart';
 import '../../../../Core/Utility/app_prefs.dart';
 import '../../../../Core/Utility/app_snackbar.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
+import '../../../../Core/Utility/map_picker.dart';
 import '../../../../Core/Utility/thanglish_to_tamil.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
@@ -570,8 +571,28 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                         isLoading: _isFetchingGps,
                         onMapTap: () async {
                           setState(() => _isFetchingGps = true);
-                          await _openGoogleMapsFromGpsField();
-                          if (mounted) setState(() => _isFetchingGps = false);
+
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const GoogleLocationPickerScreen(),
+                            ),
+                          );
+
+                          setState(() => _isFetchingGps = false);
+
+                          if (result != null) {
+                            final double lat = result['lat'];
+                            final double lng = result['lng'];
+                            final String area = result['area'];
+
+                            _gpsController.text =
+                            '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}';
+
+                            debugPrint('LAT: $lat');
+                            debugPrint('LNG: $lng');
+                            debugPrint('AREA: $area');
+                          }
                         },
                       ),
 
@@ -919,7 +940,7 @@ class GpsInputField extends StatelessWidget {
     required this.controller,
     required this.isLoading,
     required this.onMapTap,
-    this.hintText = 'Enter lat,lng or pick from map',
+    this.hintText = '',
   });
 
   @override
