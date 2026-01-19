@@ -11,6 +11,8 @@ import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 import '../../Home Screen/Contoller/employee_home_notifier.dart';
 import '../../Home Screen/Model/employee_home_response.dart';
+import '../../Login Screen/Screens/login_mobile_number.dart';
+import '../controller/about_me_notifier.dart';
 
 class EmployeeAboutMe extends ConsumerStatefulWidget {
   const EmployeeAboutMe({super.key});
@@ -87,6 +89,180 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.warning_rounded,
+                    color: Colors.red.shade600,
+                    size: 48,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Title
+                const Text(
+                  'Delete Account?',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 12),
+
+                // Description
+                Text(
+                  'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade600,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 28),
+
+                // Buttons
+                Row(
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: SizedBox(
+                        height: 52,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: Colors.grey.shade300,
+                              width: 1.5,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            foregroundColor: Colors.grey.shade700,
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // Delete Button
+                    Expanded(
+                      child: SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            Navigator.of(context).pop();
+
+                            final success =
+                                await ref
+                                    .read(aboutMeNotifierProvider.notifier)
+                                    .deleteProductAction();
+
+                            if (!mounted) return;
+
+                            if (success) {
+                              // 🔥 HARD RESET — account is gone
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.clear();
+
+                              // context.goNamed(AppRoutes.login);
+                              context.go(AppRoutes.loginPath);
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Account deleted successfully'),
+                                ),
+                              );
+                            } else {
+                              final error =
+                                  ref.read(aboutMeNotifierProvider).error;
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    error ?? 'Account deletion failed',
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red.shade600,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -297,7 +473,9 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                 ),
                 SizedBox(height: 15),
                 CommonContainer.profileList(
-                  onTap: () {},
+                  onTap: () {
+                    _showDeleteAccountDialog(context);
+                  },
                   label: 'Delete Account',
                   iconPath: AppImages.deleteAccount,
                   iconHeight: 25,

@@ -6,6 +6,7 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Presentation/About%20Me/Model/delete_response.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Model/product_response.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Model/service_info_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/add_employee_response.dart';
@@ -2788,4 +2789,44 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+
+
+  Future<Either<Failure, AccountDeleteResponse>> accountDelete( ) async {
+    try {
+      final url = ApiUrl.accountDelete;
+
+      final response = await Request.sendRequest(url, {}, 'DELETE', true);
+
+      // dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(AccountDeleteResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
 }
