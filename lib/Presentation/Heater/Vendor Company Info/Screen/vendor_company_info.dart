@@ -648,11 +648,11 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       //   ),
                       SizedBox(height: 25),
 
-                      // Text(
-                      //   'Primary Mobile Number',
-                      //   style: AppTextStyles.mulish(color: AppColor.mildBlack),
-                      // ),
-                      // SizedBox(height: 10),
+                       Text(
+                         'Primary Mobile Number',
+                         style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                       ),
+                       SizedBox(height: 10),
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         transitionBuilder:
