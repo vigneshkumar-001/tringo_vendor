@@ -575,7 +575,8 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const GoogleLocationPickerScreen(),
+                              builder:
+                                  (_) => const GoogleLocationPickerScreen(),
                             ),
                           );
 
@@ -587,7 +588,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                             final String area = result['area'];
 
                             _gpsController.text =
-                            '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}';
+                                '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}';
 
                             debugPrint('LAT: $lat');
                             debugPrint('LNG: $lng');
@@ -648,11 +649,11 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                       //   ),
                       SizedBox(height: 25),
 
-                       Text(
-                         'Primary Mobile Number',
-                         style: AppTextStyles.mulish(color: AppColor.mildBlack),
-                       ),
-                       SizedBox(height: 10),
+                      Text(
+                        'Primary Mobile Number',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
+                      SizedBox(height: 10),
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         transitionBuilder:
