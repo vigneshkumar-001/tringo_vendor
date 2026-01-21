@@ -12,7 +12,10 @@ class SendMessageResponse {
   }
 
   Map<String, dynamic> toJson() {
-    return {'status': status, 'data': data.toJson()};
+    return {
+      'status': status,
+      'data': data.toJson(),
+    };
   }
 }
 

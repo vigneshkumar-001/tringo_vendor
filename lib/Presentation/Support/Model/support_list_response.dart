@@ -1,4 +1,4 @@
-enum SupportStatus { pending, resolved, closed, unknown, OPEN }
+enum SupportStatus { pending, resolved, closed, unknown,OPEN }
 
 SupportStatus supportStatusFromString(String status) {
   switch (status.toUpperCase()) {
@@ -55,14 +55,16 @@ class SupportTicket {
   String id;
   String subject;
   SupportStatus status;
-  DateTime updatedAt;
-  DateTime lastMessageAt;
+  String updatedAt;
+  String createdAt;
+  String lastMessageAt;
 
   SupportTicket({
     required this.id,
     required this.subject,
     required this.status,
     required this.updatedAt,
+    required this.createdAt,
     required this.lastMessageAt,
   });
 
@@ -71,12 +73,9 @@ class SupportTicket {
       id: json['id'] ?? '',
       subject: json['subject'] ?? '',
       status: supportStatusFromString(json['status'] ?? 'UNKNOWN'),
-      updatedAt: DateTime.parse(
-        json['updatedAt'] ?? DateTime.now().toIso8601String(),
-      ),
-      lastMessageAt: DateTime.parse(
-        json['lastMessageAt'] ?? DateTime.now().toIso8601String(),
-      ),
+      createdAt : json['createdAt'] ?? '',
+      updatedAt : json['updatedAt'] ?? '',
+      lastMessageAt : json['lastMessageAt'] ?? '',
     );
   }
 
@@ -84,7 +83,63 @@ class SupportTicket {
     'id': id,
     'subject': subject,
     'status': supportStatusToString(status),
-    'updatedAt': updatedAt.toIso8601String(),
-    'lastMessageAt': lastMessageAt.toIso8601String(),
+    'updatedAt': updatedAt ,
+    'lastMessageAt': lastMessageAt ,
+    'createdAt': createdAt ,
   };
 }
+
+
+// class SupportListResponse {
+//   bool status;
+//   List<SupportTicket> data;
+//
+//   SupportListResponse({required this.status, required this.data});
+//
+//   factory SupportListResponse.fromJson(Map<String, dynamic> json) {
+//     return SupportListResponse(
+//       status: json['status'],
+//       data: List<SupportTicket>.from(
+//           json['data'].map((x) => SupportTicket.fromJson(x))),
+//     );
+//   }
+//
+//   Map<String, dynamic> toJson() => {
+//     'status': status,
+//     'data': data.map((x) => x.toJson()).toList(),
+//   };
+// }
+//
+// class SupportTicket {
+//   String id;
+//   String subject;
+//   String status;
+//   DateTime updatedAt;
+//   DateTime lastMessageAt;
+//
+//   SupportTicket({
+//     required this.id,
+//     required this.subject,
+//     required this.status,
+//     required this.updatedAt,
+//     required this.lastMessageAt,
+//   });
+//
+//   factory SupportTicket.fromJson(Map<String, dynamic> json) {
+//     return SupportTicket(
+//       id: json['id'],
+//       subject: json['subject'],
+//       status: json['status'],
+//       updatedAt: DateTime.parse(json['updatedAt']),
+//       lastMessageAt: DateTime.parse(json['lastMessageAt']),
+//     );
+//   }
+//
+//   Map<String, dynamic> toJson() => {
+//     'id': id,
+//     'subject': subject,
+//     'status': status,
+//     'updatedAt': updatedAt.toIso8601String(),
+//     'lastMessageAt': lastMessageAt.toIso8601String(),
+//   };
+// }

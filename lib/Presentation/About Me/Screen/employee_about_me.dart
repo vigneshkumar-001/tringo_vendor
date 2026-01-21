@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Presentation/Support/Screen/support_screen.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -465,7 +466,12 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                 // CommonContainer.horizonalDivider(),
                 // SizedBox(height: 20),
                 CommonContainer.profileList(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SupportScreen()),
+                    );
+                  },
                   label: 'Support',
                   iconPath: AppImages.support,
                   iconHeight: 25,

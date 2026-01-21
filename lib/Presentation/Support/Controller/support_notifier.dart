@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../Api/DataSource/api_data_source.dart';
 import '../../../Core/Utility/app_snackbar.dart';
+
 import '../../Login Screen/Controller/login_notifier.dart';
 import '../Model/chat_message_response.dart';
 import '../Model/create_support_response.dart';
@@ -16,20 +17,21 @@ class SupportState {
   final bool isMsgSendingLoading;
 
   final String? error;
-
+  final int refreshKey; // ✅ new field
   final SupportListResponse? supportListResponse;
   final CreateSupportResponse? createSupportResponse;
   final ChatMessageResponse? chatMessageResponse;
   final SendMessageResponse? sendMessageResponse;
 
   const SupportState({
-    this.isLoading = true,
+    this.isLoading = false,
     this.isMsgSendingLoading = true,
     this.error,
     this.supportListResponse,
     this.createSupportResponse,
     this.chatMessageResponse,
     this.sendMessageResponse,
+    this.refreshKey = 0, // default
   });
 
   factory SupportState.initial() => const SupportState();
@@ -39,7 +41,7 @@ class SupportState {
     bool? isMsgSendingLoading,
 
     String? error,
-
+    int? refreshKey,
     SupportListResponse? supportListResponse,
     CreateSupportResponse? createSupportResponse,
     ChatMessageResponse? chatMessageResponse,
@@ -50,7 +52,7 @@ class SupportState {
       isMsgSendingLoading: isMsgSendingLoading ?? this.isMsgSendingLoading,
 
       error: error,
-
+      refreshKey: refreshKey ?? this.refreshKey + 1, // ✅ increment
       supportListResponse: supportListResponse ?? this.supportListResponse,
       chatMessageResponse: chatMessageResponse ?? this.chatMessageResponse,
       sendMessageResponse: sendMessageResponse ?? this.sendMessageResponse,
