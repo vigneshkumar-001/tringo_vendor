@@ -365,6 +365,7 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                         ),
                         const SizedBox(height: 10),
                         CommonContainer.fillingContainer(
+                          verticalDivider: false,
                           controller: englishNameController,
                           context: context,
                           validator:
@@ -417,6 +418,7 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                         ),
                         const SizedBox(height: 10),
                         CommonContainer.fillingContainer(
+                          verticalDivider: false,
                           controller: emailIdController,
                           keyboardType: TextInputType.emailAddress,
                           context: context,
@@ -606,9 +608,16 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                                 true,
                               );
                               if (!mounted) return;
-                              context.push(
-                                AppRoutes.employeeApprovalPendingPath,
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => EmployeeApprovalPending(),
+                                ),
                               );
+                              // context.push(
+                              //   AppRoutes.employeeApprovalPendingPath,
+                              // );
                             } else {
                               if (!mounted) return;
                               context.pop();
