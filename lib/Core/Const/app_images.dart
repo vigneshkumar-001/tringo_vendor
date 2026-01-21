@@ -4,9 +4,14 @@ class AppImages {
   static String drapDownImage = 'Assets/Images/Drap_Down_Arrow.png';
   static String closeImage = 'Assets/Images/Close_Image.png';
   static String whatsAppBlack = 'Assets/Images/WhatsApp_Black.png';
+  static String sendImage = 'Assets/Images/sendImage.png';
   static String tickImage = 'Assets/Images/Tick_Image.png';
   static String loginScreenBottom = 'Assets/Images/Login_Screen_Bottom.png';
   static String logo = 'Assets/Images/Logo.png';
+  static String timing = 'Assets/Images/Timing.png';
+  static String greenTick = 'Assets/Images/greenTick.png';
+  static String orangeClock = 'Assets/Images/OrangeClock.png';
+  static String galleryImage = 'Assets/Images/Gallery_Image.png';
   static String aboutMeImage = 'Assets/Images/AboutMe.png';
   static String krishna_sweets = 'Assets/Images/krishna_sweets.png';
   static String snacks1 = 'Assets/Images/Snacks1.png';
