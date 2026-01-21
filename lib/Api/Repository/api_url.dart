@@ -32,6 +32,7 @@ class ApiUrl {
   static const String plans = "${base}api/v1/subscriptions/plans";
   static const String purchase = "${base}api/v1/subscriptions/purchase";
   static const String accountDelete = "${base}api/v1/auth/me";
+  static const String supportTicketsList = "${base}api/v1/support/tickets";
 
   static const String shopNumberVerify =
       "${base}api/v1/auth/phone-verification/request";
@@ -46,6 +47,15 @@ class ApiUrl {
 
   // static String imageUrl =
   //     "https://next.fenizotechnologies.com/Adrox/api/image-save";
+
+  static String sendMessage({required String ticketId}) {
+    return "${base}api/v1/support/tickets/$ticketId/messages";
+  }
+
+  static String getChatMessages({required String id}) {
+    return "${base}api/v1/support/tickets/$id";
+  }
+
 
   static String heaterEmployeeEdit({required String employeeId}) {
     return "${base}api/v1/vendor/employees/$employeeId";
