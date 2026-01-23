@@ -85,14 +85,33 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
         // ✅ NAVIGATE FIRST
         if (role == 'VENDOR') {
+          final vendorApproved = data?.vendorApproved ?? false;
+
           if (isNewOwner) {
+            // ✅ New vendor flow
             context.goNamed(AppRoutes.privacyPolicy);
           } else {
-            context.goNamed(AppRoutes.heaterHomeScreen);
+            // ✅ Not new vendor -> approval check
+            if (vendorApproved) {
+              context.goNamed(AppRoutes.heaterHomeScreen);
+            } else {
+              // ✅ Not approved -> pending screen
+              context.goNamed(AppRoutes.employeeApprovalPending);
+            }
           }
         } else if (role == 'EMPLOYEE') {
           context.goNamed(AppRoutes.home);
         }
+
+        // if (role == 'VENDOR') {
+        //   if (isNewOwner) {
+        //     context.goNamed(AppRoutes.privacyPolicy);
+        //   } else {
+        //     context.goNamed(AppRoutes.heaterHomeScreen);
+        //   }
+        // } else if (role == 'EMPLOYEE') {
+        //   context.goNamed(AppRoutes.home);
+        // }
 
         // ⚠️ After navigation, widget may unmount → check mounted again
         if (!mounted) return;
@@ -230,10 +249,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     } else {
       maskMobileNumber =
           'x' * (mobileNumber.length - 3) +
-              mobileNumber.substring(mobileNumber.length - 3);
+          mobileNumber.substring(mobileNumber.length - 3);
     }
-
-
 
     return Scaffold(
       body: SafeArea(
@@ -468,6 +485,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                             ],
                           ),
                         ),
+
                         // Padding(
                         //   padding: const EdgeInsets.symmetric(horizontal: 35),
                         //   child: Text(
@@ -478,7 +496,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                         //     ),
                         //   ),
                         // ),
-
                         const SizedBox(height: 15),
 
                         // Info text
@@ -486,7 +503,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 35),
                           child: Text(
                             'OTP sent to $maskMobileNumber, please check and enter below. '
-                                'If you’ve not received OTP, you can resend after the timer ends.',
+                            'If you’ve not received OTP, you can resend after the timer ends.',
                             style: AppTextStyles.mulish(
                               fontSize: 14,
                               color: AppColor.darkGrey,
