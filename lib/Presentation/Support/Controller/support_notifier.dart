@@ -112,10 +112,10 @@ class SupportNotifier extends Notifier<SupportState> {
     );
   }
 
+
   Future<String?> createSupportTicket({
     required String subject,
     required String description,
-
     File? ownerImageFile,
     required BuildContext context,
   }) async {
@@ -123,19 +123,16 @@ class SupportNotifier extends Notifier<SupportState> {
 
     String customerImageUrl = '';
 
-    final hasValidImage =
-        ownerImageFile != null &&
+    final hasValidImage = ownerImageFile != null &&
         ownerImageFile.path.isNotEmpty &&
         await ownerImageFile.exists();
 
     if (hasValidImage) {
-      final uploadResult = await api.userProfileUpload(
-        imageFile: ownerImageFile,
-      );
+      final uploadResult = await api.userProfileUpload(imageFile: ownerImageFile);
 
       customerImageUrl = uploadResult.fold(
-        (failure) => '',
-        (success) => success.message.toString(),
+            (failure) => '',
+            (success) => success.message.toString(),
       );
     }
 
@@ -146,23 +143,77 @@ class SupportNotifier extends Notifier<SupportState> {
       subject: subject,
     );
 
-    result.fold(
-      (failure) {
+    // ✅ IMPORTANT: capture fold value and return it
+    final String? ticketId = result.fold(
+          (failure) {
         state = state.copyWith(isLoading: false, error: failure.message);
         AppSnackBar.error(context, failure.message);
-        return failure.message;
+        return null; // return ticketId as null on failure
       },
-      (response) {
+          (response) {
         state = state.copyWith(
           isLoading: false,
           error: null,
           createSupportResponse: response,
         );
-        return response.data;
+        return response.data.id; // ✅ ticket id return
       },
     );
-    return null;
+
+    return ticketId;
   }
+
+  // Future<String?> createSupportTicket({
+  //   required String subject,
+  //   required String description,
+  //
+  //   File? ownerImageFile,
+  //   required BuildContext context,
+  // }) async {
+  //   state = state.copyWith(isLoading: true, error: null);
+  //
+  //   String customerImageUrl = '';
+  //
+  //   final hasValidImage =
+  //       ownerImageFile != null &&
+  //       ownerImageFile.path.isNotEmpty &&
+  //       await ownerImageFile.exists();
+  //
+  //   if (hasValidImage) {
+  //     final uploadResult = await api.userProfileUpload(
+  //       imageFile: ownerImageFile,
+  //     );
+  //
+  //     customerImageUrl = uploadResult.fold(
+  //       (failure) => '',
+  //       (success) => success.message.toString(),
+  //     );
+  //   }
+  //
+  //   final result = await api.createSupportTicket(
+  //     attachments: customerImageUrl,
+  //     description: description,
+  //     imageUrl: customerImageUrl,
+  //     subject: subject,
+  //   );
+  //
+  //   result.fold(
+  //     (failure) {
+  //       state = state.copyWith(isLoading: false, error: failure.message);
+  //       AppSnackBar.error(context, failure.message);
+  //       return failure.message;
+  //     },
+  //     (response) {
+  //       state = state.copyWith(
+  //         isLoading: false,
+  //         error: null,
+  //         createSupportResponse: response,
+  //       );
+  //       return response.data;
+  //     },
+  //   );
+  //   return null;
+  // }
 
   Future<String?> sendMessage({
     required String subject,
