@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Screens/owner_info_screens.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -626,7 +627,9 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                 ),
                 SizedBox(height: 40),
                 CommonContainer.profileList(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>OwnerInfoScreens(isService: true, isIndividual: true)));
+                  },
                   label: 'Edit My Personal Details',
                   iconPath: AppImages.settingDark,
                   iconHeight: 25,

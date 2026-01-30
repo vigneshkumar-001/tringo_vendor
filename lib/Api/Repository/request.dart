@@ -31,6 +31,13 @@ class Request {
       GoRouter.of(ctx).go(AppRoutes.loginPath);
     }
   }
+  static bool _isInternalServerMessage(dynamic data) {
+    if (data is Map) {
+      final msg = (data['message'] ?? '').toString().toLowerCase().trim();
+      return msg == 'internal server error';
+    }
+    return false;
+  }
 
   // ✅ check invalid session in response body
   static bool _isInvalidSessionResponse(dynamic data) {
@@ -255,9 +262,10 @@ class Request {
       InterceptorsWrapper(
         onResponse: (response, handler) async {
           AppLogger.log.i(
-            "GET RESPONSE\nAPI: $url\nDATA: ${response.data} \n Token = $token \n session Token = $sessionToken",
+            "GET RESPONSE\nAPI: $url\nDATA: ${response.data}",
           );
 
+          // 1) your existing invalid session check
           if (_isInvalidSessionResponse(response.data)) {
             await _forceLogout(reason: "Invalid session token (GET body)");
             return handler.reject(
@@ -270,8 +278,41 @@ class Request {
             );
           }
 
+          // 2) internal server error message check (your case)
+          if (_isInternalServerMessage(response.data)) {
+            await _forceLogout(reason: "Internal server error (body message)");
+            return handler.reject(
+              DioException(
+                requestOptions: response.requestOptions,
+                response: response,
+                type: DioExceptionType.badResponse,
+                message: "INTERNAL_SERVER_ERROR",
+              ),
+            );
+          }
+
           return handler.next(response);
         },
+
+        // onResponse: (response, handler) async {
+        //   AppLogger.log.i(
+        //     "GET RESPONSE\nAPI: $url\nDATA: ${response.data} \n Token = $token \n session Token = $sessionToken",
+        //   );
+        //
+        //   if (_isInvalidSessionResponse(response.data)) {
+        //     await _forceLogout(reason: "Invalid session token (GET body)");
+        //     return handler.reject(
+        //       DioException(
+        //         requestOptions: response.requestOptions,
+        //         response: response,
+        //         type: DioExceptionType.badResponse,
+        //         message: "INVALID_SESSION_TOKEN",
+        //       ),
+        //     );
+        //   }
+        //
+        //   return handler.next(response);
+        // },
         onError: (error, handler) async {
           final status = error.response?.statusCode;
           if (status == 401 || status == 403) {
