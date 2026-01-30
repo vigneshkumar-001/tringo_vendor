@@ -31,6 +31,7 @@ class Request {
       GoRouter.of(ctx).go(AppRoutes.loginPath);
     }
   }
+
   static bool _isInternalServerMessage(dynamic data) {
     if (data is Map) {
       final msg = (data['message'] ?? '').toString().toLowerCase().trim();
@@ -262,7 +263,7 @@ class Request {
       InterceptorsWrapper(
         onResponse: (response, handler) async {
           AppLogger.log.i(
-            "GET RESPONSE\nAPI: $url\nDATA: ${response.data}",
+            "GET RESPONSE\nAPI: $url\nToken: $token\nSessionToken: $sessionToken\nDATA: ${response.data}",
           );
 
           // 1) your existing invalid session check

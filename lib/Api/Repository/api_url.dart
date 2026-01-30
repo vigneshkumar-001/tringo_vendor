@@ -34,6 +34,7 @@ class ApiUrl {
   static const String accountDelete = "${base}api/v1/auth/me";
   static const String supportTicketsList = "${base}api/v1/support/tickets";
 
+
   static const String shopNumberVerify =
       "${base}api/v1/auth/phone-verification/request";
   static const String shopNumberOtpVerify =

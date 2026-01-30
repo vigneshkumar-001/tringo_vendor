@@ -13,6 +13,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Employee%20details-edit/Model/heater_employee_edit_res.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/History/Model/vendor_history_response.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
 import 'package:tringo_vendor_new/Presentation/Shops%20Details/Model/shop_details_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/current_plan_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/plan_list_response.dart';
@@ -887,6 +888,7 @@ class ApiDataSource {
       }
       return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
     } catch (e) {
+      print(e);
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -2794,9 +2796,7 @@ class ApiDataSource {
     }
   }
 
-
-
-  Future<Either<Failure, AccountDeleteResponse>> accountDelete( ) async {
+  Future<Either<Failure, AccountDeleteResponse>> accountDelete() async {
     try {
       final url = ApiUrl.accountDelete;
 
@@ -2943,14 +2943,14 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
   Future<Either<Failure, SendMessageResponse>> sendMessage({
     required String subject,
 
     required String imageUrl,
     required String ticketId,
     required dynamic attachments,
-  }) async
-  {
+  }) async {
     try {
       final String url = ApiUrl.sendMessage(ticketId: ticketId);
       final Map<String, dynamic> body = {
@@ -2992,4 +2992,73 @@ class ApiDataSource {
     }
   }
 
+  Future<Either<Failure, GetProfileResponse>> getProfile() async {
+    try {
+      final url = ApiUrl.vendorRegister;
+
+      final response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      AppLogger.log.i(response);
+
+      final data = response?.data;
+
+      if (response?.statusCode == 200 || response?.statusCode == 201) {
+        if (data['status'] == true) {
+          return Right(GetProfileResponse.fromJson(data));
+        } else {
+          return Left(ServerFailure(data['message'] ?? "Login failed"));
+        }
+      } else {
+        return Left(ServerFailure(data['message'] ?? "Something went wrong"));
+      }
+    } on DioException catch (dioError) {
+      final errorData = dioError.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
+    } catch (e) {
+      print(e);
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, VendorResponse>> onlyProfileChange({
+
+    String? avatarUrl,
+  }) async {
+    try {
+      final url = ApiUrl.vendorRegister;
+
+      final payload = {
+        "avatarUrl": avatarUrl,
+      };
+
+      final response = await Request.sendRequest(url, payload, 'Post', true);
+
+      AppLogger.log.i(response);
+
+      final data = response.data;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (data['status'] == true) {
+          return Right(VendorResponse.fromJson(data));
+        } else {
+          return Left(ServerFailure(data['message'] ?? "Login failed"));
+        }
+      } else {
+        return Left(ServerFailure(data['message'] ?? "Something went wrong"));
+      }
+    } on DioException catch (dioError) {
+      final errorData = dioError.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

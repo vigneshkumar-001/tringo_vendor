@@ -368,6 +368,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final isIndividual = (extra?['isIndividual'] as bool?) ?? true;
 
           return HeaterRegister1(
+            edit: false,
             isService: isService,
             isIndividual: isIndividual,
           );
@@ -376,7 +377,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.heaterRegister2Path,
         name: AppRoutes.heaterRegister2,
-        builder: (context, state) => const HeaterRegister2(),
+        builder: (context, state) => const HeaterRegister2(edit: false,),
       ),
       GoRoute(
         path: AppRoutes.vendorCompanyInfoPath,
@@ -468,7 +469,7 @@ class NoInternetScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 170),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 170),
           child: Column(
             children: [
               // Image.asset(AppImages.noDataGif),
