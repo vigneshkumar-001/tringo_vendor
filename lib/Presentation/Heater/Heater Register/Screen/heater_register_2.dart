@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
 import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -17,9 +18,12 @@ import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Utility/thanglish_to_tamil.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
+import '../../Heater Home Screen/Controller/heater_home_notifier.dart';
 
 class HeaterRegister2 extends ConsumerStatefulWidget {
-  const HeaterRegister2({super.key});
+  final GetProfileResponse? profile;
+  final bool edit;
+  const HeaterRegister2({super.key, this.profile, required this.edit});
 
   @override
   ConsumerState<HeaterRegister2> createState() => _HeaterRegister2State();
@@ -58,6 +62,22 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
     otpControllers = List.generate(otpLength, (_) => TextEditingController());
     otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
     _existingUrls = List<String?>.filled(1, null, growable: false);
+    if (widget.edit == true) {
+      _prefillFromProfile();
+    }
+  }
+
+  void _prefillFromProfile() {
+    final p = widget.profile;
+    if (p == null) {
+      return;
+    }
+
+    accountNumberController.text = (p.data.bankAccountNumber ?? '');
+    bankNameController.text = (p.data.bankName ?? '');
+    accountHolderNameController.text = (p.data.bankAccountName ?? '');
+    accountBranchController.text = (p.data.bankBranch ?? '');
+    accountIFSCCodeController.text = (p.data.bankIfsc ?? '');
   }
 
   @override
@@ -345,11 +365,11 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                                 ? ThreeDotsLoader()
                                 : Text('Save & Continue'),
                         onTap: () async {
-                          setState(() => _isSubmitted = true);
-
-                          if (!_formKey.currentState!.validate()) {
-                            return;
-                          }
+                          // setState(() => _isSubmitted = true);
+                          //
+                          // if (!_formKey.currentState!.validate()) {
+                          //   return;
+                          // }
 
                           final accountNumber =
                               accountNumberController.text.trim();
@@ -401,7 +421,23 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                               context,
                               "Owner information saved successfully",
                             );
-                            context.push(AppRoutes.vendorCompanyInfoPath);
+                            if (widget.edit == false) {
+                              context.push(AppRoutes.vendorCompanyInfoPath);
+                            } else {
+                              Navigator.pop(context);
+                              final notifier = ref.read(
+                                heaterHomeNotifier.notifier,
+                              );
+
+                              final today = DateFormat(
+                                'yyyy-MM-dd',
+                              ).format(DateTime.now());
+
+                              notifier.heaterHome(
+                                dateFrom: today,
+                                dateTo: today,
+                              );
+                            }
 
                             AppLogger.log.i(
                               "Owner Info Saved  ${newState.vendorResponse?.toJson()}",

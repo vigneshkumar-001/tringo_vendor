@@ -1,8 +1,17 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_1.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_2.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Setting/Controller/profile_notifer.dart';
+import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Screens/owner_info_screens.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -471,9 +480,89 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
     );
   }
 
+  final ImagePicker _picker = ImagePicker();
+
+  File? _avatarFile; // picked file preview
+  String? _avatarExistingUrl; // server url (optional)
+
+  bool _avatarUploading = false;
+  void _showAvatarSourcePicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadAvatar(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickAndUploadAvatar(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    final picked = await _picker.pickImage(source: source, imageQuality: 85);
+    if (picked == null) return;
+
+    if (!mounted) return;
+    setState(() {
+      _avatarFile = File(picked.path);
+      _avatarUploading = true;
+    });
+
+    // ✅ read notifier BEFORE await
+    final registerNotifier = ref.read(heaterRegisterNotifier.notifier);
+
+    try {
+      await registerNotifier.onlyProfileChange(
+        avatarUrl: '',
+        avatarFile: _avatarFile,
+      );
+
+      if (!mounted) return; // ✅ very important
+
+      final newState = ref.read(heaterRegisterNotifier);
+
+      if (newState.error != null) {
+        AppSnackBar.error(context, newState.error!);
+        return;
+      }
+
+      AppSnackBar.success(context, "Profile photo updated");
+
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      ref
+          .read(heaterHomeNotifier.notifier)
+          .heaterHome(dateFrom: today, dateTo: today);
+    } finally {
+      if (mounted) setState(() => _avatarUploading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(heaterHomeNotifier);
+    final profileState = ref.watch(profileNotifierProvider);
     final VendorDashboardResponse? response = state.vendorDashboardResponse;
     final VendorDashboardData? dashboard = response?.data;
 
@@ -551,6 +640,45 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                                     color: Colors.grey.shade300,
                                   ),
                                 ),
+                                clipBehavior: Clip.hardEdge,
+                                child:
+                                    (_avatarFile != null)
+                                        ? Image.file(
+                                          _avatarFile!,
+                                          fit: BoxFit.cover,
+                                        )
+                                        : (header != null &&
+                                            header!.avatarUrl != null &&
+                                            header!.avatarUrl!.isNotEmpty)
+                                        ? Image.network(
+                                          header!.avatarUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (_, __, ___) => const Center(
+                                                child: Icon(
+                                                  Icons.person,
+                                                  size: 40,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                        )
+                                        : Image.asset(
+                                          AppImages.profileImage,
+                                          fit: BoxFit.cover,
+                                        ),
+                              ),
+                            ),
+
+                            /*SizedBox(
+                              height: 103,
+                              width: 103,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
                                 clipBehavior: Clip.hardEdge, // 👈 important
                                 child:
                                     (header != null &&
@@ -574,7 +702,7 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                                           fit: BoxFit.cover,
                                         ),
                               ),
-                            ),
+                            ),*/
 
                             // ClipRRect(
                             //   borderRadius: BorderRadius.circular(20),
@@ -605,28 +733,82 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                     Positioned(
                       right: 105,
                       top: 55,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColor.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10.5,
-                            vertical: 8,
+                      child: GestureDetector(
+                        onTap:
+                            _avatarUploading ? null : _showAvatarSourcePicker,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColor.white.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(50),
                           ),
-                          child: Image.asset(
-                            AppImages.downloadImage01,
-                            height: 16,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10.5,
+                              vertical: 8,
+                            ),
+                            child:
+                                _avatarUploading
+                                    ? const SizedBox(
+                                      height: 16,
+                                      width: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : Image.asset(
+                                      AppImages.downloadImage01,
+                                      height: 16,
+                                    ),
                           ),
                         ),
                       ),
                     ),
+
+                    /*Positioned(
+                      right: 105,
+                      top: 55,
+                      child: GestureDetector(
+                       onTap: (){},
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColor.white.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10.5,
+                              vertical: 8,
+                            ),
+                            child: Image.asset(
+                              AppImages.downloadImage01,
+                              height: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),*/
                   ],
                 ),
                 SizedBox(height: 40),
                 CommonContainer.profileList(
-                  onTap: () {},
+                  onTap: () {
+                    final profileState = ref.read(profileNotifierProvider);
+                    final profile = profileState.getProfileResponse;
+                    if (profile == null) return; // or show toast
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => HeaterRegister1(
+                              profile: profile, // 👈 pass full data
+                              userName: header?.displayName.toString() ?? '',
+                              isService: true,
+                              isIndividual: true,
+                              edit: true,
+                            ),
+                      ),
+                    );
+                  },
                   label: 'Edit My Personal Details',
                   iconPath: AppImages.settingDark,
                   iconHeight: 25,
@@ -634,7 +816,19 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                 ),
                 SizedBox(height: 15),
                 CommonContainer.profileList(
-                  onTap: () {},
+                  onTap: () {
+                    final profileState = ref.read(profileNotifierProvider);
+                    final profile = profileState.getProfileResponse;
+                    if (profile == null) return; // or show toast
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                HeaterRegister2(edit: true, profile: profile),
+                      ),
+                    );
+                  },
                   label: 'Edit My Bank Account Details',
                   iconPath: AppImages.editBank,
                   iconHeight: 25,

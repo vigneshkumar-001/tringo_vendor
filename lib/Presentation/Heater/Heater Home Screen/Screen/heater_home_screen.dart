@@ -9,6 +9,7 @@ import 'package:tringo_vendor_new/Core/Const/app_images.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_loader.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Home%20Screen/Controller/heater_home_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Setting/Controller/profile_notifer.dart';
 import 'package:tringo_vendor_new/Presentation/No%20Data%20Screen/Screen/no_data_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -50,6 +51,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _refreshDashboardByDate(); // ✅ default today load
+      await ref.watch(profileNotifierProvider.notifier).getProfile();
     });
   }
 
@@ -388,9 +390,10 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                               opacity: isBlocked ? 0.45 : 1.0,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: isBlocked
-                                      ? AppColor.ivoryGreen.withOpacity(0.4)
-                                      : AppColor.ivoryGreen,
+                                  color:
+                                      isBlocked
+                                          ? AppColor.ivoryGreen.withOpacity(0.4)
+                                          : AppColor.ivoryGreen,
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Padding(
@@ -435,25 +438,34 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                               SizedBox(width: 5),
                                               if (isBlocked)
                                                 Container(
-                                                  margin: const EdgeInsets.only(top: 6),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                  margin: const EdgeInsets.only(
+                                                    top: 6,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 4,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.black.withOpacity(0.08),
-                                                    borderRadius: BorderRadius.circular(999),
+                                                    color: Colors.black
+                                                        .withOpacity(0.08),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          999,
+                                                        ),
                                                   ),
                                                   child: Text(
                                                     'Blocked',
                                                     style: AppTextStyles.mulish(
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.w700,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                       color: AppColor.mildBlack,
                                                     ),
                                                   ),
                                                 ),
-
                                             ],
                                           ),
-
 
                                           SizedBox(height: 3),
                                           Text(
@@ -491,7 +503,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                               if (phone.isNotEmpty) {
                                                 _launchDialer(phone);
                                               }
-                              
+
                                               // if (data.phoneNumber!.isNotEmpty) {
                                               //   _launchDialer(data.phoneNumber??'');
                                               // }

@@ -105,7 +105,7 @@ class _CreateSupportState extends ConsumerState<CreateSupport>
                 ),
                 ListTile(
                   leading: const Icon(Icons.photo_outlined),
-                  title: Text('Gallery', style:AppTextStyles.mulish()),
+                  title: Text('Gallery', style: AppTextStyles.mulish()),
                   onTap: () async {
                     Navigator.pop(context);
                     await _pickFromGallery();
@@ -206,7 +206,7 @@ class _CreateSupportState extends ConsumerState<CreateSupport>
                   title: 'Upload Photo',
                   image: AppImages.iImage,
                   infoMessage:
-                  'Please upload a clear photo of your shop signboard.',
+                      'Please upload a clear photo of your shop signboard.',
                 ),
                 SizedBox(height: 10),
 
@@ -222,54 +222,55 @@ class _CreateSupportState extends ConsumerState<CreateSupport>
                       color: const Color(0xFFF2F2F2),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: (_picked == null)
-                        ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(AppImages.galleryImage, height: 20),
-                        const SizedBox(width: 10),
-                        Text(
-                          'Upload Image',
-                          style: AppTextStyles.mulish(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    )
-                        : Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.file(
-                            File(_picked!.path),
-                            width: double.infinity,
-                            height:
-                            double.infinity, // ✅ fill the container
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: InkWell(
-                            onTap: _removeImage,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.55),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                size: 16,
-                                color: Colors.white,
-                              ),
+                    child:
+                        (_picked == null)
+                            ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(AppImages.galleryImage, height: 20),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Upload Image',
+                                  style: AppTextStyles.mulish(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            )
+                            : Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.file(
+                                    File(_picked!.path),
+                                    width: double.infinity,
+                                    height:
+                                        double.infinity, // ✅ fill the container
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 8,
+                                  top: 8,
+                                  child: InkWell(
+                                    onTap: _removeImage,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.55),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
 
@@ -278,13 +279,13 @@ class _CreateSupportState extends ConsumerState<CreateSupport>
                 CommonContainer.button(
                   buttonColor: AppColor.darkBlue,
                   imagePath: state.isLoading ? null : AppImages.rightStickArrow,
-
                   onTap: () async {
                     final notifier = ref.read(supportNotifier.notifier);
 
-                    final File? imageFile = (_picked != null && _picked!.path.isNotEmpty)
-                        ? File(_picked!.path)
-                        : null;
+                    final File? imageFile =
+                        (_picked != null && _picked!.path.isNotEmpty)
+                            ? File(_picked!.path)
+                            : null;
 
                     final ticketId = await notifier.createSupportTicket(
                       subject: _subjectCtrl.text.trim(),
@@ -296,26 +297,24 @@ class _CreateSupportState extends ConsumerState<CreateSupport>
                     if (!context.mounted) return;
 
                     if (ticketId != null) {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (_) => SupportChatScreen(id: ticketId),
                         ),
                       );
+                      notifier.supportList(context: context);
                     }
                   },
 
                   // onTap: () async {
-                  //   // Prepare image file if picked
-                  //   final File? imageFile =
-                  //   (_picked != null && _picked!.path.isNotEmpty)
+                  //   final notifier = ref.read(supportNotifier.notifier);
+                  //
+                  //   final File? imageFile = (_picked != null && _picked!.path.isNotEmpty)
                   //       ? File(_picked!.path)
                   //       : null;
                   //
-                  //   AppLogger.log.w(imageFile);
-                  //
-                  //   // Call API to create support ticket
-                  //   final err = await data.createSupportTicket(
+                  //   final ticketId = await notifier.createSupportTicket(
                   //     subject: _subjectCtrl.text.trim(),
                   //     description: _descCtrl.text.trim(),
                   //     ownerImageFile: imageFile,
@@ -324,19 +323,19 @@ class _CreateSupportState extends ConsumerState<CreateSupport>
                   //
                   //   if (!context.mounted) return;
                   //
-                  //   if (err == null) {
-                  //     AppLogger.log.i("Navigation to home called");
-                  //     // ✅ Navigate to home safely using GoRouter
-                  //     Navigator.pop(context);
-                  //   } else {
-                  //     // Show error
-                  //     AppSnackBar.error(context, err);
+                  //   if (ticketId != null) {
+                  //     Navigator.push(
+                  //       context,
+                  //       MaterialPageRoute(
+                  //         builder: (_) => SupportChatScreen(id: ticketId),
+                  //       ),
+                  //     );
                   //   }
                   // },
-
-                  text: state.isLoading
-                      ? AppLoader.circularLoader()
-                      : Text('Create Ticket'),
+                  text:
+                      state.isLoading
+                          ? AppLoader.circularLoader()
+                          : Text('Create Ticket'),
                 ),
               ],
             ),

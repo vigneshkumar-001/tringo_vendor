@@ -57,13 +57,13 @@ class HeaterRegisterState {
 class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
   late final ApiDataSource api;
 
-    String _onlyIndian10(String input) {
-      var p = input.trim();
-      p = p.replaceAll(RegExp(r'[^0-9]'), '');
-      if (p.startsWith('91') && p.length == 12) p = p.substring(2);
-      if (p.length > 10) p = p.substring(p.length - 10);
-      return p;
-    }
+  String _onlyIndian10(String input) {
+    var p = input.trim();
+    p = p.replaceAll(RegExp(r'[^0-9]'), '');
+    if (p.startsWith('91') && p.length == 12) p = p.substring(2);
+    if (p.length > 10) p = p.substring(p.length - 10);
+    return p;
+  }
 
   @override
   HeaterRegisterState build() {
@@ -74,7 +74,6 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
   void resetState() {
     state = HeaterRegisterState.initial();
   }
-
 
   Future<void> registerVendor({
     required VendorRegisterScreen screen,
@@ -113,8 +112,6 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     try {
       state = state.copyWith(isLoading: true, clearError: true);
 
-
-
       final alternatePhone10 = _onlyIndian10(alternatePhone);
 
       // ✅ IMPORTANT: Screen3 token must match verified phone
@@ -147,8 +144,8 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
       if (aadhaarFile != null) {
         final upload = await api.userProfileUpload(imageFile: aadhaarFile);
         finalAadhaarUrl = upload.fold(
-              (failure) => throw Exception(failure.message),
-              (res) => res.message,
+          (failure) => throw Exception(failure.message),
+          (res) => res.message,
         );
       }
 
@@ -157,8 +154,8 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
       if (avatarFile != null) {
         final uploadAvatar = await api.userProfileUpload(imageFile: avatarFile);
         finalAvatarUrl = uploadAvatar.fold(
-              (failure) => throw Exception(failure.message),
-              (res) => res.message,
+          (failure) => throw Exception(failure.message),
+          (res) => res.message,
         );
       }
 
@@ -196,13 +193,13 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
       );
 
       result.fold(
-            (failure) {
+        (failure) {
           state = state.copyWith(
             isLoading: false,
             error: failure.message ?? 'Something went wrong',
           );
         },
-            (vendor) {
+        (vendor) {
           state = state.copyWith(
             isLoading: false,
             vendorResponse: vendor,
@@ -211,6 +208,55 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
         },
       );
     } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> onlyProfileChange({File? avatarFile, String? avatarUrl}) async {
+    // ✅ set loading immediately (safe, no await before this)
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      String finalAvatarUrl = avatarUrl ?? '';
+
+      // ✅ 1) upload avatar (if file)
+      if (avatarFile != null) {
+        final uploadAvatar = await api.userProfileUpload(imageFile: avatarFile);
+
+        // ✅ provider might be disposed while uploading
+        if (!ref.mounted) return;
+
+        finalAvatarUrl = uploadAvatar.fold(
+          (failure) => throw Exception(failure.message ?? 'Upload failed'),
+          (res) => res.message, // assuming message is URL
+        );
+      }
+
+      // ✅ 2) call profile change
+      final result = await api.onlyProfileChange(avatarUrl: finalAvatarUrl);
+
+      // ✅ provider might be disposed while calling api
+      if (!ref.mounted) return;
+
+      result.fold(
+        (failure) {
+          if (!ref.mounted) return;
+          state = state.copyWith(
+            isLoading: false,
+            error: failure.message ?? 'Something went wrong',
+          );
+        },
+        (vendor) {
+          if (!ref.mounted) return;
+          state = state.copyWith(
+            isLoading: false,
+            vendorResponse: vendor,
+            clearError: true,
+          );
+        },
+      );
+    } catch (e) {
+      if (!ref.mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -231,11 +277,11 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     final result = await api.shopAddNumberRequest(phone: phone10, type: type);
 
     return result.fold(
-          (failure) {
+      (failure) {
         state = state.copyWith(isSendingOtp: false, error: failure.message);
         return failure.message;
       },
-          (response) {
+      (response) {
         state = state.copyWith(
           isSendingOtp: false,
           shopNumberVerifyResponse: response,
@@ -264,11 +310,11 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     );
 
     return result.fold(
-          (failure) {
+      (failure) {
         state = state.copyWith(isVerifyingOtp: false, error: failure.message);
         return false;
       },
-          (response) async {
+      (response) async {
         final verified = response.data?.verified == true;
         final token = response.data?.verificationToken ?? '';
 
