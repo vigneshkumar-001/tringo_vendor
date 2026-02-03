@@ -101,6 +101,109 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     required String descriptionEn,
     required String descriptionTa,
     required String addressEn,
+    required String addressTa,
+    required double gpsLatitude,
+    required double gpsLongitude,
+    required String primaryPhone,
+    required String alternatePhone,
+    required String contactEmail,
+    required bool doorDelivery,
+    required String type,
+    required String weeklyHours,
+    String? shopId,
+    File? ownerImageFile,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    String ownerImageUrlStr = '';
+
+    if (type == 'service' && ownerImageFile != null) {
+      final uploadResult = await apiDataSource.userProfileUpload(imageFile: ownerImageFile);
+      ownerImageUrlStr = uploadResult.fold((_) => '', (success) => (success.message ?? ''));
+    }
+
+    final result = await apiDataSource.shopInfoRegister(
+      apiShopId: shopId ?? '',
+      businessProfileId: businessProfileId,
+      category: category,
+      subCategory: subCategory,
+      englishName: englishName,
+      tamilName: tamilName,
+      descriptionEn: descriptionEn,
+      descriptionTa: descriptionTa,
+      addressEn: addressEn,
+      addressTa: addressTa,
+      gpsLatitude: gpsLatitude,
+      gpsLongitude: gpsLongitude,
+      primaryPhone: primaryPhone,
+      alternatePhone: alternatePhone,
+      contactEmail: contactEmail,
+      doorDelivery: doorDelivery,
+      ownerImageUrl: ownerImageUrlStr,
+      weeklyHours: weeklyHours,
+    );
+
+    return result.fold(
+          (failure) async {
+        state = state.copyWith(isLoading: false, error: failure.message);
+
+        if (isOfflineMessage(failure.message)) {
+          AppLogger.log.i("✅ OFFLINE detected in SHOP. msg=${failure.message}");
+          final prefBpId = (await AppPrefs.getBusinessProfileId())?.trim() ?? "";
+          final engine = ref.read(offlineSyncEngineProvider);
+
+          final payload = {
+            "type": type,
+            "apiShopId": shopId ?? "",
+            "businessProfileId": businessProfileId,
+            "category": category,
+            "subCategory": subCategory,
+            "englishName": englishName,
+            "tamilName": tamilName,
+            "descriptionEn": descriptionEn,
+            "descriptionTa": descriptionTa,
+            "addressEn": addressEn,
+            "addressTa": addressTa,
+            "gpsLatitude": gpsLatitude,
+            "gpsLongitude": gpsLongitude,
+            "primaryPhone": primaryPhone,
+            "alternatePhone": alternatePhone,
+            "contactEmail": contactEmail,
+            "doorDelivery": doorDelivery,
+            "weeklyHours": weeklyHours,
+            "ownerImageLocalPath": (type == "service" && ownerImageFile != null) ? ownerImageFile.path : "",
+          };
+
+          // ✅ LOG HERE (to confirm it runs)
+          AppLogger.log.i("📦 OFFLINE enqueueShop payload => $payload");
+
+          final sessionId = await engine.enqueueShop(shopPayload: payload);
+          await AppPrefs.setOfflineSessionId(sessionId);
+
+          AppLogger.log.i("✅ OFFLINE shop saved. sessionId=$sessionId");
+          return true;
+        }
+
+        return false;
+      },
+          (response) async {
+        await AppPrefs.setShopId(response.data?.id ?? '');
+        state = state.copyWith(isLoading: false, ownerRegisterResponse: response);
+        return true;
+      },
+    );
+  }
+
+/*
+  Future<bool> shopInfoRegister({
+    required String businessProfileId,
+    required String category,
+    required String subCategory,
+    required String englishName,
+    required String tamilName,
+    required String descriptionEn,
+    required String descriptionTa,
+    required String addressEn,
     String? shopId,
     required String addressTa,
     required double gpsLatitude,
@@ -113,7 +216,8 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     required String type,
     required String weeklyHours,
     File? ownerImageFile,
-  }) async {
+  }) async
+  {
     state = state.copyWith(isLoading: true, error: null);
 
     String ownerImageUrl = '';
@@ -208,6 +312,7 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
       },
     );
   }
+*/
 
   Future<void> fetchCategories() async {
     state = const ShopCategoryState(isLoading: true);

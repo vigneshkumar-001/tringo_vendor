@@ -143,6 +143,14 @@ class AppPrefs {
     await prefs.remove(_productId);
     await prefs.remove(_shopId);
     await prefs.remove(_serviceId);
+
+  }  static Future<void> clearIdsForOffline() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_productId);
+    await prefs.remove(_shopId);
+    await prefs.remove(_serviceId);
+    await prefs.remove(_kVerificationToken);
+    await prefs.remove(_businessProfileId);
   }
 }
 

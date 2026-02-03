@@ -15,6 +15,8 @@ import 'package:tringo_vendor_new/Presentation/ShopInfo/Screens/shop_photo_info.
 import 'package:url_launcher/url_launcher.dart';
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
+import '../../../Core/Offline_Data/offline_sync_models.dart';
+import '../../../Core/Offline_Data/provider/offline_providers.dart';
 import '../../../Core/Utility/app_loader.dart';
 import '../../../Core/Utility/app_prefs.dart';
 import '../../../Core/Utility/app_snackbar.dart';
@@ -97,7 +99,7 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
 
 class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   final _formKey = GlobalKey<FormState>();
-
+  final FocusNode mobileFocusNode = FocusNode();
   List<ShopCategoryListData>? _selectedCategoryChildren;
 
   final TextEditingController _openTimeController = TextEditingController();
@@ -187,82 +189,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     final ten = _normalizeIndianPhone10(input); // your existing helper
     if (ten.isEmpty) return '';
     return '+91$ten';
-  }
-
-  Future<void> _openGoogleMapsFromGpsField() async {
-    try {
-      // 1) Try from existing text (lat,lng)
-      double? lat;
-      double? lng;
-
-      final t = _gpsController.text.trim();
-      final parts = t.split(',');
-      if (parts.length == 2) {
-        lat = double.tryParse(parts[0].trim());
-        lng = double.tryParse(parts[1].trim());
-      }
-
-      // 2) If not available, get current location
-      if (lat == null || lng == null) {
-        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!serviceEnabled) {
-          AppSnackBar.info(context, 'Turn on Location.');
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   const SnackBar(content: Text('Location services are disabled.')),
-          // );
-          return;
-        }
-
-        LocationPermission permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-        }
-        if (permission == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permission denied.')),
-          );
-          return;
-        }
-        if (permission == LocationPermission.deniedForever) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Location permissions are permanently denied.'),
-            ),
-          );
-          return;
-        }
-
-        final pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
-        lat = pos.latitude;
-        lng = pos.longitude;
-
-        // Optional: field-la update pannalam
-        setState(() {
-          _gpsController.text =
-              '${lat!.toStringAsFixed(6)}, ${lng!.toStringAsFixed(6)}';
-          _gpsFetched = true;
-        });
-      }
-
-      // 3) Launch Google Maps app
-      final uri = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
-      );
-
-      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!ok) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open Google Maps')),
-        );
-      }
-    } catch (e) {
-      debugPrint('❌ Google Maps open error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to open Google Maps')),
-      );
-    }
   }
 
   TimeOfDay? _parseTimeOfDay(String input) {
@@ -608,21 +534,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   File? _pickedImage;
   bool _imageInvalid = false;
 
-  // Future<void> _pickImage(ImageSource source) async {
-  //   final pickedFile = await _picker.pickImage(
-  //     source: source,
-  //     imageQuality: 85,
-  //   );
-  //
-  //   if (pickedFile == null) return;
-  //
-  //   setState(() {
-  //     _pickedImage = File(pickedFile.path);
-  //     _existingUrl = null; // clear server image
-  //     _imageInvalid = false;
-  //     _imageErrorText = null;
-  //   });
-  // }
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(
       source: source,
@@ -676,109 +587,6 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     );
   }
 
-  // Future<void> _showImageSourcePicker() async {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     shape: const RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-  //     ),
-  //     builder: (_) {
-  //       return SafeArea(
-  //         child: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             ListTile(
-  //               leading: const Icon(Icons.camera_alt),
-  //               title: const Text('Camera'),
-  //               onTap: () {
-  //                 Navigator.pop(context);
-  //                 _pickImage(ImageSource.camera);
-  //               },
-  //             ),
-  //             ListTile(
-  //               leading: const Icon(Icons.photo_library),
-  //               title: const Text('Gallery'),
-  //               onTap: () {
-  //                 Navigator.pop(context);
-  //                 _pickImage(ImageSource.gallery);
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
-  Widget _buildImageWidget() {
-    if (_pickedImage != null) {
-      return Row(
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.file(_pickedImage!, height: 140, fit: BoxFit.cover),
-            ),
-          ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () {
-              setState(() {
-                _pickedImage = null;
-                _imageInvalid = true;
-                _imageErrorText = 'Please upload image';
-              });
-            },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  AppImages.closeImage,
-                  height: 26,
-                  color: AppColor.mediumGray,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Clear',
-                  style: AppTextStyles.mulish(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: AppColor.mediumLightGray,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (_existingUrl != null && _existingUrl!.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: CachedNetworkImage(imageUrl: _existingUrl!, fit: BoxFit.cover),
-      );
-    }
-
-    return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(AppImages.uploadImage, height: 30),
-          const SizedBox(width: 10),
-          Text(
-            'Upload',
-            style: AppTextStyles.mulish(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColor.mediumLightGray,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   TimeOfDay? _openTod;
   TimeOfDay? _closeTod;
   int _toMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
@@ -787,79 +595,142 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     return _toMinutes(_closeTod!) > _toMinutes(_openTod!);
   }
 
-  Future<void> _getCurrentLocation() async {
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location services are disabled.')),
-        );
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permission denied.')),
-          );
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Location permissions are permanently denied.'),
-          ),
-        );
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      setState(() {
-        _gpsController.text =
-            '${position.latitude.toStringAsFixed(6)}, '
-            '${position.longitude.toStringAsFixed(6)}';
-        _gpsFetched = true; // Mark GPS as fetched
-      });
-
-      if (_isSubmitted) {
-        _formKey.currentState?.validate();
-      }
-
-      debugPrint('📍 Current Location → ${_gpsController.text}');
-    } catch (e) {
-      debugPrint('❌ Error getting location: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to get current location.')),
-      );
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    AppLogger.log.i(widget.shopId);
-    AppLogger.log.i(widget.isService);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(shopCategoryNotifierProvider.notifier).fetchCategories();
-      final extra = GoRouterState.of(context).extra as Map<String, dynamic>;
-      final parentShopId = extra['parentShopId'] as String?;
 
-      // if (parentShopId != null && parentShopId.isNotEmpty) {
-      //   ref
-      //       .read(aboutMeNotifierProvider.notifier)
-      //       .fetchAllShopDetails(shopId: parentShopId);
-      // }
+    AppLogger.log.i("shopId=${widget.shopId}");
+    AppLogger.log.i("isService=${widget.isService}");
+    AppLogger.log.i("offlineSid=${widget.offlineSessionId}");
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // ✅ fetch category
+      ref.read(shopCategoryNotifierProvider.notifier).fetchCategories();
+
+      // ✅ edit mode prefill first (so offline won't overwrite)
+      if (widget.isEditMode) {
+        _prefillFields();
+      }
+      if (widget.fromOffline) {
+        await _prefillShopFromOffline();
+        if (mounted) mobileFocusNode.requestFocus();
+      }
+      // ✅ offline prefill
     });
-    if (widget.isEditMode) {
-      _prefillFields();
+  }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   AppLogger.log.i(widget.shopId);
+  //   AppLogger.log.i(widget.isService);
+  //   _prefillShopFromOffline();
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     ref.read(shopCategoryNotifierProvider.notifier).fetchCategories();
+  //     final extra = GoRouterState.of(context).extra as Map<String, dynamic>;
+  //     final parentShopId = extra['parentShopId'] as String?;
+  //
+  //     // if (parentShopId != null && parentShopId.isNotEmpty) {
+  //     //   ref
+  //     //       .read(aboutMeNotifierProvider.notifier)
+  //     //       .fetchAllShopDetails(shopId: parentShopId);
+  //     // }
+  //   });
+  //   if (widget.isEditMode) {
+  //     _prefillFields();
+  //   }
+  // }
+
+  void _setIfEmpty(TextEditingController c, String v) {
+    if (c.text.trim().isNotEmpty) return;
+    final val = v.trim();
+    if (val.isEmpty) return;
+    c.text = val;
+  }
+
+  bool _prefilled = false;
+  bool _prefilledShop = false;
+
+  Future<void> _prefillShopFromOffline() async {
+    AppLogger.log.i("🟦 prefillShopFromOffline called");
+    AppLogger.log.i("🟦 widget.offlineSessionId = ${widget.offlineSessionId}");
+
+    if (_prefilledShop) return;
+
+    String? sid = widget.offlineSessionId;
+    if (sid == null || sid.trim().isEmpty) {
+      // ✅ fallback: prefs la irundhu eduthuko
+      sid = await AppPrefs.getOfflineSessionId();
+      AppLogger.log.i("🟨 fallback sid(from prefs) = $sid");
     }
+
+    if (sid == null || sid.trim().isEmpty) {
+      AppLogger.log.i("🟥 sid empty -> cannot prefill");
+      return;
+    }
+
+    final db = ref.read(offlineSyncDbProvider);
+
+    final raw = await db.getPayload(sid.trim(), SyncStepType.shop);
+    AppLogger.log.i("🟦 raw payload = $raw");
+
+    if (raw == null) {
+      AppLogger.log.i("🟥 raw is null -> stepType mismatch or not saved");
+      return;
+    }
+
+    // ✅ Shop fields
+    _setIfEmpty(
+      _shopNameEnglishController,
+      (raw["englishName"] ?? "").toString(),
+    );
+    _setIfEmpty(
+      _descriptionEnglishController,
+      (raw["descriptionEn"] ?? "").toString(),
+    );
+    _setIfEmpty(_addressEnglishController, (raw["addressEn"] ?? "").toString());
+
+    // ✅ GPS -> "lat, lng"
+    final lat = raw["gpsLatitude"];
+    final lng = raw["gpsLongitude"];
+    final gpsText = "${lat ?? 0}, ${lng ?? 0}";
+    _setIfEmpty(_gpsController, gpsText);
+
+    // ✅ Phones (strip +91)
+    final p1 = (raw["primaryPhone"] ?? "").toString();
+    final p2 = (raw["alternatePhone"] ?? "").toString();
+    _setIfEmpty(_primaryMobileController, _stripIndianCode(p1));
+    _setIfEmpty(_whatsappController, _stripIndianCode(p2));
+
+    _setIfEmpty(_emailController, (raw["contactEmail"] ?? "").toString());
+
+    // ✅ Door delivery (bool -> Yes/No)
+    final dd = raw["doorDelivery"];
+    final ddBool = dd == true || dd == 1 || dd.toString() == "true";
+    _setIfEmpty(_doorDeliveryController, ddBool ? "Yes" : "No");
+
+    // ✅ WeeklyHours -> Open/Close
+    final wh = (raw["weeklyHours"] ?? "").toString().trim();
+    if (wh.contains("-")) {
+      final parts = wh.split("-");
+      final openText = parts.isNotEmpty ? parts[0].trim() : "";
+      final closeText = parts.length > 1 ? parts[1].trim() : "";
+
+      _setIfEmpty(_openTimeController, openText);
+      _setIfEmpty(_closeTimeController, closeText);
+
+      // optional: parse and store to TimeOfDay (for validation)
+      _openTod = _parseTimeOfDay(openText);
+      _closeTod = _parseTimeOfDay(closeText);
+    } else {
+      // fallback
+      _setIfEmpty(_openTimeController, wh);
+    }
+
+    AppLogger.log.i("✅ after set: shopName=${_shopNameEnglishController.text}");
+
+    _prefilledShop = true;
+    if (mounted) setState(() {});
   }
 
   void _prefillFields() {
@@ -1601,6 +1472,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                               ),
                           child: OwnerVerifyField(
                             controller: _primaryMobileController,
+                            // focusNode: mobileFocusNode,
                             isLoading: state.isSendingOtp,
                             isOtpVerifying: state.isVerifyingOtp,
                             onSendOtp: (mobile) {
@@ -1612,16 +1484,80 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     phoneNumber: phone10,
                                   );
                             },
-                            onVerifyOtp: (mobile, otp) {
+                            onVerifyOtp: (mobile, otp) async {
                               final phone10 = _normalizeIndianPhone10(mobile);
-                              return ref
+
+                              final ok = await ref
                                   .read(shopCategoryNotifierProvider.notifier)
                                   .shopAddOtpRequest(
                                     phoneNumber: phone10,
                                     type: "SHOP_PRIMARY_PHONE",
                                     code: otp,
                                   );
+
+                              if (!ok ||
+                                  !widget.fromOffline ||
+                                  !context.mounted)
+                                return ok;
+
+                              final sid = widget.offlineSessionId;
+                              if (sid == null || sid.trim().isEmpty) return ok;
+
+                              final db = ref.read(offlineSyncDbProvider);
+
+                              // ✅ existing offline shop payload
+                              final oldShop =
+                                  await db.getPayload(
+                                    sid.trim(),
+                                    SyncStepType.shop,
+                                  ) ??
+                                  {};
+
+                              // ✅ update phone fields in offline payload
+                              // IMPORTANT: store E164 (+91...) because your API expects it
+                              final e164 = _toE164India(mobile);
+
+                              final updatedShop = <String, dynamic>{
+                                ...oldShop,
+
+                                // ✅ update common keys
+                                "primaryPhone": e164,
+                                "shopPrimaryPhone": e164,
+                                "phoneNumber": e164,
+                                "phone": e164,
+                                "mobile": e164,
+                                "mobileNumber": e164,
+
+                                // ✅ if you saved token for server sync (optional but useful)
+                                // After OTP verify, your notifier usually saves verification token in prefs.
+                                // If not, you can store it here if you have it.
+                                // "primaryPhoneVerificationToken": (await AppPrefs.getVerificationToken()) ?? "",
+                                // "phoneVerifyToken": (await AppPrefs.getVerificationToken()) ?? "",
+                              };
+
+                              await db.upsertStep(
+                                sessionId: sid.trim(),
+                                type: SyncStepType.shop,
+                                payload: updatedShop,
+                              );
+
+                              Navigator.pop(
+                                context,
+                                true,
+                              ); // ✅ return verified to sync screen
+                              return ok;
                             },
+
+                            // onVerifyOtp: (mobile, otp) {
+                            //   final phone10 = _normalizeIndianPhone10(mobile);
+                            //   return ref
+                            //       .read(shopCategoryNotifierProvider.notifier)
+                            //       .shopAddOtpRequest(
+                            //         phoneNumber: phone10,
+                            //         type: "SHOP_PRIMARY_PHONE",
+                            //         code: otp,
+                            //       );
+                            // },
                           ),
                         ),
                         // CommonContainer.fillingContainer(
@@ -1642,6 +1578,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                 child: child,
                               ),
                           child: OwnerVerifyField(
+                            focusNode: mobileFocusNode,
                             controller: _primaryMobileController,
                             isLoading: state.isSendingOtp,
                             isOtpVerifying: state.isVerifyingOtp,
@@ -1654,16 +1591,79 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     phoneNumber: phone10,
                                   );
                             },
-                            onVerifyOtp: (mobile, otp) {
+                            onVerifyOtp: (mobile, otp) async {
                               final phone10 = _normalizeIndianPhone10(mobile);
-                              return ref
+
+                              final ok = await ref
                                   .read(shopCategoryNotifierProvider.notifier)
                                   .shopAddOtpRequest(
                                     phoneNumber: phone10,
                                     type: "SHOP_PRIMARY_PHONE",
                                     code: otp,
                                   );
+
+                              if (!ok ||
+                                  !widget.fromOffline ||
+                                  !context.mounted)
+                                return ok;
+
+                              final sid = widget.offlineSessionId;
+                              if (sid == null || sid.trim().isEmpty) return ok;
+
+                              final db = ref.read(offlineSyncDbProvider);
+
+                              // ✅ existing offline shop payload
+                              final oldShop =
+                                  await db.getPayload(
+                                    sid.trim(),
+                                    SyncStepType.shop,
+                                  ) ??
+                                  {};
+
+                              // ✅ update phone fields in offline payload
+                              // IMPORTANT: store E164 (+91...) because your API expects it
+                              final e164 = _toE164India(mobile);
+
+                              final updatedShop = <String, dynamic>{
+                                ...oldShop,
+
+                                // ✅ update common keys
+                                "primaryPhone": e164,
+                                "shopPrimaryPhone": e164,
+                                "phoneNumber": e164,
+                                "phone": e164,
+                                "mobile": e164,
+                                "mobileNumber": e164,
+
+                                // ✅ if you saved token for server sync (optional but useful)
+                                // After OTP verify, your notifier usually saves verification token in prefs.
+                                // If not, you can store it here if you have it.
+                                // "primaryPhoneVerificationToken": (await AppPrefs.getVerificationToken()) ?? "",
+                                // "phoneVerifyToken": (await AppPrefs.getVerificationToken()) ?? "",
+                              };
+
+                              await db.upsertStep(
+                                sessionId: sid.trim(),
+                                type: SyncStepType.shop,
+                                payload: updatedShop,
+                              );
+
+                              Navigator.pop(
+                                context,
+                                true,
+                              ); // ✅ return verified to sync screen
+                              return ok;
                             },
+                            // onVerifyOtp: (mobile, otp) {
+                            //   final phone10 = _normalizeIndianPhone10(mobile);
+                            //   return ref
+                            //       .read(shopCategoryNotifierProvider.notifier)
+                            //       .shopAddOtpRequest(
+                            //         phoneNumber: phone10,
+                            //         type: "SHOP_PRIMARY_PHONE",
+                            //         code: otp,
+                            //       );
+                            // },
                           ),
                         ),
                         // CommonContainer.fillingContainer(
@@ -2042,9 +2042,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                           final bool isEditFromAboutMe =
                               widget.pages == "shopDetailsEdit";
-
+                          final isOffline = widget.fromOffline == true;
                           // ✅ Only register flow should validate
-                          if (!isEditFromAboutMe) {
+                          // ✅ Only ONLINE register flow should validate
+                          if (!isEditFromAboutMe && !isOffline) {
                             if (!_validateAll()) return;
                           }
 
@@ -2111,13 +2112,13 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     true) ||
                                 (savedToken != null && savedToken.isNotEmpty);
 
-                            if (!isVerified) {
-                              AppSnackBar.error(
-                                context,
-                                "Please verify Primary Mobile Number",
-                              );
-                              return;
-                            }
+                            // if (!isVerified) {
+                            //   AppSnackBar.error(
+                            //     context,
+                            //     "Please verify Primary Mobile Number",
+                            //   );
+                            //   return;
+                            // }
                           }
 
                           // final shopState = ref.read(
@@ -2141,8 +2142,60 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           //   );
                           //   return;
                           // }
+                          final bool ok = await ref
+                              .read(shopCategoryNotifierProvider.notifier)
+                              .shopInfoRegister(
+                                businessProfileId: widget.employeeId ?? '',
+                                shopId: widget.shopId,
+                                ownerImageFile: ownerFile,
+                                type: type,
+                                addressEn:
+                                    _addressEnglishController.text.trim(),
+                                addressTa:
+                                    addressTamilNameController.text.trim(),
+                                alternatePhone: alternatePhoneToSend,
+                                primaryPhone: primaryPhoneToSend,
+                                category: categorySlug,
+                                contactEmail: _emailController.text.trim(),
+                                descriptionEn:
+                                    _descriptionEnglishController.text.trim(),
+                                descriptionTa:
+                                    descriptionTamilController.text.trim(),
+                                doorDelivery: isDoorDeliveryEnabled,
+                                englishName:
+                                    _shopNameEnglishController.text.trim(),
+                                gpsLatitude: latitude,
+                                gpsLongitude: longitude,
+                                subCategory: subCategorySlug,
+                                tamilName: tamilNameController.text.trim(),
+                                weeklyHours: weeklyHoursText,
+                              );
 
-                          final response = await ref
+                          final st = ref.read(shopCategoryNotifierProvider);
+
+                          if (!context.mounted) return;
+
+                          if (ok == true) {
+                            if (widget.pages == 'shopDetailsEdit') {
+                              Navigator.pop(context, true);
+                            } else {
+                              context.pushNamed(
+                                AppRoutes.shopPhotoInfo,
+                                extra: 'shopCategory',
+                              );
+                            }
+                          } else {
+                            // ✅ show proper error
+                            final msg = (st.error ?? '').trim();
+                            AppSnackBar.error(
+                              context,
+                              msg.isNotEmpty
+                                  ? msg
+                                  : "Unexpected error, please try again",
+                            );
+                          }
+
+                          /*     final response = await ref
                               .read(shopCategoryNotifierProvider.notifier)
                               .shopInfoRegister(
                                 businessProfileId: widget.employeeId ?? '',
@@ -2192,7 +2245,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                               context,
                               "Unexpected error, please try again",
                             );
-                          }
+                          }*/
                         },
 
                         text:

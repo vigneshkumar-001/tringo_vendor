@@ -86,7 +86,8 @@ class Request {
     Map<String, dynamic> body,
     String? method,
     bool isTokenRequired,
-  ) async {
+  ) async
+  {
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
     final String? sessionToken = prefs.getString('sessionToken');
