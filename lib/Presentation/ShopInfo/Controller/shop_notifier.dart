@@ -118,8 +118,13 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     String ownerImageUrlStr = '';
 
     if (type == 'service' && ownerImageFile != null) {
-      final uploadResult = await apiDataSource.userProfileUpload(imageFile: ownerImageFile);
-      ownerImageUrlStr = uploadResult.fold((_) => '', (success) => (success.message ?? ''));
+      final uploadResult = await apiDataSource.userProfileUpload(
+        imageFile: ownerImageFile,
+      );
+      ownerImageUrlStr = uploadResult.fold(
+        (_) => '',
+        (success) => (success.message ?? ''),
+      );
     }
 
     final result = await apiDataSource.shopInfoRegister(
@@ -144,12 +149,13 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     );
 
     return result.fold(
-          (failure) async {
+      (failure) async {
         state = state.copyWith(isLoading: false, error: failure.message);
 
         if (isOfflineMessage(failure.message)) {
           AppLogger.log.i("✅ OFFLINE detected in SHOP. msg=${failure.message}");
-          final prefBpId = (await AppPrefs.getBusinessProfileId())?.trim() ?? "";
+          final prefBpId =
+              (await AppPrefs.getBusinessProfileId())?.trim() ?? "";
           final engine = ref.read(offlineSyncEngineProvider);
 
           final payload = {
@@ -171,7 +177,10 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
             "contactEmail": contactEmail,
             "doorDelivery": doorDelivery,
             "weeklyHours": weeklyHours,
-            "ownerImageLocalPath": (type == "service" && ownerImageFile != null) ? ownerImageFile.path : "",
+            "ownerImageLocalPath":
+                (type == "service" && ownerImageFile != null)
+                    ? ownerImageFile.path
+                    : "",
           };
 
           // ✅ LOG HERE (to confirm it runs)
@@ -186,15 +195,18 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
 
         return false;
       },
-          (response) async {
+      (response) async {
         await AppPrefs.setShopId(response.data?.id ?? '');
-        state = state.copyWith(isLoading: false, ownerRegisterResponse: response);
+        state = state.copyWith(
+          isLoading: false,
+          ownerRegisterResponse: response,
+        );
         return true;
       },
     );
   }
 
-/*
+  /*
   Future<bool> shopInfoRegister({
     required String businessProfileId,
     required String category,
