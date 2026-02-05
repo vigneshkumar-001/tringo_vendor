@@ -1,0 +1,4 @@
+<resources>
+    <color name="btn_call_bg">#33FFFFFF</color>
+    <color name="btn_chat_bg">#33000000</color>
+</resources>

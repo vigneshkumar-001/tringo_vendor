@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlayRootFull"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#66000000">
+
+    <View
+        android:id="@+id/outsideCloseLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Main card -->
+    <LinearLayout
+        android:id="@+id/rootCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/bg_overlay_card"
+        android:padding="14dp">
+
+        <!-- Top row -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/smallTopText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tringo Identifies"
+                android:textColor="#EAF7FF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/closeBtn"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_alignParentEnd="true"
+                android:padding="6dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:tint="#EAF7FF"
+                android:background="@drawable/bg_circle_soft" />
+        </RelativeLayout>
+
+        <!-- =========================
+             HEADER: BUSINESS (Shop)
+        ========================== -->
+        <LinearLayout
+            android:id="@+id/headerBusiness"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:visibility="gone">
+
+            <!-- ✅ Image should reach bottom (match right column height) -->
+            <ImageView
+                android:id="@+id/logoImageBusiness"
+                android:layout_width="92dp"
+                android:layout_height="match_parent"
+                android:minHeight="92dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_image_rounded"
+                android:clipToOutline="true" />
+
+            <!-- Right column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/businessNameText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Shop Name"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:maxLines="1" />
+
+                <TextView
+                    android:id="@+id/metaText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Category • Address • Opens Upto"
+                    android:textColor="#D9F1FF"
+                    android:textSize="13sp"
+                    android:maxLines="2" />
+
+                <!-- ✅ Call / Chat row (RIGHT SIDE போல) -->
+                <LinearLayout
+                    android:id="@+id/actionRowBusiness"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:gravity="end">
+
+                    <TextView
+                        android:id="@+id/callBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:minWidth="120dp"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:text="Call"
+                        android:textColor="#0C2A3A"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_btn_light"
+                        android:drawableStart="@drawable/ic_call_png"
+                        android:drawablePadding="8dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp" />
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="1dp" />
+
+                    <TextView
+                        android:id="@+id/chatBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:minWidth="120dp"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:text="Chat"
+                        android:textColor="#EAF7FF"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_btn_dark"
+                        android:drawableStart="@drawable/ic_whatsapp_png"
+                        android:drawablePadding="8dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- =========================
+             HEADER: PERSON
+        ========================== -->
+        <LinearLayout
+            android:id="@+id/headerPerson"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/logoImagePerson"
+                android:layout_width="92dp"
+                android:layout_height="match_parent"
+                android:minHeight="92dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_image_rounded"
+                android:clipToOutline="true" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/personNameText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Person Name"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:maxLines="1" />
+
+                <TextView
+                    android:id="@+id/personMetaText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Loading..."
+                    android:textColor="#D9F1FF"
+                    android:textSize="13sp"
+                    android:maxLines="2" />
+
+                <!-- ✅ Same row for person also -->
+                <LinearLayout
+                    android:id="@+id/actionRowPerson"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:gravity="end">
+
+                    <!-- same ids (callBtn/chatBtn) are already used in business -->
+                    <!-- so here we keep NO buttons (person uses same buttons in business) -->
+                </LinearLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:id="@+id/dividerLine"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="14dp"
+            android:background="#33FFFFFF"
+            android:visibility="gone" />
+
+        <!-- Ads Title -->
+        <TextView
+            android:id="@+id/adsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Advertisements"
+            android:textAlignment="center"
+            android:textColor="#EAF7FF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- Ads Recycler -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/adsRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="270dp"
+            android:layout_marginTop="14dp"
+            android:clipToPadding="false"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:overScrollMode="never"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</FrameLayout>
+

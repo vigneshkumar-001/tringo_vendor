@@ -1,4 +1,4 @@
-class  AccountDeleteResponse  {
+class AccountDeleteResponse {
   final bool status;
   final int code;
   final DeleteData data;

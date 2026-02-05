@@ -44,7 +44,7 @@ class AboutMeNotifier extends Notifier<AboutMeState> {
     return AboutMeState.initial();
   }
 
-  Future<bool> deleteProductAction( ) async {
+  Future<bool> deleteProductAction() async {
     if (!ref.mounted) return false;
 
     state = const AboutMeState(isLoading: true, error: null);
