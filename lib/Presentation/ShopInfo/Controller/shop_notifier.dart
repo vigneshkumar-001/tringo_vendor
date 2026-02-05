@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Model/owner_register_response.dart';
+import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_keywords_response.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_list_response.dart';
 import '../../../Api/DataSource/api_data_source.dart';
 import '../../../Core/Offline_Data/offline_helpers.dart';
@@ -19,11 +20,13 @@ import '../Model/shop_number_verify_response.dart';
 
 class ShopCategoryState {
   final bool isLoading;
+  final bool isKeyWordsLoading;
   final String? imageUrl;
   final bool isSendingOtp;
   final bool isVerifyingOtp;
   final String? error;
   final OwnerRegisterResponse? ownerRegisterResponse;
+  final CategoryKeywordsResponse? categoryKeywordsResponse;
   final CategoryListResponse? categoryListResponse;
   final ShopInfoPhotosResponse? shopInfoPhotosResponse;
   final ShopCategoryApiResponse? shopCategoryApiResponse;
@@ -33,9 +36,11 @@ class ShopCategoryState {
   const ShopCategoryState({
     this.isLoading = false,
     this.isSendingOtp = false,
+    this.isKeyWordsLoading = false,
     this.isVerifyingOtp = false,
     this.error,
     this.ownerRegisterResponse,
+    this.categoryKeywordsResponse,
     this.imageUrl,
     this.categoryListResponse,
     this.shopInfoPhotosResponse,
@@ -48,10 +53,12 @@ class ShopCategoryState {
   ShopCategoryState copyWith({
     bool? isLoading,
     bool? isSendingOtp,
+    bool? isKeyWordsLoading,
     bool? isVerifyingOtp,
     bool clearError = false,
     String? error,
     OwnerRegisterResponse? ownerRegisterResponse,
+    CategoryKeywordsResponse? categoryKeywordsResponse,
     CategoryListResponse? categoryListResponse,
     ShopInfoPhotosResponse? shopInfoPhotosResponse,
     ShopCategoryApiResponse? shopCategoryApiResponse,
@@ -60,9 +67,12 @@ class ShopCategoryState {
   }) {
     return ShopCategoryState(
       isLoading: isLoading ?? this.isLoading,
+      isKeyWordsLoading: isKeyWordsLoading ?? this.isKeyWordsLoading,
       error: clearError ? null : (error ?? this.error),
       isSendingOtp: isSendingOtp ?? this.isSendingOtp,
       isVerifyingOtp: isVerifyingOtp ?? this.isVerifyingOtp,
+      categoryKeywordsResponse:
+          categoryKeywordsResponse ?? this.categoryKeywordsResponse,
       ownerRegisterResponse:
           ownerRegisterResponse ?? this.ownerRegisterResponse,
       categoryListResponse: categoryListResponse ?? this.categoryListResponse,
@@ -206,125 +216,27 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     );
   }
 
-  /*
-  Future<bool> shopInfoRegister({
-    required String businessProfileId,
-    required String category,
-    required String subCategory,
-    required String englishName,
-    required String tamilName,
-    required String descriptionEn,
-    required String descriptionTa,
-    required String addressEn,
-    String? shopId,
-    required String addressTa,
-    required double gpsLatitude,
-    required double gpsLongitude,
-    required String primaryPhone,
-    required String alternatePhone,
-    required String contactEmail,
-    required bool doorDelivery,
-    File? ownerImageUrl,
+  Future<void> fetchKeyWords({
     required String type,
-    required String weeklyHours,
-    File? ownerImageFile,
-  }) async
-  {
-    state = state.copyWith(isLoading: true, error: null);
+    required String query,
+  }) async {
+    state = const ShopCategoryState(isKeyWordsLoading: true);
 
-    String ownerImageUrl = '';
+    final result = await apiDataSource.getKeyWords(query: query, type: type);
 
-    if (type == 'service' && ownerImageFile != null) {
-      final uploadResult = await apiDataSource.userProfileUpload(
-        imageFile: ownerImageFile,
-      );
-
-      ownerImageUrl =
-          uploadResult.fold<String?>(
-            (failure) => null,
-            (success) => success.message,
-          ) ??
-          '';
-    }
-
-    final result = await apiDataSource.shopInfoRegister(
-      apiShopId: shopId ?? '',
-      businessProfileId: businessProfileId,
-      category: category,
-      subCategory: subCategory,
-      englishName: englishName,
-      tamilName: tamilName,
-      descriptionEn: descriptionEn,
-      descriptionTa: descriptionTa,
-      addressEn: addressEn,
-      addressTa: addressTa,
-      gpsLatitude: gpsLatitude,
-      gpsLongitude: gpsLongitude,
-      primaryPhone: primaryPhone,
-      alternatePhone: alternatePhone,
-      contactEmail: contactEmail,
-      doorDelivery: doorDelivery,
-      ownerImageUrl: ownerImageUrl,
-      weeklyHours: weeklyHours,
-    );
-
-    return result.fold(
-      (failure) async {
-        state = state.copyWith(isLoading: false, error: failure.message);
-        if (isOfflineMessage(failure.message)) {
-          final engine = ref.read(offlineSyncEngineProvider);
-
-          final payload = {
-            "type": type, // "service" / "product"
-            "apiShopId": shopId ?? "",
-            "businessProfileId":
-                businessProfileId, // if empty, engine can read from prefs later
-            "category": category,
-            "subCategory": subCategory,
-            "englishName": englishName,
-            "tamilName": tamilName,
-            "descriptionEn": descriptionEn,
-            "descriptionTa": descriptionTa,
-            "addressEn": addressEn,
-            "addressTa": addressTa,
-            "gpsLatitude": gpsLatitude,
-            "gpsLongitude": gpsLongitude,
-            "primaryPhone": primaryPhone,
-            "alternatePhone": alternatePhone,
-            "contactEmail": contactEmail,
-            "doorDelivery": doorDelivery,
-            "weeklyHours": weeklyHours,
-            "ownerImageLocalPath":
-                (type == "service" && ownerImageFile != null)
-                    ? ownerImageFile.path
-                    : "",
-          };
-
-          final sessionId = await engine.enqueueShop(shopPayload: payload);
-
-          await AppPrefs.setOfflineSessionId(sessionId);
-
-          // ✅ continue next screen even offline
-          return true;
-        }
-        return false;
-      },
-      (response) async {
-        final data = response.data;
-        await AppPrefs.setShopId(data?.id ?? '');
-
-        final sopId = await AppPrefs.getSopId();
-        AppLogger.log.i('shop Id → $sopId');
-
-        state = state.copyWith(
-          isLoading: false,
-          ownerRegisterResponse: response,
-        );
-        return true;
-      },
+    result.fold(
+      (failure) =>
+          state = ShopCategoryState(
+            isKeyWordsLoading: false,
+            error: failure.message,
+          ),
+      (response) =>
+          state = ShopCategoryState(
+            isKeyWordsLoading: false,
+            categoryKeywordsResponse: response,
+          ),
     );
   }
-*/
 
   Future<void> fetchCategories() async {
     state = const ShopCategoryState(isLoading: true);

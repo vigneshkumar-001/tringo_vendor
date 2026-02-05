@@ -14,6 +14,8 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import 'package:tringo_vendor_new/Presentation/Heater/Employee%20details-edit/Model/heater_employee_edit_res.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/History/Model/vendor_history_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
+import 'package:tringo_vendor_new/Presentation/Privacy%20Policy/Model/terms_and_condition_model.dart';
+import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_keywords_response.dart';
 import 'package:tringo_vendor_new/Presentation/Shops%20Details/Model/shop_details_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/current_plan_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/plan_list_response.dart';
@@ -1203,7 +1205,8 @@ class ApiDataSource {
       }
 
       final bool isUpdate = finalShopId != null;
-      final url = isUpdate ? ApiUrl.updateShop(shopId: finalShopId!) : ApiUrl.shops;
+      final url =
+          isUpdate ? ApiUrl.updateShop(shopId: finalShopId!) : ApiUrl.shops;
 
       final phoneVerifyToken = await AppPrefs.getVerificationToken();
 
@@ -1232,12 +1235,7 @@ class ApiDataSource {
         body["phoneVerifyToken"] = phoneVerifyToken.trim();
       }
 
-      final response = await Request.sendRequest(
-        url,
-        body,
-        'Post',
-        true,
-      );
+      final response = await Request.sendRequest(url, body, 'Post', true);
 
       if (response is! DioException) {
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -1249,7 +1247,9 @@ class ApiDataSource {
             );
             return Right(shopResponse);
           } else {
-            return Left(ServerFailure(body['message'] ?? "Something went wrong"));
+            return Left(
+              ServerFailure(body['message'] ?? "Something went wrong"),
+            );
           }
         } else {
           return Left(
@@ -1262,10 +1262,10 @@ class ApiDataSource {
 
         final isNetwork =
             err is SocketException ||
-                response.type == DioExceptionType.connectionError ||
-                response.type == DioExceptionType.connectionTimeout ||
-                response.type == DioExceptionType.receiveTimeout ||
-                response.type == DioExceptionType.sendTimeout;
+            response.type == DioExceptionType.connectionError ||
+            response.type == DioExceptionType.connectionTimeout ||
+            response.type == DioExceptionType.receiveTimeout ||
+            response.type == DioExceptionType.sendTimeout;
 
         if (isNetwork) {
           final msg =
@@ -1280,7 +1280,6 @@ class ApiDataSource {
 
         return Left(ServerFailure(response.message ?? "Unknown Dio error"));
       }
-
     } catch (e) {
       // ✅ if socket happens here, still matches offline
       AppLogger.log.e(e);
@@ -1288,7 +1287,7 @@ class ApiDataSource {
     }
   }
 
- /* Future<Either<Failure, OwnerRegisterResponse>> shopInfoRegister({
+  /* Future<Either<Failure, OwnerRegisterResponse>> shopInfoRegister({
     required String businessProfileId,
     required String category,
     required String subCategory,
@@ -1437,14 +1436,16 @@ class ApiDataSource {
         }
 
         final message =
-        (data is Map && data['message'] != null) ? data['message'].toString() : "Login failed";
+            (data is Map && data['message'] != null)
+                ? data['message'].toString()
+                : "Login failed";
         return Left(ServerFailure(message));
       }
 
       final message =
-      (response.data is Map && response.data['message'] != null)
-          ? response.data['message'].toString()
-          : "Something went wrong";
+          (response.data is Map && response.data['message'] != null)
+              ? response.data['message'].toString()
+              : "Something went wrong";
 
       return Left(ServerFailure(message));
     } on DioException catch (e) {
@@ -1463,7 +1464,6 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
-
 
   Future<Either<Failure, ShopNumberOtpResponse>> shopAddOtpRequest({
     required String phone,
@@ -3172,15 +3172,12 @@ class ApiDataSource {
   }
 
   Future<Either<Failure, VendorResponse>> onlyProfileChange({
-
     String? avatarUrl,
   }) async {
     try {
       final url = ApiUrl.vendorRegister;
 
-      final payload = {
-        "avatarUrl": avatarUrl,
-      };
+      final payload = {"avatarUrl": avatarUrl};
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
 
@@ -3205,6 +3202,76 @@ class ApiDataSource {
       return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
     } catch (e) {
       AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, TermsAndConditionResponse>>
+  fetchTermsAndCondition() async {
+    try {
+      final url = ApiUrl.privacyPolicy;
+
+      final response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      AppLogger.log.i(response);
+
+      final data = response?.data;
+
+      if (response?.statusCode == 200 || response?.statusCode == 201) {
+        if (data['status'] == true) {
+          return Right(TermsAndConditionResponse.fromJson(data));
+        } else {
+          return Left(ServerFailure(data['message'] ?? "Login failed"));
+        }
+      } else {
+        return Left(ServerFailure(data['message'] ?? "Something went wrong"));
+      }
+    } on DioException catch (dioError) {
+      final errorData = dioError.response?.data;
+      if (errorData is Map && errorData.containsKey('message')) {
+        return Left(ServerFailure(errorData['message']));
+      }
+      return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
+    } catch (e) {
+      print(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, CategoryKeywordsResponse>> getKeyWords({required String type, required String query}) async {
+    try {
+      String url = ApiUrl.getKeyWords(type: type, query: query);
+
+      dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        // If status code is success
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          return Right(CategoryKeywordsResponse.fromJson(response.data));
+          // if (response.data['status'] == true) {
+          //   return Right(ShopCategoryListResponse.fromJson(response.data));
+          // } else {
+          //   return Left(
+          //     ServerFailure(response.data['message'] ?? "Login failed"),
+          //   );
+          // }
+        } else {
+          // ❗ API returned non-success code but has JSON error message
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      print(e);
       return Left(ServerFailure(e.toString()));
     }
   }
