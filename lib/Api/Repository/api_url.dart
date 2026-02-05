@@ -9,6 +9,8 @@ class ApiUrl {
   static const String resendOtp = "${base}api/v1/auth/resend-otp";
   static const String version = "${base}api/v1/app/version";
   static const String contactInfo = "${base}api/v1/contacts/sync";
+  static const String privacyPolicy =
+      "${base}api/v1/public/pages/privacy-policy";
   static const String employeeAddNumber =
       "${base}api/v1/vendor/employees/request-otp";
   static const String employeeAddOtp =
@@ -55,6 +57,9 @@ class ApiUrl {
 
   static String getChatMessages({required String id}) {
     return "${base}api/v1/support/tickets/$id";
+  }
+  static String getKeyWords({required String type, required String  query}) {
+    return "${base}api/v1/public/keywords?type=$type&q=$query";
   }
 
 

@@ -20,6 +20,7 @@ import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 import '../../../About Me/Controller/about_me_notifier.dart';
+import '../../../Privacy Policy/Screen/privacy_policy.dart';
 import '../../../Support/Screen/support_screen.dart';
 import '../../Heater Home Screen/Controller/heater_home_notifier.dart';
 import '../../Heater Home Screen/Model/heater_home_response.dart';
@@ -868,7 +869,15 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                 ),
                 SizedBox(height: 15),
                 CommonContainer.profileList(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            PrivacyPolicy(showAcceptReject: false),
+                      ),
+                    );
+                  },
                   label: 'Privacy Policy',
                   iconPath: AppImages.privacyPolicy,
                   iconHeight: 25,

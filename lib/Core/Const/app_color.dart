@@ -76,7 +76,7 @@ class AppColor {
   static const ivoryGreen = Color(0xffF5F9F5);
   static const steelNavy = Color(0xff1E2A4A);
   static const iceGray = Color(0xffF5F7F9);
-    static const mildBlack = Color(0xFF252525);
+  static const mildBlack = Color(0xFF252525);
   static const brightBlue = Color(0xff1C71FD);
   static const steelBlueGray = Color(0xff646882);
   static const softRose = Color(0xffF9E6E6);
