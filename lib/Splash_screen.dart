@@ -237,6 +237,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   // ---------------------------------------------------------
   // ✅ FIXED: battery optimization flow
   // ---------------------------------------------------------
+
   Future<void> _batteryOptimizationFlow() async {
     if (!Platform.isAndroid) return;
     if (_batteryFlowRunning) return;
