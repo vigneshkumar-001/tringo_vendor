@@ -1,5 +1,3 @@
-
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:dotted_border/dotted_border.dart' as dotted;
@@ -222,7 +220,12 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                                   // SizedBox(width: 10),
                                   GestureDetector(
                                     onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MoreDetails()));
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => MoreDetails(),
+                                        ),
+                                      );
                                     },
                                     child: Container(
                                       padding: EdgeInsets.symmetric(
@@ -396,9 +399,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                                   const SizedBox(width: 12),
 
                                   GestureDetector(
-                                    onTap: () {
-
-                                    },
+                                    onTap: () {},
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 13,
@@ -1241,9 +1242,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                             ),
                             SizedBox(width: 12),
                             GestureDetector(
-                              onTap: () {
-
-                              },
+                              onTap: () {},
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,

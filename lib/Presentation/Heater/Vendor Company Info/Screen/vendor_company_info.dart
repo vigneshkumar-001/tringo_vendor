@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
@@ -24,9 +26,12 @@ import '../../../../Core/Widgets/common_container.dart';
 import '../../../../Core/Widgets/owner_verify_feild.dart';
 import '../../../ShopInfo/Controller/shop_notifier.dart';
 import '../../Add Vendor Employee/Controller/add_employee_notifier.dart';
+import '../../Heater Home Screen/Controller/heater_home_notifier.dart';
 
 class VendorCompanyInfo extends ConsumerStatefulWidget {
-  const VendorCompanyInfo({super.key});
+  final GetProfileResponse? profile;
+  final bool edit;
+  const VendorCompanyInfo({super.key, this.profile, required this.edit});
 
   @override
   ConsumerState<VendorCompanyInfo> createState() => _VendorCompanyInfoState();
@@ -254,6 +259,47 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
         const SnackBar(content: Text('Failed to get current location.')),
       );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // otpControllers = List.generate(otpLength, (_) => TextEditingController());
+    // otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
+
+    if (widget.edit == true) {
+      _prefillFromProfile();
+    }
+  }
+  String removeCountryCode(String? phone) {
+    if (phone == null) return '';
+
+    String value = phone.trim();
+
+    // Remove +91 if present
+    if (value.startsWith('+91')) {
+      value = value.substring(3);
+    }
+
+    return value;
+  }
+
+  void _prefillFromProfile() {
+    final p = widget.profile;
+    if (p == null) {
+      return;
+    }
+AppLogger.log.w(p.data. toString());
+    _shopNameEnglishController.text = (p.data.companyName ?? '');
+    _addressEnglishController.text = (p.data.primaryCity ?? '');
+    _gpsController.text = '${p.data.gpsLatitude},${p.data.gpsLongitude}';
+
+    _primaryMobileController.text =
+        removeCountryCode(p.data.companyContactNumber);
+    _emailController.text = (p.data.companyEmail ?? '');
+    _gSTNumberController.text = (p.data.gstNumber ?? '');
+    _alternateMobileNumberController.text = (p.data.alternatePhone ?? '');
   }
 
   ///new////
@@ -797,8 +843,11 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                         onTap: () async {
                           setState(() => _isSubmitted = true);
 
-                          if (!_formKey.currentState!.validate()) {
-                            return;
+                          // validate ONLY when edit is false
+                          if (!widget.edit) {
+                            if (!_formKey.currentState!.validate()) {
+                              return;
+                            }
                           }
 
                           final englishName =
@@ -892,9 +941,26 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                               context,
                               "Owner information saved successfully",
                             );
-                            context.push(
-                              AppRoutes.vendorCompanyPhotoPath,
-                            ); // ✅ correct next screen
+                            if (widget.edit == false) {
+                              context.push(
+                                AppRoutes.vendorCompanyPhotoPath,
+                              ); // ✅ correct next screen
+                            }
+                            else {
+                              Navigator.pop(context);
+                              final notifier = ref.read(
+                                heaterHomeNotifier.notifier,
+                              );
+
+                              final today = DateFormat(
+                                'yyyy-MM-dd',
+                              ).format(DateTime.now());
+
+                              notifier.heaterHome(
+                                dateFrom: today,
+                                dateTo: today,
+                              );
+                            }
 
                             AppLogger.log.i(
                               "Owner Info Saved  ${newState.vendorResponse?.toJson()}",
