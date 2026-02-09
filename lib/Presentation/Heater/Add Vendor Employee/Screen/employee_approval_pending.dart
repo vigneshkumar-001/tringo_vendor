@@ -69,7 +69,10 @@ class _EmployeeApprovalPendingState
 
     final employeeListData = state.employeeListResponse;
     if (employeeListData == null) {
-      return NoDataScreen(showBottomButton: false, showTopBackArrow: false);
+      return const Scaffold(
+        body: NoDataScreen(showTopBackArrow: false, showBottomButton: false),
+      );
+      // return NoDataScreen(showBottomButton: false, showTopBackArrow: false);
     }
 
     final employeeData = employeeListData.data;

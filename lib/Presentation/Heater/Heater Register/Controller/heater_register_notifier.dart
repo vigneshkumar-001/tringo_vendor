@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 
 import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Utility/app_prefs.dart';
@@ -334,8 +335,7 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
     );
   }
 }
-
 final heaterRegisterNotifier =
-    NotifierProvider.autoDispose<HeaterRegisterNotifier, HeaterRegisterState>(
-      HeaterRegisterNotifier.new,
-    );
+NotifierProvider<HeaterRegisterNotifier, HeaterRegisterState>(
+  HeaterRegisterNotifier.new,
+);

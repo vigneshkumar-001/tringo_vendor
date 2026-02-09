@@ -82,7 +82,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_KEY_HERE" />
+            android:value="AIzaSyAoOiPmmtlMJ7dqbk3yW13itbM1B5grOdc" />
 
         <activity
             android:name=".MainActivity"

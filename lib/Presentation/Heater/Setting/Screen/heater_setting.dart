@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_1.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_2.dart';
@@ -521,14 +522,15 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
       },
     );
   }
-
   Future<void> _pickAndUploadAvatar(ImageSource source) async {
     final picked = await _picker.pickImage(source: source, imageQuality: 85);
     if (picked == null) return;
 
     if (!mounted) return;
+    final file = File(picked.path);
+
     setState(() {
-      _avatarFile = File(picked.path);
+      _avatarFile = file;
       _avatarUploading = true;
     });
 
@@ -536,30 +538,78 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
     final registerNotifier = ref.read(heaterRegisterNotifier.notifier);
 
     try {
+      AppLogger.log.w('I camed for Upload');
+
       await registerNotifier.onlyProfileChange(
-        avatarUrl: '',
-        avatarFile: _avatarFile,
+        avatarUrl: '', // keep if your API expects it
+        avatarFile: file,
       );
 
-      if (!mounted) return; // ✅ very important
+      if (!mounted) return;
 
       final newState = ref.read(heaterRegisterNotifier);
 
-      if (newState.error != null) {
-        AppSnackBar.error(context, newState.error!);
+      final err = newState.error;
+      if (err != null && err.trim().isNotEmpty) {
+        AppSnackBar.error(context, err);
         return;
       }
 
       AppSnackBar.success(context, "Profile photo updated");
 
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      ref
-          .read(heaterHomeNotifier.notifier)
-          .heaterHome(dateFrom: today, dateTo: today);
+      ref.read(heaterHomeNotifier.notifier).heaterHome(
+        dateFrom: today,
+        dateTo: today,
+      );
+    } catch (e, st) {
+      AppLogger.log.e("Avatar upload failed: $e");
+      AppLogger.log.e("$st");
+      if (mounted) AppSnackBar.error(context, "Upload failed. Please try again.");
     } finally {
       if (mounted) setState(() => _avatarUploading = false);
     }
   }
+
+  // Future<void> _pickAndUploadAvatar(ImageSource source) async {
+  //   final picked = await _picker.pickImage(source: source, imageQuality: 85);
+  //   if (picked == null) return;
+  //
+  //   if (!mounted) return;
+  //   setState(() {
+  //     _avatarFile = File(picked.path);
+  //     _avatarUploading = true;
+  //   });
+  //
+  //   // ✅ read notifier BEFORE await
+  //   final registerNotifier = ref.read(heaterRegisterNotifier.notifier);
+  //
+  //   try {
+  //     AppLogger.log.w('I camed for Upload');
+  //     await registerNotifier.onlyProfileChange(
+  //       avatarUrl: '',
+  //       avatarFile: _avatarFile,
+  //     );
+  //
+  //     if (!mounted) return; // ✅ very important
+  //
+  //     final newState = ref.read(heaterRegisterNotifier);
+  //
+  //     if (newState.error != null) {
+  //       AppSnackBar.error(context, newState.error!);
+  //       return;
+  //     }
+  //
+  //     AppSnackBar.success(context, "Profile photo updated");
+  //
+  //     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  //     ref
+  //         .read(heaterHomeNotifier.notifier)
+  //         .heaterHome(dateFrom: today, dateTo: today);
+  //   } finally {
+  //     if (mounted) setState(() => _avatarUploading = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
