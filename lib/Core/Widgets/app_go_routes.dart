@@ -377,12 +377,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.heaterRegister2Path,
         name: AppRoutes.heaterRegister2,
-        builder: (context, state) => const HeaterRegister2(edit: false,),
+        builder: (context, state) => const HeaterRegister2(edit: false),
       ),
       GoRoute(
         path: AppRoutes.vendorCompanyInfoPath,
         name: AppRoutes.vendorCompanyInfo,
-        builder: (context, state) => const VendorCompanyInfo(),
+        builder: (context, state) => const VendorCompanyInfo(edit: false),
       ),
       GoRoute(
         path: AppRoutes.vendorCompanyPhotoPath,

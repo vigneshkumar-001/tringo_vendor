@@ -11,6 +11,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controll
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_1.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_2.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Setting/Controller/profile_notifer.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Vendor%20Company%20Info/Screen/vendor_company_info.dart';
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Screens/owner_info_screens.dart';
 
 import '../../../../Core/Const/app_color.dart';
@@ -837,7 +838,19 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                 ),
                 SizedBox(height: 15),
                 CommonContainer.profileList(
-                  onTap: () {},
+                  onTap: () {
+                    final profileState = ref.read(profileNotifierProvider);
+                    final profile = profileState.getProfileResponse;
+                    if (profile == null) return; // or show toast
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                VendorCompanyInfo(edit: true, profile: profile),
+                      ),
+                    );
+                  },
                   label: 'Edit Company Details',
                   iconPath: AppImages.editCompany,
                   iconHeight: 25,
@@ -873,8 +886,8 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            PrivacyPolicy(showAcceptReject: false),
+                        builder:
+                            (context) => PrivacyPolicy(showAcceptReject: false),
                       ),
                     );
                   },

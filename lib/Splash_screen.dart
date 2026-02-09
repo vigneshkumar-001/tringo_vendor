@@ -42,7 +42,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   static const _kWentToBatterySettings = "went_to_battery_settings";
 
   static const int _cooldownSeconds = 60 * 60 * 12; // 12 hours
-
   @override
   void initState() {
     super.initState();
@@ -53,19 +52,43 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         context,
       );
       if (!ok) return;
-      // final nativeOk = await CallerIdRoleHelper.debugPhonePerm();
-      // debugPrint("✅ NATIVE READ_PHONE_STATE => $nativeOk");
-      // ✅ 2) Overlay permission (optional here)
+      if (!mounted) return;
+
       final req = await CallerIdRoleHelper.requestReadPhoneState();
       final now = await CallerIdRoleHelper.debugPhonePerm();
       print("PHONE req=$req now=$now");
+      if (!mounted) return;
 
       await PermissionService.requestOverlayIfNeeded();
+      if (!mounted) return;
 
-      // ✅ 3) Continue your flow
-      checkNavigation();
+      await checkNavigation(); // ✅ await + safe
     });
   }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   WidgetsBinding.instance.addObserver(this);
+  //
+  //   WidgetsBinding.instance.addPostFrameCallback((_) async {
+  //     final ok = await PermissionService.requestCorePermissionsWithDialog(
+  //       context,
+  //     );
+  //     if (!ok) return;
+  //     // final nativeOk = await CallerIdRoleHelper.debugPhonePerm();
+  //     // debugPrint("✅ NATIVE READ_PHONE_STATE => $nativeOk");
+  //     // ✅ 2) Overlay permission (optional here)
+  //     final req = await CallerIdRoleHelper.requestReadPhoneState();
+  //     final now = await CallerIdRoleHelper.debugPhonePerm();
+  //     print("PHONE req=$req now=$now");
+  //
+  //     await PermissionService.requestOverlayIfNeeded();
+  //
+  //     // ✅ 3) Continue your flow
+  //     checkNavigation();
+  //   });
+  // }
 
   @override
   void dispose() {
