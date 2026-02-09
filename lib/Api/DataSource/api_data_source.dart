@@ -3170,18 +3170,57 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
-
+  //
+  // Future<Either<Failure, VendorResponse>> onlyProfileChange({
+  //   String? avatarUrl,
+  // }) async {
+  //   try {
+  //     AppLogger.log.w('I camed to api Upload');
+  //     final url = ApiUrl.vendorRegister;
+  //
+  //     final payload = {"avatarUrl": avatarUrl};
+  //
+  //     final response = await Request.sendRequest(url, payload, 'Post', true);
+  //
+  //     AppLogger.log.i(url);
+  //     AppLogger.log.i(response);
+  //
+  //     final data = response.data;
+  //
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       if (data['status'] == true) {
+  //         return Right(VendorResponse.fromJson(data));
+  //       } else {
+  //         return Left(ServerFailure(data['message'] ?? "Login failed"));
+  //       }
+  //     } else {
+  //       return Left(ServerFailure(data['message'] ?? "Something went wrong"));
+  //     }
+  //   } on DioException catch (dioError) {
+  //     final errorData = dioError.response?.data;
+  //     if (errorData is Map && errorData.containsKey('message')) {
+  //       return Left(ServerFailure(errorData['message']));
+  //     }
+  //     return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
+  //   } catch (e) {
+  //     AppLogger.log.e(e);
+  //     return Left(ServerFailure(e.toString()));
+  //   }
+  // }
   Future<Either<Failure, VendorResponse>> onlyProfileChange({
     String? avatarUrl,
   }) async {
+    AppLogger.log.w("📌 API.onlyProfileChange ENTER avatarUrl=$avatarUrl");
+
     try {
       final url = ApiUrl.vendorRegister;
+      final payload = {"avatarUrl": (avatarUrl ?? '').trim()};
 
-      final payload = {"avatarUrl": avatarUrl};
+      AppLogger.log.w("➡️ REQUEST url=$url payload=$payload");
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
 
-      AppLogger.log.i(response);
+      AppLogger.log.w("✅ RESPONSE status=${response.statusCode} data=${response.data}");
 
       final data = response.data;
 
@@ -3189,19 +3228,22 @@ class ApiDataSource {
         if (data['status'] == true) {
           return Right(VendorResponse.fromJson(data));
         } else {
-          return Left(ServerFailure(data['message'] ?? "Login failed"));
+          return Left(ServerFailure(data['message'] ?? "Update failed"));
         }
       } else {
         return Left(ServerFailure(data['message'] ?? "Something went wrong"));
       }
     } on DioException catch (dioError) {
+      AppLogger.log.e("❌ DioException: ${dioError.message}");
+      AppLogger.log.e("❌ Dio response: ${dioError.response?.data}");
       final errorData = dioError.response?.data;
       if (errorData is Map && errorData.containsKey('message')) {
         return Left(ServerFailure(errorData['message']));
       }
       return Left(ServerFailure(dioError.message ?? "Unknown Dio error"));
-    } catch (e) {
-      AppLogger.log.e(e);
+    } catch (e, st) {
+      AppLogger.log.e("❌ API catch: $e");
+      AppLogger.log.e("$st");
       return Left(ServerFailure(e.toString()));
     }
   }

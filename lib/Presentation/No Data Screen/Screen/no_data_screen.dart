@@ -5,7 +5,6 @@ import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
 import '../../../Core/Widgets/common_container.dart';
 
-
 class NoDataScreen extends StatelessWidget {
   final String title;
   final String message;
@@ -32,39 +31,45 @@ class NoDataScreen extends StatelessWidget {
     this.showTopBackArrow = true,
     this.showBottomButton = true,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-    this.onRefresh, // ✅ NEW
+    this.onRefresh,
   });
 
   @override
   Widget build(BuildContext context) {
-    final content = Padding(
+    Widget content = Padding(
       padding: padding,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (showTopBackArrow)
-            CommonContainer.topLeftArrow(
-              onTap: onTopBackTap ?? () => Navigator.of(context).maybePop(),
-            ),
-          const SizedBox(height: 160),
-
-          Image.asset(imagePath ?? AppImages.noDataGif),
-
-          const SizedBox(height: 30),
-
-          Center(
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.mulish(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColor.darkBlue,
+          if (showTopBackArrow) ...[
+            Align(
+              alignment: Alignment.centerLeft,
+              child: CommonContainer.topLeftArrow(
+                onTap: onTopBackTap ?? () => Navigator.of(context).maybePop(),
               ),
+            ),
+          ],
+
+          const Spacer(),
+
+          Image.asset(
+            imagePath ?? AppImages.noDataGif,
+            height: 220,
+            fit: BoxFit.contain,
+          ),
+
+          const SizedBox(height: 24),
+
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.mulish(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColor.darkBlue,
             ),
           ),
 
-          const SizedBox(height: 11),
+          const SizedBox(height: 10),
 
           Text(
             message,
@@ -76,11 +81,11 @@ class NoDataScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 26),
+          const SizedBox(height: 24),
 
           if (showBottomButton)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 120),
+            SizedBox(
+              width: 160,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColor.blue,
@@ -113,6 +118,8 @@ class NoDataScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+          const Spacer(),
         ],
       ),
     );
@@ -130,7 +137,7 @@ class NoDataScreen extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.85,
+              height: MediaQuery.of(context).size.height,
               child: content,
             ),
           ],
