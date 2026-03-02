@@ -383,7 +383,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                       // final bool isBlocked = !(data.isActiveSafe);
                       final bool isBlocked = !(data.isActive ?? true);
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Column(
                           children: [
                             Opacity(
@@ -397,7 +397,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(20),
+                                  padding: const EdgeInsets.all(15),
                                   child: Row(
                                     children: [
                                       ClipRRect(
@@ -419,7 +419,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(width: 20),
+                                      SizedBox(width: 10),
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,

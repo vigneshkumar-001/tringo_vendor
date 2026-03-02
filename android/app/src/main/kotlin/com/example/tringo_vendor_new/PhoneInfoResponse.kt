@@ -1,4 +1,4 @@
-//package com.example.tringo_vendor_new
+//package com.feni.tringo_vendor_new
 //
 //data class PhoneInfoResponse(
 //    val status: Boolean? = null,

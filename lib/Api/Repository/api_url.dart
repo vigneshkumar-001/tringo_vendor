@@ -9,6 +9,7 @@ class ApiUrl {
   static const String resendOtp = "${base}api/v1/auth/resend-otp";
   static const String version = "${base}api/v1/app/version";
   static const String contactInfo = "${base}api/v1/contacts/sync";
+  static const String fcmToken = "${base}api/v1/auth/device-token";
   static const String privacyPolicy =
       "${base}api/v1/public/pages/privacy-policy";
   static const String employeeAddNumber =
@@ -36,7 +37,6 @@ class ApiUrl {
   static const String accountDelete = "${base}api/v1/auth/me";
   static const String supportTicketsList = "${base}api/v1/support/tickets";
 
-
   static const String shopNumberVerify =
       "${base}api/v1/auth/phone-verification/request";
   static const String shopNumberOtpVerify =
@@ -58,10 +58,10 @@ class ApiUrl {
   static String getChatMessages({required String id}) {
     return "${base}api/v1/support/tickets/$id";
   }
-  static String getKeyWords({required String type, required String  query}) {
+
+  static String getKeyWords({required String type, required String query}) {
     return "${base}api/v1/public/keywords?type=$type&q=$query";
   }
-
 
   static String heaterEmployeeEdit({required String employeeId}) {
     return "${base}api/v1/vendor/employees/$employeeId";

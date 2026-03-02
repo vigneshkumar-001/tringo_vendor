@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Core/Utility/device_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../Core/Const/app_color.dart';
@@ -42,7 +43,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   static const int _cooldownSeconds = 60 * 60 * 12; // 12 hours
 
   bool _navigated = false; // ✅ prevent double navigation
-
+  bool _tokenSent = false;
   @override
   void initState() {
     super.initState();
@@ -92,10 +93,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
       // 2) Phone permission - never block app
       try {
-        final req = await CallerIdRoleHelper.requestReadPhoneState()
-            .timeout(const Duration(seconds: 8), onTimeout: () => false);
-        final now = await CallerIdRoleHelper.debugPhonePerm()
-            .timeout(const Duration(seconds: 6), onTimeout: () => false);
+        final req = await CallerIdRoleHelper.requestReadPhoneState().timeout(
+          const Duration(seconds: 8),
+          onTimeout: () => false,
+        );
+        final now = await CallerIdRoleHelper.debugPhonePerm().timeout(
+          const Duration(seconds: 6),
+          onTimeout: () => false,
+        );
         AppLogger.log.i("📞 PHONE req=$req now=$now");
       } catch (e) {
         AppLogger.log.e("📞 phone perm error: $e");
@@ -105,8 +110,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
       // 3) Overlay permission (optional) - never block app
       try {
-        await PermissionService.requestOverlayIfNeeded()
-            .timeout(const Duration(seconds: 8), onTimeout: () {});
+        await PermissionService.requestOverlayIfNeeded().timeout(
+          const Duration(seconds: 8),
+          onTimeout: () {},
+        );
         AppLogger.log.i("🪟 overlay request done");
       } catch (e) {
         AppLogger.log.e("🪟 overlay error: $e");
@@ -151,6 +158,41 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     }
   }
 
+  Future<void> _sendDeviceTokenIfNeeded() async {
+    if (_tokenSent) return;
+    _tokenSent = true;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final fcmToken = prefs.getString('fcmToken') ?? '';
+      AppLogger.log.i(fcmToken);
+
+      if (fcmToken.isEmpty) {
+        AppLogger.log.w("⚠️ No fcmToken in prefs yet");
+        return;
+      }
+
+      final deviceId = await DeviceIdHelper.getDeviceId();
+      final platform = Platform.isAndroid ? "android" : "ios";
+
+      await ref
+          .read(appVersionNotifierProvider.notifier)
+          .fcmTokenSend(
+            fcmToken: fcmToken,
+            platform: platform,
+            deviceId: deviceId,
+          );
+
+      final st = ref.read(appVersionNotifierProvider);
+      AppLogger.log.i(
+        "✅ device-token api response: ${st.deviceTokenResponse?.status}",
+      );
+    } catch (e, st) {
+      AppLogger.log.e("❌ sendDeviceToken failed: $e");
+      AppLogger.log.e(st);
+    }
+  }
+
   // ---------------------------------------------------------
   // ✅ Updated: checkNavigation() with timeouts + safe fallback
   // ---------------------------------------------------------
@@ -163,19 +205,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       final token = prefs.getString('token') ?? '';
       final role = (prefs.getString('role') ?? '').toUpperCase();
       final vendorStatus =
-      (prefs.getString('vendorStatus') ?? 'PENDING').toUpperCase();
+          (prefs.getString('vendorStatus') ?? 'PENDING').toUpperCase();
 
       // ✅ getAppVersion can hang -> add timeout
       await ref
           .read(appVersionNotifierProvider.notifier)
           .getAppVersion(
-        appPlatForm: 'android',
-        appVersion: appVersion,
-        appName: 'vendor',
-      )
-          .timeout(const Duration(seconds: 10), onTimeout: () {
-        AppLogger.log.e("⏳ getAppVersion timeout");
-      });
+            appPlatForm: 'android',
+            appVersion: appVersion,
+            appName: 'vendor',
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              AppLogger.log.e("⏳ getAppVersion timeout");
+            },
+          );
 
       final versionState = ref.read(appVersionNotifierProvider);
       if (versionState.appVersionResponse?.data?.forceUpdate == true) {
@@ -195,7 +240,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         context.go(AppRoutes.loginPath);
         return;
       }
-
+      _sendDeviceTokenIfNeeded();
       // ✅ Battery flow only after login session exists
       await _batteryOptimizationFlow();
 
@@ -212,9 +257,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         await ref
             .read(employeeHomeNotifier.notifier)
             .employeeHome(date: '', page: '1', limit: '6', q: '')
-            .timeout(const Duration(seconds: 12), onTimeout: () {
-          AppLogger.log.e("⏳ employeeHome timeout");
-        });
+            .timeout(
+              const Duration(seconds: 12),
+              onTimeout: () {
+                AppLogger.log.e("⏳ employeeHome timeout");
+              },
+            );
       } catch (e) {
         AppLogger.log.e("employeeHome error: $e");
       }
@@ -223,9 +271,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         await ref
             .read(subscriptionNotifier.notifier)
             .getPlanList()
-            .timeout(const Duration(seconds: 12), onTimeout: () {
-          AppLogger.log.e("⏳ getPlanList timeout");
-        });
+            .timeout(
+              const Duration(seconds: 12),
+              onTimeout: () {
+                AppLogger.log.e("⏳ getPlanList timeout");
+              },
+            );
       } catch (e) {
         AppLogger.log.e("getPlanList error: $e");
       }
@@ -287,12 +338,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         return;
       }
 
-      bool isIgnoring = await CallerIdRoleHelper.isIgnoringBatteryOptimizations()
-          .timeout(const Duration(seconds: 6), onTimeout: () => false);
+      bool isIgnoring =
+          await CallerIdRoleHelper.isIgnoringBatteryOptimizations().timeout(
+            const Duration(seconds: 6),
+            onTimeout: () => false,
+          );
       if (!isIgnoring) {
         await Future.delayed(const Duration(milliseconds: 450));
-        isIgnoring =
-        await CallerIdRoleHelper.isIgnoringBatteryOptimizations()
+        isIgnoring = await CallerIdRoleHelper.isIgnoringBatteryOptimizations()
             .timeout(const Duration(seconds: 6), onTimeout: () => false);
       }
 
@@ -393,8 +446,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               const SizedBox(height: 12),
               Text(
                 "To show Caller ID popup reliably on Android 12–15, set Tringo battery usage to "
-                    "\"Unrestricted\".\n\n"
-                    "Settings → Apps → Tringo → Battery → Unrestricted",
+                "\"Unrestricted\".\n\n"
+                "Settings → Apps → Tringo → Battery → Unrestricted",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.ibmPlexSans(fontSize: 14),
               ),
@@ -402,10 +455,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(
-                    context,
-                    _BatterySheetAction.openSettings,
-                  ),
+                  onPressed:
+                      () => Navigator.pop(
+                        context,
+                        _BatterySheetAction.openSettings,
+                      ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: AppColor.blue,
@@ -515,7 +569,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 }
 
 enum _BatterySheetAction { openSettings }
-
 
 /*import 'dart:io';
 
@@ -1033,382 +1086,3 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 }
 
 enum _BatterySheetAction { openSettings }*/
-
-///old////
-// import 'dart:io';
-//
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:go_router/go_router.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
-//
-// import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
-// import 'package:tringo_vendor_new/dummy_screen.dart';
-// import 'package:url_launcher/url_launcher.dart';
-//
-// import 'Core/Const/app_color.dart';
-// import 'Core/Const/app_images.dart';
-// import 'Core/Offline_Data/Screens/offline_demo_screen.dart';
-// import 'Core/Utility/app_prefs.dart';
-// import 'Core/Widgets/app_go_routes.dart';
-// import 'Core/Widgets/caller_id_role_helper.dart';
-// import 'Core/Widgets/common_container.dart';
-// import 'Core/permissions/permission_service.dart';
-// import 'Presentation/Home Screen/Contoller/employee_home_notifier.dart';
-// import 'Presentation/Login Screen/Controller/app_version_notifier.dart';
-// import 'Presentation/subscription/Controller/subscription_notifier.dart';
-//
-// class SplashScreen extends ConsumerStatefulWidget {
-//   const SplashScreen({super.key});
-//
-//   @override
-//   ConsumerState<SplashScreen> createState() => _SplashScreenState();
-// }
-//
-// class _SplashScreenState extends ConsumerState<SplashScreen> {
-//   String appVersion = '1.0.0';
-//   bool _batteryFlowRunning = false;
-//   @override
-//   void initState() {
-//     super.initState();
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       checkNavigation();
-//       PermissionService.requestOverlayAndContacts();
-//     });
-//   }
-//
-//   Future<void> checkNavigation() async {
-//     final prefs = await SharedPreferences.getInstance();
-//
-//     final token = prefs.getString('token') ?? '';
-//     final role = (prefs.getString('role') ?? '').toUpperCase();
-//     final vendorStatus =
-//         (prefs.getString('vendorStatus') ?? 'PENDING').toUpperCase();
-//
-//     await ref
-//         .read(appVersionNotifierProvider.notifier)
-//         .getAppVersion(
-//           appPlatForm: 'android',
-//           appVersion: appVersion,
-//           appName: 'vendor',
-//         );
-//
-//     // 2) Read version state and decide
-//     final versionState = ref.read(appVersionNotifierProvider);
-//
-//     if (versionState.appVersionResponse?.data?.forceUpdate == true) {
-//       _showUpdateBottomSheet();
-//
-//       return;
-//     }
-//     AppLogger.log.i('token=$token role=$role vendorStatus=$vendorStatus');
-//     await _batteryOptimizationFlow();
-//     await Future.delayed(const Duration(seconds: 3));
-//     if (!mounted) return;
-//
-//     // ❌ Not logged in
-//     if (token.isEmpty) {
-//       context.go(AppRoutes.loginPath);
-//       return;
-//     }
-//     final offlineSessionId = await AppPrefs.getOfflineSessionId();
-//     final hasOfflineSession =
-//         offlineSessionId != null && offlineSessionId.trim().isNotEmpty;
-//
-//     await ref
-//         .read(employeeHomeNotifier.notifier)
-//         .employeeHome(date: '', page: '1', limit: '6', q: '');
-//     await ref.read(subscriptionNotifier.notifier).getPlanList();
-//     //  EMPLOYEE → always home
-//     if (role == 'EMPLOYEE') {
-//       // Navigator.push(
-//       //   context,
-//       //   MaterialPageRoute(
-//       //     builder:
-//       //         (_) => OfflineDemoScreen(
-//       //
-//       //     ),
-//       //   ),
-//       // );
-//       context.goNamed(AppRoutes.home);
-//       return;
-//     }
-//
-//     // VENDOR flow
-//     if (role == 'VENDOR') {
-//       if (vendorStatus == 'ACTIVE') {
-//         context.go(AppRoutes.heaterHomeScreenPath);
-//       } else {
-//         // PENDING / REJECTED
-//         context.go(AppRoutes.employeeApprovalPendingPath);
-//       }
-//       return;
-//     }
-//
-//     // fallback
-//
-//     context.go(AppRoutes.loginPath);
-//   }
-//   Future<void> _batteryOptimizationFlow() async {
-//     if (!Platform.isAndroid) return;
-//     if (_batteryFlowRunning) return; // prevent multiple popups
-//     _batteryFlowRunning = true;
-//
-//     try {
-//       // Check if battery optimization already unrestricted
-//       final isIgnoring =
-//       await CallerIdRoleHelper.isIgnoringBatteryOptimizations();
-//
-//       if (isIgnoring == true) {
-//         _batteryFlowRunning = false;
-//         return;
-//       }
-//
-//       if (!mounted) {
-//         _batteryFlowRunning = false;
-//         return;
-//       }
-//
-//       // Show explanation + only one button (Open Settings)
-//       await _showBatteryMandatoryBottomSheet();
-//
-//       // Open settings
-//       await CallerIdRoleHelper.openBatteryUnrestrictedSettings();
-//
-//       // After coming back -> didChangeAppLifecycleState(resumed) will re-check
-//     } catch (_) {
-//       _batteryFlowRunning = false;
-//     }
-//   }
-//
-//   Future<void> _showBatteryMandatoryBottomSheet() async {
-//     return showModalBottomSheet(
-//       backgroundColor: AppColor.white,
-//       context: context,
-//       isDismissible: false,
-//       enableDrag: false,
-//       shape: const RoundedRectangleBorder(
-//         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-//       ),
-//       builder: (_) {
-//         return Padding(
-//           padding: const EdgeInsets.all(24.0),
-//           child: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               Text(
-//                 "Battery Optimization Required",
-//                 style: GoogleFonts.ibmPlexSans(
-//                   fontSize: 18,
-//                   fontWeight: FontWeight.bold,
-//                 ),
-//               ),
-//               const SizedBox(height: 12),
-//               Text(
-//                 "To show Caller ID popup reliably on Android 12–15, you must set Tringo battery usage to "
-//                     "\"Unrestricted\" (or disable battery optimization).\n\n"
-//                     "Please do this now:\n"
-//                     "Settings → Apps → Tringo → Battery → Unrestricted",
-//                 textAlign: TextAlign.center,
-//                 style: GoogleFonts.ibmPlexSans(fontSize: 14),
-//               ),
-//               const SizedBox(height: 24),
-//
-//               // ✅ Only button (No Later)
-//               SizedBox(
-//                 width: double.infinity,
-//                 child: ElevatedButton(
-//                   onPressed: () => Navigator.pop(context),
-//                   style: ElevatedButton.styleFrom(
-//                     padding: const EdgeInsets.symmetric(vertical: 14),
-//                     backgroundColor: AppColor.blue,
-//                     shape: RoundedRectangleBorder(
-//                       borderRadius: BorderRadius.circular(14),
-//                     ),
-//                   ),
-//                   child: Text(
-//                     "Open Settings",
-//                     style: GoogleFonts.ibmPlexSans(
-//                       color: Colors.white,
-//                       fontSize: 15,
-//                       fontWeight: FontWeight.w700,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         );
-//       },
-//     );
-//   }
-//   void _showUpdateBottomSheet() {
-//     showModalBottomSheet(
-//       context: context,
-//       isDismissible: false,
-//       enableDrag: false,
-//       shape: const RoundedRectangleBorder(
-//         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-//       ),
-//       builder: (_) {
-//         return Padding(
-//           padding: const EdgeInsets.all(24.0),
-//           child: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               Text(
-//                 "Update Available",
-//                 style: GoogleFonts.ibmPlexSans(
-//                   fontSize: 18,
-//                   fontWeight: FontWeight.bold,
-//                 ),
-//               ),
-//               const SizedBox(height: 12),
-//
-//               Text(
-//                 "A new version of the app is available. Please update to continue.",
-//                 textAlign: TextAlign.center,
-//                 style: GoogleFonts.ibmPlexSans(fontSize: 14),
-//               ),
-//               const SizedBox(height: 24),
-//               CommonContainer.button(
-//                 text: Text('Update Now'),
-//                 onTap: () {
-//                   openPlayStore();
-//                 },
-//               ),
-//             ],
-//           ),
-//         );
-//       },
-//     );
-//   }
-//
-//   void openPlayStore() async {
-//     final versionState = ref.read(appVersionNotifierProvider);
-//     final storeUrl =
-//         versionState.appVersionResponse?.data?.store.android.toString() ?? '';
-//
-//     if (storeUrl.isEmpty) {
-//       print('No URL available.');
-//       return;
-//     }
-//
-//     final uri = Uri.parse(storeUrl);
-//     print('Trying to launch: $uri');
-//
-//     // Try in-app or platform default mode
-//     final success = await launchUrl(
-//       uri,
-//       mode: LaunchMode.platformDefault, // or LaunchMode.inAppWebView
-//     );
-//
-//     if (!success) {
-//       print('Could not open the link. Maybe no browser is installed.');
-//     }
-//   }
-//
-//   // Future<void> checkNavigation() async {
-//   //   // final prefs = await SharedPreferences.getInstance();
-//   //   //
-//   //   // final token = prefs.getString('token') ?? '';
-//   //   // final role = (prefs.getString('role') ?? '').toUpperCase();
-//   //   // final vendorStatus =
-//   //   //     (prefs.getString('vendorStatus') ?? 'PENDING').toUpperCase();
-//   //   //
-//   //   // AppLogger.log.i('token=$token role=$role vendorStatus=$vendorStatus');
-//   //   //
-//   //   // await Future.delayed(const Duration(seconds: 3));
-//   //   // if (!mounted) return;
-//   //   //
-//   //   // // ❌ Not logged in
-//   //   // if (token.isEmpty) {
-//   //   //   context.go(AppRoutes.loginPath);
-//   //   //   return;
-//   //   // }
-//   //   //
-//   //   // await ref
-//   //   //     .read(employeeHomeNotifier.notifier)
-//   //   //     .employeeHome(date: '', page: '1', limit: '6', q: '');
-//   //   // await ref.read(subscriptionNotifier.notifier).getPlanList();
-//   //   // //  EMPLOYEE → always home
-//   //   // if (role == 'EMPLOYEE') {
-//   //   //   context.goNamed(AppRoutes.home);
-//   //   //   return;
-//   //   // }
-//   //   //
-//   //   // // VENDOR flow
-//   //   // if (role == 'VENDOR') {
-//   //   //   if (vendorStatus == 'ACTIVE') {
-//   //   //     context.go(AppRoutes.heaterHomeScreenPath);
-//   //   //   } else {
-//   //   //     // PENDING / REJECTED
-//   //   //     context.go(AppRoutes.employeeApprovalPendingPath);
-//   //   //   }
-//   //   //   return;
-//   //   // }
-//   //
-//   //   // fallback
-//   //   Navigator.push(context, MaterialPageRoute(builder: (context)=>CounterScreen()));
-//   //   // context.go(AppRoutes.loginPath);
-//   // }
-//
-//   // Future<void> checkNavigation() async {
-//   //   final prefs = await SharedPreferences.getInstance();
-//   //
-//   //   final String token = prefs.getString("token") ?? '';
-//   //   final String sessionToken = prefs.getString("sessionToken") ?? '';
-//   //
-//   //
-//   //
-//   //   AppLogger.log.i('sessionToken : $sessionToken \n token : $token');
-//   //
-//   //   await Future.delayed(const Duration(seconds: 5));
-//   //
-//   //   if (!mounted) return;
-//   //
-//   //   if (token.isNotEmpty) {
-//   //     context.go(AppRoutes.heaterHomeScreenPath);
-//   //   } else {
-//   //     // context.go(AppRoutes.employeeApprovalPendingPath);
-//   //     context.go(AppRoutes.loginPath);
-//   //     // context.go(AppRoutes.loginPath);
-//   //   }
-//   // }
-//   //
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final h = MediaQuery.of(context).size.height;
-//     final w = MediaQuery.of(context).size.width;
-//
-//     return Scaffold(
-//       body: SafeArea(
-//         child: Stack(
-//           children: [
-//             Image.asset(
-//               AppImages.splashScreen,
-//               width: w,
-//               height: h,
-//               fit: BoxFit.cover,
-//             ),
-//             Positioned(
-//               top: h * 0.53,
-//               left: w * 0.43,
-//               child: Text(
-//                 'V $appVersion',
-//                 style: AppTextStyles.mulish(
-//                   fontSize: 12,
-//                   fontWeight: FontWeight.w900,
-//                   color: AppColor.black,
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

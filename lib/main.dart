@@ -1,23 +1,72 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'Core/Const/app_color.dart';
+import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Firebase/firebase_service.dart';
 
+import 'Core/Const/app_color.dart';
 import 'Core/Const/app_images.dart';
 import 'Core/Utility/app_textstyles.dart';
 import 'Core/Widgets/app_go_routes.dart';
 import 'Core/Widgets/common_container.dart';
 import 'dummy_screen.dart';
 
-void main() {
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Must initialize Firebase in background isolate too
+  await Firebase.initializeApp();
+  AppLogger.log.i('🔕 [BG] messageId=${message.messageId}');
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Optional: keep Flutter errors visible
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.dumpErrorToConsole(details);
   };
+
+  // ✅ Init Firebase
+  await Firebase.initializeApp();
+
+  // ✅ Register background handler early
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // ✅ Ensure FCM auto-init
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
+
+  final firebaseService = FirebaseService();
+
+  // ✅ This initializes local notifications + channel + permission
+  await firebaseService.initializeFirebase();
+
+  // ✅ Small delay helps some devices (Play Services not ready immediately)
+  await Future.delayed(const Duration(seconds: 3));
+
+  // ✅ Fetch token with your backoff
+  await firebaseService.fetchFCMTokenIfNeeded();
+
+  // ✅ Foreground + opened listeners
+  firebaseService.listenToMessages(
+    onMessage: (msg) async {
+      AppLogger.log.i('📩 [FG] ${msg.messageId}');
+      await firebaseService.showNotification(msg);
+    },
+    onMessageOpenedApp: (msg) {
+      AppLogger.log.i('📬 [OPENED] ${msg.messageId}');
+      // TODO: navigate using msg.data if needed
+    },
+  );
+
+  // ✅ Terminated -> opened by tap
+  final initialMsg = await firebaseService.getInitialMessage();
+  if (initialMsg != null) {
+    AppLogger.log.i('🚀 [TERMINATED OPEN] ${initialMsg.messageId}');
+    // TODO: navigate using initialMsg.data if needed
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -54,7 +103,7 @@ class NoInternetScreen extends StatelessWidget {
           child: Column(
             children: [
               Image.asset(AppImages.noDataGif),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               Text(
                 'No Internet Connection',
                 style: AppTextStyles.mulish(
@@ -74,7 +123,6 @@ class NoInternetScreen extends StatelessWidget {
 final routerRefreshProvider = Provider<ChangeNotifier>((ref) {
   final notifier = ValueNotifier<int>(0);
 
-  // whenever internetStatusProvider changes, refresh go_router
   ref.listen(internetStatusProvider, (_, __) {
     notifier.value++;
   });
@@ -82,3 +130,122 @@ final routerRefreshProvider = Provider<ChangeNotifier>((ref) {
   ref.onDispose(notifier.dispose);
   return notifier;
 });
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:flutter/material.dart';
+//
+// import 'package:flutter/foundation.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+//
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import 'package:flutter_screenutil/flutter_screenutil.dart';
+// import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+// import 'package:tringo_vendor_new/Core/Firebase/firebase_service.dart';
+//
+// import 'Core/Const/app_color.dart';
+//
+// import 'Core/Const/app_images.dart';
+// import 'Core/Utility/app_textstyles.dart';
+// import 'Core/Widgets/app_go_routes.dart';
+// import 'Core/Widgets/common_container.dart';
+// import 'dummy_screen.dart';
+// @pragma('vm:entry-point')
+// Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   // Must initialize Firebase in background isolate too
+//   await Firebase.initializeApp();
+//   AppLogger.log.i('🔕 [BG] messageId=${message.messageId}');
+// }
+// Future<void> main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   FlutterError.onError = (FlutterErrorDetails details) {
+//     FlutterError.dumpErrorToConsole(details);
+//   };
+//   await Firebase.initializeApp();
+//   // Background handler must be registered early
+//   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+//
+//   final firebaseService = FirebaseService();
+//   await firebaseService.initializeFirebase();
+//   await firebaseService.fetchFCMTokenIfNeeded();
+//
+//   // ✅ Register listeners (no need for postFrame)
+//   firebaseService.listenToMessages(
+//     onMessage: (msg) async {
+//       AppLogger.log.i('📩 [FG] ${msg.messageId}');
+//       await firebaseService.showNotification(msg);
+//     },
+//     onMessageOpenedApp: (msg) {
+//       AppLogger.log.i('📬 [OPENED] ${msg.messageId}');
+//       // TODO: navigate based on msg.data if needed
+//     },
+//   );
+//
+//   // ✅ Handle "terminated -> opened by tap"
+//   final initialMsg = await FirebaseMessaging.instance.getInitialMessage();
+//   if (initialMsg != null) {
+//     AppLogger.log.i('🚀 [TERMINATED OPEN] ${initialMsg.messageId}');
+//     // TODO: navigate based on initialMsg.data if needed
+//   }
+//   runApp(const ProviderScope(child: MyApp()));
+// }
+//
+// class MyApp extends ConsumerWidget {
+//   const MyApp({super.key});
+//
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     final router = ref.watch(goRouterProvider);
+//
+//     return ScreenUtilInit(
+//       designSize: const Size(360, 690),
+//       builder: (context, child) {
+//         return MaterialApp.router(
+//           routerConfig: router,
+//           debugShowCheckedModeBanner: false,
+//           theme: ThemeData(scaffoldBackgroundColor: AppColor.white),
+//         );
+//       },
+//     );
+//   }
+// }
+//
+// class NoInternetScreen extends StatelessWidget {
+//   const NoInternetScreen({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: SafeArea(
+//         child: Padding(
+//           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 160),
+//           child: Column(
+//             children: [
+//               Image.asset(AppImages.noDataGif),
+//               SizedBox(height: 30),
+//               Text(
+//                 'No Internet Connection',
+//                 style: AppTextStyles.mulish(
+//                   fontSize: 24,
+//                   fontWeight: FontWeight.w800,
+//                   color: AppColor.darkBlue,
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+//
+// final routerRefreshProvider = Provider<ChangeNotifier>((ref) {
+//   final notifier = ValueNotifier<int>(0);
+//
+//   // whenever internetStatusProvider changes, refresh go_router
+//   ref.listen(internetStatusProvider, (_, __) {
+//     notifier.value++;
+//   });
+//
+//   ref.onDispose(notifier.dispose);
+//   return notifier;
+// });

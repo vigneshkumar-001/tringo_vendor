@@ -6,8 +6,8 @@ class PermissionService {
   static bool _isRequesting = false;
 
   static Future<bool> requestCorePermissionsWithDialog(
-      BuildContext context,
-      ) async {
+    BuildContext context,
+  ) async {
     if (!Platform.isAndroid) return true;
 
     // ✅ Prevent parallel requests
@@ -16,11 +16,12 @@ class PermissionService {
 
     try {
       // ✅ Request ALL needed permissions in ONE call
-      final statuses = await <Permission>[
-        Permission.phone,
-        Permission.contacts,
-        Permission.notification, // Android 13+
-      ].request();
+      final statuses =
+          await <Permission>[
+            Permission.phone,
+            Permission.contacts,
+            Permission.notification, // Android 13+
+          ].request();
 
       final phoneGranted = statuses[Permission.phone]?.isGranted ?? false;
       final contactsGranted = statuses[Permission.contacts]?.isGranted ?? false;
@@ -36,24 +37,25 @@ class PermissionService {
       await showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => AlertDialog(
-          title: const Text("Permissions Required"),
-          content: const Text(
-            "To show Caller ID popup after call cut, Tringo needs:\n\n"
+        builder:
+            (_) => AlertDialog(
+              title: const Text("Permissions Required"),
+              content: const Text(
+                "To show Caller ID popup after call cut, Tringo needs:\n\n"
                 "• Phone permission\n"
                 "• Contacts permission\n\n"
                 "Tap Settings → Permissions → Allow.",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await openAppSettings();
-              },
-              child: const Text("Open Settings"),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await openAppSettings();
+                  },
+                  child: const Text("Open Settings"),
+                ),
+              ],
             ),
-          ],
-        ),
       );
 
       return false;
@@ -80,7 +82,6 @@ class PermissionService {
     }
   }
 }
-
 
 // import 'dart:io';
 // import 'package:flutter/material.dart';

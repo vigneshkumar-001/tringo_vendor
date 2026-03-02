@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Utility/device_helper.dart';
+import 'package:tringo_vendor_new/Presentation/Login%20Screen/Controller/app_version_notifier.dart';
 
 import '../../../../Core/Utility/app_snackbar.dart';
 import '../../../../Core/Widgets/common_container.dart';
@@ -42,7 +46,34 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   late final LoginNotifier _loginNotifier;
   late final EmployeeHomeNotifier _employeeHomeNotifier;
   late final SubscriptionNotifier _subscriptionNotifier;
+  bool _fcmSent = false;
+  Future<void> _sendFcmAfterLogin() async {
+    if (_fcmSent) return;
+    _fcmSent = true;
 
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final fcmToken = prefs.getString('fcmToken') ?? '';
+
+      if (fcmToken.isEmpty) {
+        AppLogger.log.w("⚠️ FCM token empty after login");
+        return;
+      }
+
+      final deviceId = await DeviceIdHelper.getDeviceId();
+      final platform = Platform.isAndroid ? "android" : "ios";
+
+      await ref.read(appVersionNotifierProvider.notifier).fcmTokenSend(
+        fcmToken: fcmToken,
+        platform: platform,
+        deviceId: deviceId,
+      );
+
+      AppLogger.log.i("✅ FCM token sent after OTP login");
+    } catch (e) {
+      AppLogger.log.e("❌ FCM send failed: $e");
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -82,6 +113,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         AppLogger.log.w(isNewOwner);
 
         AppSnackBar.success(context, 'OTP verified successfully!');
+        // ✅ Send FCM in background (non-blocking)
+        Future(() => _sendFcmAfterLogin());
 
         // ✅ NAVIGATE FIRST
         if (role == 'VENDOR') {

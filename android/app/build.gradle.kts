@@ -2,16 +2,18 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.tringo_vendor_new"
+    namespace = "com.feni.tringo_vendor_new"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -19,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.tringo_vendor_new"
+        applicationId = "com.feni.tringo_vendor_new"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -50,6 +52,8 @@ dependencies {
 
     // ✅ Coil (for ImageView.load)
     implementation("io.coil-kt:coil:2.6.0")
+//    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 
@@ -67,7 +71,7 @@ flutter {
 //}
 //
 //android {
-//    namespace = "com.example.tringo_vendor_new"
+//    namespace = "com.feni.tringo_vendor_new"
 //    compileSdk = flutter.compileSdkVersion
 //    ndkVersion = flutter.ndkVersion
 //
@@ -82,7 +86,7 @@ flutter {
 //
 //    defaultConfig {
 //        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-//        applicationId = "com.example.tringo_vendor_new"
+//        applicationId = "com.feni.tringo_vendor_new"
 //        // You can update the following values to match your application needs.
 //        // For more information, see: https://flutter.dev/to/review-gradle-config.
 //        minSdk = flutter.minSdkVersion

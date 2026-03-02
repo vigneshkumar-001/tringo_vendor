@@ -14,6 +14,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import 'package:tringo_vendor_new/Presentation/Heater/Employee%20details-edit/Model/heater_employee_edit_res.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/History/Model/vendor_history_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
+import 'package:tringo_vendor_new/Presentation/Login%20Screen/Model/device_token_response.dart';
 import 'package:tringo_vendor_new/Presentation/Privacy%20Policy/Model/terms_and_condition_model.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_keywords_response.dart';
 import 'package:tringo_vendor_new/Presentation/Shops%20Details/Model/shop_details_response.dart';
@@ -3314,6 +3315,56 @@ class ApiDataSource {
       }
     } catch (e) {
       print(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, DeviceTokenResponse>> fcmTokenSend({
+    required String fcmToken,
+    required String platform,
+    required String deviceId,
+  }) async {
+    try {
+      final url = ApiUrl.fcmToken;
+
+      dynamic response = await Request.sendRequest(
+        url,
+        {
+          "fcmToken":
+          fcmToken,
+          "platform": "android",
+          if (deviceId.trim().isNotEmpty) "deviceId": deviceId,
+        },
+        'POST',
+        true,
+      );
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(DeviceTokenResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e, st) {
+      AppLogger.log.e(e);
+      print('$e,$st');
       return Left(ServerFailure(e.toString()));
     }
   }
