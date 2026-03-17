@@ -1214,7 +1214,7 @@ class ApiDataSource {
       final body = <String, dynamic>{
         "businessProfileId": businessProfileId,
         "category": category,
-        "subCategory": subCategory,
+        // "subCategory": subCategory,
         "englishName": englishName,
         "tamilName": tamilName,
         "descriptionEn": descriptionEn,
@@ -1516,9 +1516,9 @@ class ApiDataSource {
     }
   }
 
-  Future<Either<Failure, CategoryListResponse>> getShopCategories() async {
+  Future<Either<Failure, CategoryListResponse>> getShopCategories({required String type}) async {
     try {
-      String url = ApiUrl.categoriesShop;
+      String url = ApiUrl.categoriesShop(type: type);
 
       dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
 

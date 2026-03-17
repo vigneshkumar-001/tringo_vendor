@@ -602,10 +602,13 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     AppLogger.log.i("shopId=${widget.shopId}");
     AppLogger.log.i("isService=${widget.isService}");
     AppLogger.log.i("offlineSid=${widget.offlineSessionId}");
-
+    final bool isServiceFlow = widget.isService ?? false;
+    final String typeText = isServiceFlow ? 'service' : 'product';
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // ✅ fetch category
-      ref.read(shopCategoryNotifierProvider.notifier).fetchCategories();
+      ref
+          .read(shopCategoryNotifierProvider.notifier)
+          .fetchCategories(type: typeText);
 
       // ✅ edit mode prefill first (so offline won't overwrite)
       if (widget.isEditMode) {
@@ -972,6 +975,8 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   Widget build(BuildContext context) {
     final state = ref.watch(shopCategoryNotifierProvider);
     final bool isServiceFlow = widget.isService ?? false;
+
+    final String typeText = isServiceFlow ? 'service' : 'product';
     final bool isIndividualFlow = widget.isIndividual ?? true;
     final bool isEditFromAboutMe = widget.pages == "shopDetailsEdit";
     return Scaffold(
@@ -1076,7 +1081,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           // 1️⃣ Start API call – this will set isLoading = true
                           ref
                               .read(shopCategoryNotifierProvider.notifier)
-                              .fetchCategories();
+                              .fetchCategories(type: typeText);
 
                           // 2️⃣ Open bottom sheet immediately
                           _showCategoryBottomSheet(
@@ -1140,134 +1145,72 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           ),
                         ),
 
-                      const SizedBox(height: 10),
-
-                      GestureDetector(
-                        onTap: () {
-                          if (_categoryController.text.isEmpty ||
-                              _selectedCategoryChildren == null) {
-                            AppSnackBar.info(
-                              context,
-                              'Please select a category first',
-                            );
-                            return;
-                          }
-                          _showCategoryChildrenBottomSheet(
-                            context,
-                            _selectedCategoryChildren!,
-                            _subCategoryController,
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 19,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.lowGery1,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _subCategoryController.text.isEmpty
-                                        ? " "
-                                        : _subCategoryController.text,
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 18,
-                                      color:
-                                          _subCategoryController.text.isEmpty
-                                              ? Colors.grey
-                                              : Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Image.asset(
-                                  AppImages.drapDownImage,
-                                  height: 30,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_subCategoryErrorText != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6.0, left: 4),
-                          child: Text(
-                            _subCategoryErrorText!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-
-                      // const SizedBox(height: 15),
-                      // CommonContainer.fillingContainer(
-                      //   controller: tamilNameController,
-                      //   text: 'Tamil',
-                      //   isTamil: true,
-                      //   validator: (v) => (v == null || v.isEmpty)
-                      //       ? 'Please Enter Shop Name in Tamil'
-                      //       : null,
-                      //   onChanged: (value) async {
-                      //     // your existing suggestion logic can remain
-                      //     setState(() => isTamilNameLoading = true);
-                      //     final result =
-                      //         await TanglishTamilHelper.transliterate(value);
-                      //     setState(() {
-                      //       tamilNameSuggestion = result;
-                      //       isTamilNameLoading = false;
-                      //       _tamilPrefilled =
-                      //           true; // user started typing; stop auto-updates
-                      //     });
+                      // const SizedBox(height: 10),
+                      //
+                      // GestureDetector(
+                      //   onTap: () {
+                      //     if (_categoryController.text.isEmpty ||
+                      //         _selectedCategoryChildren == null) {
+                      //       AppSnackBar.info(
+                      //         context,
+                      //         'Please select a category first',
+                      //       );
+                      //       return;
+                      //     }
+                      //     _showCategoryChildrenBottomSheet(
+                      //       context,
+                      //       _selectedCategoryChildren!,
+                      //       _subCategoryController,
+                      //     );
                       //   },
-                      // ),
-                      // if (isTamilNameLoading)
-                      //   const Padding(
-                      //     padding: EdgeInsets.all(8.0),
-                      //     child: CircularProgressIndicator(strokeWidth: 2),
-                      //   ),
-                      // if (isTamilNameLoading)
-                      //   const Padding(
-                      //     padding: EdgeInsets.all(8.0),
-                      //     child: CircularProgressIndicator(strokeWidth: 2),
-                      //   ),
-                      // if (tamilNameSuggestion.isNotEmpty)
-                      //   Container(
-                      //     margin: const EdgeInsets.only(top: 4),
-                      //     constraints: const BoxConstraints(maxHeight: 150),
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.white,
-                      //       borderRadius: BorderRadius.circular(15),
-                      //       border: Border.all(color: Colors.grey),
+                      //   child: Container(
+                      //     padding: const EdgeInsets.symmetric(
+                      //       horizontal: 12,
+                      //       vertical: 19,
                       //     ),
-                      //     child: ListView.builder(
-                      //       shrinkWrap: true,
-                      //       itemCount: tamilNameSuggestion.length,
-                      //       itemBuilder: (context, index) {
-                      //         final suggestion = tamilNameSuggestion[index];
-                      //         return ListTile(
-                      //           title: Text(suggestion),
-                      //           onTap: () {
-                      //             print("Selected suggestion: $suggestion");
-                      //             TanglishTamilHelper.applySuggestion(
-                      //               controller: tamilNameController,
-                      //               suggestion: suggestion,
-                      //               onSuggestionApplied: () {
-                      //                 setState(() => tamilNameSuggestion = []);
-                      //               },
-                      //             );
-                      //           },
-                      //         );
-                      //       },
+                      //     decoration: BoxDecoration(
+                      //       color: AppColor.lowGery1,
+                      //       borderRadius: BorderRadius.circular(20),
+                      //     ),
+                      //     child: Padding(
+                      //       padding: const EdgeInsets.symmetric(
+                      //         horizontal: 8.0,
+                      //       ),
+                      //       child: Row(
+                      //         children: [
+                      //           Expanded(
+                      //             child: Text(
+                      //               _subCategoryController.text.isEmpty
+                      //                   ? " "
+                      //                   : _subCategoryController.text,
+                      //               style: AppTextStyles.mulish(
+                      //                 fontWeight: FontWeight.w700,
+                      //                 fontSize: 18,
+                      //                 color:
+                      //                     _subCategoryController.text.isEmpty
+                      //                         ? Colors.grey
+                      //                         : Colors.black,
+                      //               ),
+                      //             ),
+                      //           ),
+                      //           Image.asset(
+                      //             AppImages.drapDownImage,
+                      //             height: 30,
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      // if (_subCategoryErrorText != null)
+                      //   Padding(
+                      //     padding: const EdgeInsets.only(top: 6.0, left: 4),
+                      //     child: Text(
+                      //       _subCategoryErrorText!,
+                      //       style: const TextStyle(
+                      //         color: Colors.red,
+                      //         fontSize: 12,
+                      //       ),
                       //     ),
                       //   ),
                       const SizedBox(height: 25),
@@ -1362,63 +1305,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     ? 'Please Enter Address '
                                     : null,
                       ),
-                      // SizedBox(height: 15),
-                      // CommonContainer.fillingContainer(
-                      //   onChanged: (value) async {
-                      //     setState(() => isAddressLoading = true);
-                      //     final result =
-                      //         await TanglishTamilHelper.transliterate(value);
-                      //
-                      //     setState(() {
-                      //       addressTamilSuggestion = result;
-                      //       isAddressLoading = false;
-                      //     });
-                      //   },
-                      //   controller: addressTamilNameController,
-                      //   maxLine: 4,
-                      //   text: 'Tamil',
-                      //   isTamil: true,
-                      //   validator: (value) => value == null || value.isEmpty
-                      //       ? 'Please Enter Address in Tamil'
-                      //       : null,
-                      // ),
-                      // if (isAddressLoading)
-                      //   const Padding(
-                      //     padding: EdgeInsets.all(8.0),
-                      //     child: CircularProgressIndicator(strokeWidth: 2),
-                      //   ),
-                      // if (addressTamilSuggestion.isNotEmpty)
-                      //   Container(
-                      //     margin: const EdgeInsets.only(top: 4),
-                      //     constraints: const BoxConstraints(maxHeight: 150),
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.white,
-                      //       borderRadius: BorderRadius.circular(15),
-                      //       border: Border.all(color: Colors.grey),
-                      //     ),
-                      //     child: ListView.builder(
-                      //       shrinkWrap: true,
-                      //       itemCount: addressTamilSuggestion.length,
-                      //       itemBuilder: (context, index) {
-                      //         final suggestion = addressTamilSuggestion[index];
-                      //         return ListTile(
-                      //           title: Text(suggestion),
-                      //           onTap: () {
-                      //             print("Selected suggestion: $suggestion");
-                      //             TanglishTamilHelper.applySuggestion(
-                      //               controller: addressTamilNameController,
-                      //               suggestion: suggestion,
-                      //               onSuggestionApplied: () {
-                      //                 setState(
-                      //                   () => addressTamilSuggestion = [],
-                      //                 );
-                      //               },
-                      //             );
-                      //           },
-                      //         );
-                      //       },
-                      //     ),
-                      //   ),
+
                       const SizedBox(height: 25),
                       Text(
                         'GPS Location',
@@ -1944,79 +1831,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                               ),
                               child: _buildOwnerPhotoWidget(),
 
-                              // _permanentImage == null
-                              //     ? Center(
-                              //         child: Row(
-                              //           mainAxisSize: MainAxisSize.min,
-                              //           children: [
-                              //             Image.asset(
-                              //               AppImages.uploadImage,
-                              //               height: 30,
-                              //             ),
-                              //             const SizedBox(width: 10),
-                              //             Text(
-                              //               'Upload',
-                              //               style: AppTextStyles.mulish(
-                              //                 fontSize: 14,
-                              //                 fontWeight: FontWeight.w500,
-                              //                 color: AppColor.mediumLightGray,
-                              //               ),
-                              //             ),
-                              //           ],
-                              //         ),
-                              //       )
-                              //     : Row(
-                              //         children: [
-                              //           Expanded(
-                              //             child: ClipRRect(
-                              //               borderRadius: BorderRadius.circular(
-                              //                 12,
-                              //               ),
-                              //               child: Image.file(
-                              //                 File(_permanentImage!.path),
-                              //                 height: 140,
-                              //                 fit: BoxFit.cover,
-                              //               ),
-                              //             ),
-                              //           ),
-                              //           const SizedBox(width: 8),
-                              //           InkWell(
-                              //             onTap: () {
-                              //               setState(() {
-                              //                 _permanentImage = null;
-                              //                 _imageErrorText =
-                              //                     'Please Add Your Photo';
-                              //                 _timetableInvalid = true;
-                              //               });
-                              //             },
-                              //             child: Padding(
-                              //               padding: const EdgeInsets.symmetric(
-                              //                 vertical: 35.0,
-                              //               ),
-                              //               child: Column(
-                              //                 mainAxisAlignment:
-                              //                     MainAxisAlignment.center,
-                              //                 children: [
-                              //                   Image.asset(
-                              //                     AppImages.closeImage,
-                              //                     height: 26,
-                              //                     color: AppColor.mediumGray,
-                              //                   ),
-                              //                   Text(
-                              //                     'Clear',
-                              //                     style: AppTextStyles.mulish(
-                              //                       fontSize: 14,
-                              //                       fontWeight: FontWeight.w400,
-                              //                       color: AppColor
-                              //                           .mediumLightGray,
-                              //                     ),
-                              //                   ),
-                              //                 ],
-                              //               ),
-                              //             ),
-                              //           ),
-                              //         ],
-                              //       ),
+
                             ),
                           ),
                         ),
@@ -2097,29 +1912,29 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                           // ✅ VERIFIED CHECK FIX (OTP or Pref token)
                           // ✅ OTP verified required ONLY in register flow
-                          if (!isEditFromAboutMe) {
-                            final shopState = ref.read(
-                              shopCategoryNotifierProvider,
-                            );
-                            final savedToken =
-                                await AppPrefs.getVerificationToken();
-
-                            final isVerified =
-                                (shopState
-                                        .shopNumberOtpResponse
-                                        ?.data
-                                        ?.verified ==
-                                    true) ||
-                                (savedToken != null && savedToken.isNotEmpty);
-
-                            // if (!isVerified) {
-                            //   AppSnackBar.error(
-                            //     context,
-                            //     "Please verify Primary Mobile Number",
-                            //   );
-                            //   return;
-                            // }
-                          }
+                          // if (!isEditFromAboutMe) {
+                          //   final shopState = ref.read(
+                          //     shopCategoryNotifierProvider,
+                          //   );
+                          //   final savedToken =
+                          //       await AppPrefs.getVerificationToken();
+                          //
+                          //   final isVerified =
+                          //       (shopState
+                          //               .shopNumberOtpResponse
+                          //               ?.data
+                          //               ?.verified ==
+                          //           true) ||
+                          //       (savedToken != null && savedToken.isNotEmpty);
+                          //
+                          //   // if (!isVerified) {
+                          //   //   AppSnackBar.error(
+                          //   //     context,
+                          //   //     "Please verify Primary Mobile Number",
+                          //   //   );
+                          //   //   return;
+                          //   // }
+                          // }
 
                           // final shopState = ref.read(
                           //   shopCategoryNotifierProvider,
@@ -2195,57 +2010,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             );
                           }
 
-                          /*     final response = await ref
-                              .read(shopCategoryNotifierProvider.notifier)
-                              .shopInfoRegister(
-                                businessProfileId: widget.employeeId ?? '',
-                                shopId: widget.shopId,
-                                ownerImageFile: ownerFile,
-                                type: type,
-                                addressEn:
-                                    _addressEnglishController.text.trim(),
-                                addressTa:
-                                    addressTamilNameController.text.trim(),
-                                alternatePhone: alternatePhoneToSend,
-                                primaryPhone: primaryPhoneToSend,
-                                category: categorySlug,
-                                contactEmail: _emailController.text.trim(),
-                                descriptionEn:
-                                    _descriptionEnglishController.text.trim(),
-                                descriptionTa:
-                                    descriptionTamilController.text.trim(),
-                                doorDelivery: isDoorDeliveryEnabled,
-                                englishName:
-                                    _shopNameEnglishController.text.trim(),
-                                gpsLatitude: latitude,
-                                gpsLongitude: longitude,
-                                subCategory: subCategorySlug,
-                                tamilName: tamilNameController.text.trim(),
-                                weeklyHours: weeklyHoursText,
-                              );
 
-                          final newState = ref.read(
-                            shopCategoryNotifierProvider,
-                          );
-
-                          if (newState.error != null &&
-                              newState.error!.isNotEmpty) {
-                            AppSnackBar.error(context, newState.error!);
-                          } else if (response != null) {
-                            if (widget.pages == 'shopDetailsEdit') {
-                              Navigator.pop(context, true);
-                            } else {
-                              context.pushNamed(
-                                AppRoutes.shopPhotoInfo,
-                                extra: 'shopCategory',
-                              );
-                            }
-                          } else {
-                            AppSnackBar.error(
-                              context,
-                              "Unexpected error, please try again",
-                            );
-                          }*/
                         },
 
                         text:

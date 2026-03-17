@@ -160,58 +160,58 @@ class LoginNotifier extends Notifier<LoginState> {
         await AppPrefs.setRole(response.data?.role ?? '');
 
         AppLogger.log.i('✅ SIM login token stored');
-
-        //  HERE: contacts sync for SIM-direct login
-        final alreadySynced = prefs.getBool('contacts_synced') ?? false;
-
-        // Optional: only sync when SIM verified true
-        final simVerified = response.data?.simVerified == true;
-
-        if (!alreadySynced && simVerified) {
-          try {
-            AppLogger.log.i("✅ Contact sync started (SIM login)");
-
-            final contacts = await ContactsService.getAllContacts();
-            AppLogger.log.i("📞 contacts fetched = ${contacts.length}");
-
-            if (contacts.isEmpty) {
-              AppLogger.log.w(
-                "⚠️ Contacts empty / permission denied. Will retry later.",
-              );
-              return;
-            }
-
-            final limited = contacts.take(500).toList();
-
-            final items =
-                limited
-                    .map((c) => {"name": c.name, "phone": "+91${c.phone}"})
-                    .toList();
-
-            // ✅ chunk to reduce payload size (recommended)
-            const chunkSize = 200;
-            for (var i = 0; i < items.length; i += chunkSize) {
-              final chunk = items.sublist(
-                i,
-                (i + chunkSize > items.length) ? items.length : i + chunkSize,
-              );
-
-              final res = await api.syncContacts(items: chunk);
-
-              res.fold(
-                (l) => AppLogger.log.e("❌ batch sync fail: ${l.message}"),
-                (r) => AppLogger.log.i(
-                  "✅ batch ok total=${r.data.total} inserted=${r.data.inserted} touched=${r.data.touched} skipped=${r.data.skipped}",
-                ),
-              );
-            }
-
-            await prefs.setBool('contacts_synced', true);
-            AppLogger.log.i("✅ Contacts synced (SIM login): ${limited.length}");
-          } catch (e) {
-            AppLogger.log.e("❌ Contact sync failed (SIM login): $e");
-          }
-        }
+        //
+        // //  HERE: contacts sync for SIM-direct login
+        // final alreadySynced = prefs.getBool('contacts_synced') ?? false;
+        //
+        // // Optional: only sync when SIM verified true
+        // final simVerified = response.data?.simVerified == true;
+        //
+        // if (!alreadySynced && simVerified) {
+        //   try {
+        //     AppLogger.log.i("✅ Contact sync started (SIM login)");
+        //
+        //     final contacts = await ContactsService.getAllContacts();
+        //     AppLogger.log.i("📞 contacts fetched = ${contacts.length}");
+        //
+        //     if (contacts.isEmpty) {
+        //       AppLogger.log.w(
+        //         "⚠️ Contacts empty / permission denied. Will retry later.",
+        //       );
+        //       return;
+        //     }
+        //
+        //     final limited = contacts.take(500).toList();
+        //
+        //     final items =
+        //         limited
+        //             .map((c) => {"name": c.name, "phone": "+91${c.phone}"})
+        //             .toList();
+        //
+        //     // ✅ chunk to reduce payload size (recommended)
+        //     const chunkSize = 200;
+        //     for (var i = 0; i < items.length; i += chunkSize) {
+        //       final chunk = items.sublist(
+        //         i,
+        //         (i + chunkSize > items.length) ? items.length : i + chunkSize,
+        //       );
+        //
+        //       final res = await api.syncContacts(items: chunk);
+        //
+        //       res.fold(
+        //         (l) => AppLogger.log.e("❌ batch sync fail: ${l.message}"),
+        //         (r) => AppLogger.log.i(
+        //           "✅ batch ok total=${r.data.total} inserted=${r.data.inserted} touched=${r.data.touched} skipped=${r.data.skipped}",
+        //         ),
+        //       );
+        //     }
+        //
+        //     await prefs.setBool('contacts_synced', true);
+        //     AppLogger.log.i("✅ Contacts synced (SIM login): ${limited.length}");
+        //   } catch (e) {
+        //     AppLogger.log.e("❌ Contact sync failed (SIM login): $e");
+        //   }
+        // }
       },
     );
   }
@@ -248,12 +248,12 @@ class LoginNotifier extends Notifier<LoginState> {
           // ✅ Start background sync WITHOUT waiting, but safely
           // We DO NOT pass ref anymore.
           // ignore: unawaited_futures
-          ContactsSyncManager.syncIfNeeded(
-            api: api, // pass ApiDataSource directly
-            defaultDialCode: '+91',
-            maxContacts: 500,
-            chunkSize: 200,
-          );
+          // ContactsSyncManager.syncIfNeeded(
+          //   api: api, // pass ApiDataSource directly
+          //   defaultDialCode: '+91',
+          //   maxContacts: 500,
+          //   chunkSize: 200,
+          // );
         },
       );
     } catch (e) {
@@ -266,35 +266,35 @@ class LoginNotifier extends Notifier<LoginState> {
     }
   }
 
-  Future<void> syncContact({
-    required String name,
-    required String phone,
-  }) async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    final items = [
-      {"name": name, "phone": "+91$phone"},
-    ];
-
-    final result = await api.syncContacts(items: items);
-
-    result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          error: failure.message,
-          contactResponse: null,
-        );
-      },
-      (response) {
-        state = state.copyWith(
-          isLoading: false,
-          contactResponse: response,
-          error: null,
-        );
-      },
-    );
-  }
+  // Future<void> syncContact({
+  //   required String name,
+  //   required String phone,
+  // }) async {
+  //   state = state.copyWith(isLoading: true, error: null);
+  //
+  //   final items = [
+  //     {"name": name, "phone": "+91$phone"},
+  //   ];
+  //
+  //   final result = await api.syncContacts(items: items);
+  //
+  //   result.fold(
+  //     (failure) {
+  //       state = state.copyWith(
+  //         isLoading: false,
+  //         error: failure.message,
+  //         contactResponse: null,
+  //       );
+  //     },
+  //     (response) {
+  //       state = state.copyWith(
+  //         isLoading: false,
+  //         contactResponse: response,
+  //         error: null,
+  //       );
+  //     },
+  //   );
+  // }
 
   Future<void> resendOtp({required String contact}) async {
     state = state.copyWith(reSendOtpLoading: true, error: null);

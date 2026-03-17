@@ -238,10 +238,10 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     );
   }
 
-  Future<void> fetchCategories() async {
+  Future<void> fetchCategories({required String type}) async {
     state = const ShopCategoryState(isLoading: true);
 
-    final result = await apiDataSource.getShopCategories();
+    final result = await apiDataSource.getShopCategories(type: type);
 
     result.fold(
       (failure) =>

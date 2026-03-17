@@ -42,8 +42,12 @@ class ApiUrl {
   static const String shopNumberOtpVerify =
       "${base}api/v1/auth/phone-verification/verify";
 
-  static const String categoriesShop =
-      "${base}api/v1/public/categories?type=shop";
+
+
+  static String categoriesShop({required String type}) {
+    return       "${base}api/v1/public/categories?type=$type";
+  }
+
   static const String employeeOverview =
       "${base}api/v1/vendor/dashboard/overview";
   static const String imageUrl = "${base}api/media/image-save";

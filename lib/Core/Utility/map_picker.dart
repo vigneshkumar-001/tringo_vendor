@@ -108,7 +108,7 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
   Future<void> _reverseGeocode(double lat, double lng) async {
     final url = Uri.parse(
       'https://maps.googleapis.com/maps/api/geocode/json'
-          '?latlng=$lat,$lng&key=$_apiKey',
+      '?latlng=$lat,$lng&key=$_apiKey',
     );
 
     try {
@@ -190,16 +190,17 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
       return;
     }
 
-    final locBias = currentLocation != null
-        ? '&location=${currentLocation!.latitude},${currentLocation!.longitude}&radius=30000'
-        : '';
+    final locBias =
+        currentLocation != null
+            ? '&location=${currentLocation!.latitude},${currentLocation!.longitude}&radius=30000'
+            : '';
 
     final uri = Uri.parse(
       'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-          '?input=${Uri.encodeComponent(q)}'
-          '&key=$_apiKey'
-          '&language=en'
-          '$locBias',
+      '?input=${Uri.encodeComponent(q)}'
+      '&key=$_apiKey'
+      '&language=en'
+      '$locBias',
     );
 
     try {
@@ -234,9 +235,9 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
 
     final uri = Uri.parse(
       'https://maps.googleapis.com/maps/api/place/details/json'
-          '?place_id=$placeId'
-          '&fields=geometry,name,formatted_address'
-          '&key=$_apiKey',
+      '?place_id=$placeId'
+      '&fields=geometry,name,formatted_address'
+      '&key=$_apiKey',
     );
 
     try {
@@ -248,8 +249,8 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
       if (res.statusCode != 200 || data['status'] != 'OK') {
         setState(() {
           _placePredictions = [];
-          fullAddress = (data['error_message'] ?? data['status'] ?? 'Error')
-              .toString();
+          fullAddress =
+              (data['error_message'] ?? data['status'] ?? 'Error').toString();
         });
         return;
       }
@@ -362,33 +363,34 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
                       size: 20,
                     ),
                   ),
-                  suffixIcon: _searchController.text.isEmpty
-                      ? null
-                      : Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: IconButton(
-                      icon: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.close_rounded,
-                          color: Colors.grey.shade700,
-                          size: 18,
-                        ),
-                      ),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() {
-                          _placePredictions = [];
-                          _hideBottomSheet = false;
-                        });
-                        _searchFocus.unfocus();
-                      },
-                    ),
-                  ),
+                  suffixIcon:
+                      _searchController.text.isEmpty
+                          ? null
+                          : Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            child: IconButton(
+                              icon: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.grey.shade700,
+                                  size: 18,
+                                ),
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _placePredictions = [];
+                                  _hideBottomSheet = false;
+                                });
+                                _searchFocus.unfocus();
+                              },
+                            ),
+                          ),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -422,21 +424,22 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     shrinkWrap: true,
-                    itemCount: _placePredictions.length > 10
-                        ? 10
-                        : _placePredictions.length,
+                    itemCount:
+                        _placePredictions.length > 10
+                            ? 10
+                            : _placePredictions.length,
                     itemBuilder: (context, i) {
                       final p = _placePredictions[i];
                       final description = (p['description'] ?? '').toString();
 
                       // Parse main text and secondary text
                       final parts = description.split(',');
-                      final mainText = parts.isNotEmpty
-                          ? parts[0].trim()
-                          : description;
-                      final secondaryText = parts.length > 1
-                          ? parts.sublist(1).join(',').trim()
-                          : '';
+                      final mainText =
+                          parts.isNotEmpty ? parts[0].trim() : description;
+                      final secondaryText =
+                          parts.length > 1
+                              ? parts.sublist(1).join(',').trim()
+                              : '';
 
                       return Material(
                         color: Colors.transparent,
@@ -469,7 +472,7 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         mainText,
@@ -758,7 +761,7 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             locality,
@@ -887,7 +890,7 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
                                     ),
                                     child: const Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(Icons.check_circle, size: 22),
                                         SizedBox(width: 8),
@@ -914,8 +917,6 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
               ),
             ),
           ),
-
-
         ],
       ),
     );

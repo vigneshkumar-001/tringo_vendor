@@ -571,81 +571,80 @@ class _ProductCategoryScreensState
                         ),
                       ),
 
-                      const SizedBox(height: 10),
-
-                      GestureDetector(
-                        onTap: () {
-                          if (_categoryController.text.isEmpty) {
-                            AppSnackBar.info(
-                              context,
-                              'Please select a category first',
-                            );
-                            setState(() => _categoryHasError = true);
-                            return;
-                          }
-
-                          if (_selectedCategoryChildren == null ||
-                              _selectedCategoryChildren!.isEmpty) {
-                            AppSnackBar.info(
-                              context,
-                              'No subcategories available for this category',
-                            );
-                            return;
-                          }
-
-                          _showCategoryChildrenBottomSheet(
-                            context,
-                            _selectedCategoryChildren!,
-                            _subCategoryController,
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 19,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.lowGery1,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color:
-                                  _subCategoryHasError
-                                      ? Colors.red
-                                      : Colors.transparent,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _subCategoryController.text.isEmpty
-                                        ? " "
-                                        : _subCategoryController.text,
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 18,
-                                      color:
-                                          _subCategoryController.text.isEmpty
-                                              ? Colors.grey
-                                              : Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Image.asset(
-                                  AppImages.drapDownImage,
-                                  height: 30,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
+                      // const SizedBox(height: 10),
+                      //
+                      // GestureDetector(
+                      //   onTap: () {
+                      //     if (_categoryController.text.isEmpty) {
+                      //       AppSnackBar.info(
+                      //         context,
+                      //         'Please select a category first',
+                      //       );
+                      //       setState(() => _categoryHasError = true);
+                      //       return;
+                      //     }
+                      //
+                      //     if (_selectedCategoryChildren == null ||
+                      //         _selectedCategoryChildren!.isEmpty) {
+                      //       AppSnackBar.info(
+                      //         context,
+                      //         'No subcategories available for this category',
+                      //       );
+                      //       return;
+                      //     }
+                      //
+                      //     _showCategoryChildrenBottomSheet(
+                      //       context,
+                      //       _selectedCategoryChildren!,
+                      //       _subCategoryController,
+                      //     );
+                      //   },
+                      //   child: Container(
+                      //     padding: const EdgeInsets.symmetric(
+                      //       horizontal: 12,
+                      //       vertical: 19,
+                      //     ),
+                      //     decoration: BoxDecoration(
+                      //       color: AppColor.lowGery1,
+                      //       borderRadius: BorderRadius.circular(20),
+                      //       border: Border.all(
+                      //         color:
+                      //             _subCategoryHasError
+                      //                 ? Colors.red
+                      //                 : Colors.transparent,
+                      //         width: 1.5,
+                      //       ),
+                      //     ),
+                      //     child: Padding(
+                      //       padding: const EdgeInsets.symmetric(
+                      //         horizontal: 8.0,
+                      //       ),
+                      //       child: Row(
+                      //         children: [
+                      //           Expanded(
+                      //             child: Text(
+                      //               _subCategoryController.text.isEmpty
+                      //                   ? " "
+                      //                   : _subCategoryController.text,
+                      //               style: AppTextStyles.mulish(
+                      //                 fontWeight: FontWeight.w700,
+                      //                 fontSize: 18,
+                      //                 color:
+                      //                     _subCategoryController.text.isEmpty
+                      //                         ? Colors.grey
+                      //                         : Colors.black,
+                      //               ),
+                      //             ),
+                      //           ),
+                      //           Image.asset(
+                      //             AppImages.drapDownImage,
+                      //             height: 30,
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                       const SizedBox(height: 25),
 
                       Text(
