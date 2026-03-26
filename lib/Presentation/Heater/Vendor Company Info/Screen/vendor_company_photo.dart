@@ -10,6 +10,7 @@ import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Session/registration_product_seivice.dart';
 import '../../../../Core/Session/registration_session.dart';
 import '../../../../Core/Utility/app_loader.dart';
+import '../../../../Core/Utility/app_prefs.dart';
 import '../../../../Core/Utility/app_snackbar.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
 import '../../../../Core/Widgets/app_go_routes.dart';
@@ -422,6 +423,7 @@ class _VendorCompanyPhotoState extends ConsumerState<VendorCompanyPhoto> {
                             context,
                             "Company logo saved successfully",
                           );
+                          await AppPrefs.setOnboardingStep('step-5');
                           context.push(AppRoutes.heaterAddEmployeePath);
                         }
                       },

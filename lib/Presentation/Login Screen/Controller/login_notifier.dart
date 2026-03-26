@@ -239,6 +239,8 @@ class LoginNotifier extends Notifier<LoginState> {
           await prefs.setString('refreshToken', data?.refreshToken ?? '');
           await prefs.setString('sessionToken', data?.sessionToken ?? '');
           await prefs.setString('role', data?.role ?? '');
+          await AppPrefs.setOnboardingStep(data?.onboardingStep);
+          await AppPrefs.setVendorApproved(data?.vendorApproved ?? false);
 
           if (!ref.mounted) return;
 

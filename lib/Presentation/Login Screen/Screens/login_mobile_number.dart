@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_number/mobile_number.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
 
 import '../../../../../Core/Utility/app_loader.dart';
 import '../../../../Core/Utility/app_snackbar.dart';
@@ -666,6 +667,7 @@ class _LoginMobileNumberState extends ConsumerState<LoginMobileNumber>
                                       }
 
                                       _lastRawPhone = rawPhone;
+                                      await AppPrefs.setOwnerPhone(rawPhone);
 
                                       // // 1) SIM check
                                       // await loadSimInfoFor(rawPhone);

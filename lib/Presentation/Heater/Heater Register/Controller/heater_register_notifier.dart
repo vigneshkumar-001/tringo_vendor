@@ -116,29 +116,29 @@ class HeaterRegisterNotifier extends Notifier<HeaterRegisterState> {
       final alternatePhone10 = _onlyIndian10(alternatePhone);
 
       // ✅ IMPORTANT: Screen3 token must match verified phone
-      if (screen == VendorRegisterScreen.screen3) {
-        final savedToken = await AppPrefs.getVerificationToken();
-        final savedPhone = await AppPrefs.getVerifiedCompanyPhone();
+      // if (screen == VendorRegisterScreen.screen3) {
+      //   final savedToken = await AppPrefs.getVerificationToken();
+      //   final savedPhone = await AppPrefs.getVerifiedCompanyPhone();
 
-        if (savedToken == null || savedToken.isEmpty) {
-          state = state.copyWith(
-            isLoading: false,
-            error: "Please verify OTP for company phone",
-          );
-          return;
-        }
+      //   if (savedToken == null || savedToken.isEmpty) {
+      //     state = state.copyWith(
+      //       isLoading: false,
+      //       error: "Please verify OTP for company phone",
+      //     );
+      //     return;
+      //   }
 
-        if (savedPhone == null || savedPhone != companyContactNumber) {
-          state = state.copyWith(
-            isLoading: false,
-            error: "Phone changed. Please verify OTP again",
-          );
-          return;
-        }
+      //   if (savedPhone == null || savedPhone != companyContactNumber) {
+      //     state = state.copyWith(
+      //       isLoading: false,
+      //       error: "Phone changed. Please verify OTP again",
+      //     );
+      //     return;
+      //   }
 
-        // use saved token (safer)
-        companyContactVerificationToken = savedToken;
-      }
+      //   // use saved token (safer)
+      //   companyContactVerificationToken = savedToken;
+      // }
 
       // upload aadhaar
       String finalAadhaarUrl = aadharDocumentUrl;

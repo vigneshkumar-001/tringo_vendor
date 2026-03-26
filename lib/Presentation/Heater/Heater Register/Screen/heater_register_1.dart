@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:tringo_vendor_new/Api/DataSource/api_data_source.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Home%20Screen/Controller/heater_home_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
 import '../../../../Core/Const/app_color.dart';
@@ -86,13 +87,25 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
     return hasImage;
   }
 
+  Future<void> _loadOwnerPhone() async {
+    final phone = await AppPrefs.getOwnerPhone() ?? '';
+
+    AppLogger.log.i('owner_phone => $phone');
+
+    if (mounted) {
+      setState(() {
+        mobileController.text = phone;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
 
     ownershipType = widget.isIndividual ? 'INDIVIDUAL' : 'COMPANY';
     businessTypeForApi = widget.isService ? 'SERVICES' : 'SELLING_PRODUCTS';
-
+    _loadOwnerPhone();
     otpControllers = List.generate(otpLength, (_) => TextEditingController());
     otpFocusNodes = List.generate(otpLength, (_) => FocusNode());
 
@@ -542,6 +555,7 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                       const SizedBox(height: 10),
 
                       CommonContainer.fillingContainer(
+                        readOnly: true,
                         controller: mobileController,
                         verticalDivider: false,
                         isMobile: true,
@@ -790,6 +804,7 @@ class _HeaterRegister1State extends ConsumerState<HeaterRegister1> {
                                 dateTo: today,
                               );
                             } else {
+                              await AppPrefs.setOnboardingStep('step-2');
                               context.push(AppRoutes.heaterRegister2Path);
                             }
                           }

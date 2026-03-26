@@ -220,24 +220,41 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                           ),
                           suffixIcon:
                               _searchKeywordController.text.isNotEmpty
-                                  ? IconButton(
-                                    icon: const Icon(
-                                      Icons.clear,
-                                      color: Colors.grey,
+                                  ? Padding(
+                                    padding: const EdgeInsets.only(right: 7),
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _keywords.length >= 5
+                                                ? Colors.grey
+                                                : AppColor.black,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: SizedBox(
+                                        width: 32,
+                                        height: 32,
+                                        child: IconButton(
+                                          icon:   Icon(Icons.check),
+                                          color: Colors.white,
+                                          iconSize: 20,
+               
+                                          
+                                          splashRadius: 18,
+                                          onPressed:
+                                              _keywords.length >= 5
+                                                  ? null
+                                                  : _onSubmitted,
+                                        ),
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      _searchKeywordController.clear();
-                                      setState(() => _showSuggestions = false);
-                                      _debounce?.cancel();
-                                    },
                                   )
                                   : null,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(13),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
+                            vertical: 10,
+                            horizontal: 10,
                           ),
                         ),
                         onChanged: _onSearchChanged,

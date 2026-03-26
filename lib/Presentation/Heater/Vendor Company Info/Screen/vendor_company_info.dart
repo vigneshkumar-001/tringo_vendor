@@ -272,6 +272,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
       _prefillFromProfile();
     }
   }
+
   String removeCountryCode(String? phone) {
     if (phone == null) return '';
 
@@ -290,13 +291,14 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
     if (p == null) {
       return;
     }
-AppLogger.log.w(p.data. toString());
+    AppLogger.log.w(p.data.toString());
     _shopNameEnglishController.text = (p.data.companyName ?? '');
     _addressEnglishController.text = (p.data.primaryCity ?? '');
     _gpsController.text = '${p.data.gpsLatitude},${p.data.gpsLongitude}';
 
-    _primaryMobileController.text =
-        removeCountryCode(p.data.companyContactNumber);
+    _primaryMobileController.text = removeCountryCode(
+      p.data.companyContactNumber,
+    );
     _emailController.text = (p.data.companyEmail ?? '');
     _gSTNumberController.text = (p.data.gstNumber ?? '');
     _alternateMobileNumberController.text = (p.data.alternatePhone ?? '');
@@ -643,95 +645,45 @@ AppLogger.log.w(p.data. toString());
                         },
                       ),
 
-                      // GestureDetector(
-                      //   // onTap: () async {
-                      //   //   setState(() => _isFetchingGps = true);
-                      //   //   await _getCurrentLocation();
-                      //   //   setState(() => _isFetchingGps = false);
-                      //   // },
-                      //   onTap: () async {
-                      //     setState(() => _isFetchingGps = true);
-                      //     await _openGoogleMapsFromGpsField();
-                      //     if (mounted) setState(() => _isFetchingGps = false);
-                      //   },
-                      //   child: AbsorbPointer(
-                      //     child: CommonContainer.fillingContainer(
-                      //       controller: _gpsController,
-                      //       text:
-                      //           _gpsController.text.isEmpty
-                      //               ? (_isFetchingGps
-                      //                   ? ''
-                      //                   : 'Shop Location') // 👈 important
-                      //               : '', // after GPS, no label
-                      //       textColor:
-                      //           _gpsController.text.isEmpty
-                      //               ? AppColor
-                      //                   .skyBlue // blue while empty
-                      //               : AppColor.mildBlack, // dark after fill
-                      //       textFontWeight: FontWeight.w700,
-                      //       suffixWidget:
-                      //           _isFetchingGps
-                      //               ? SizedBox(
-                      //                 width: 16,
-                      //                 height: 16,
-                      //                 child: CircularProgressIndicator(
-                      //                   strokeWidth: 2,
-                      //                   color: AppColor.skyBlue,
-                      //                 ),
-                      //               )
-                      //               : null,
-                      //       validator: (_) => null,
-                      //     ),
+                     
+
+                      // Text(
+                      //   'Primary Mobile Number',
+                      //   style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      // ),
+                      // SizedBox(height: 10),
+                      // AnimatedSwitcher(
+                      //   duration: const Duration(milliseconds: 400),
+                      //   transitionBuilder:
+                      //       (child, animation) => FadeTransition(
+                      //         opacity: animation,
+                      //         child: child,
+                      //       ),
+                      //   child: OwnerVerifyField(
+                      //     controller: _primaryMobileController,
+                      //     isLoading: state.isSendingOtp,
+                      //     isOtpVerifying: state.isVerifyingOtp,
+                      //     onSendOtp: (mobile) {
+                      //       final phone10 = _normalizeIndianPhone10(mobile);
+                      //       return ref
+                      //           .read(heaterRegisterNotifier.notifier)
+                      //           .shopAddNumberRequest(
+                      //             type: "VENDOR_COMPANY_PHONE",
+                      //             phoneNumber: phone10,
+                      //           );
+                      //     },
+                      //     onVerifyOtp: (mobile, otp) {
+                      //       final phone10 = _normalizeIndianPhone10(mobile);
+                      //       return ref
+                      //           .read(heaterRegisterNotifier.notifier)
+                      //           .shopAddOtpRequest(
+                      //             phoneNumber: phone10,
+                      //             type: "VENDOR_COMPANY_PHONE",
+                      //             code: otp,
+                      //           );
+                      //     },
                       //   ),
                       // ),
-
-                      // if (_gpsErrorText != null)
-                      //   Padding(
-                      //     padding: const EdgeInsets.only(top: 6.0, left: 4),
-                      //     child: Text(
-                      //       _gpsErrorText!,
-                      //       style: TextStyle(color: Colors.red, fontSize: 12),
-                      //     ),
-                      //   ),
-                      SizedBox(height: 25),
-
-                      Text(
-                        'Primary Mobile Number',
-                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 400),
-                        transitionBuilder:
-                            (child, animation) => FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                        child: OwnerVerifyField(
-                          controller: _primaryMobileController,
-                          isLoading: state.isSendingOtp,
-                          isOtpVerifying: state.isVerifyingOtp,
-                          onSendOtp: (mobile) {
-                            final phone10 = _normalizeIndianPhone10(mobile);
-                            return ref
-                                .read(heaterRegisterNotifier.notifier)
-                                .shopAddNumberRequest(
-                                  type: "VENDOR_COMPANY_PHONE",
-                                  phoneNumber: phone10,
-                                );
-                          },
-                          onVerifyOtp: (mobile, otp) {
-                            final phone10 = _normalizeIndianPhone10(mobile);
-                            return ref
-                                .read(heaterRegisterNotifier.notifier)
-                                .shopAddOtpRequest(
-                                  phoneNumber: phone10,
-                                  type: "VENDOR_COMPANY_PHONE",
-                                  code: otp,
-                                );
-                          },
-                        ),
-                      ),
 
                       // CommonContainer.fillingContainer(
                       //   controller: _primaryMobileController,
@@ -746,33 +698,24 @@ AppLogger.log.w(p.data. toString());
                       //     return null;
                       //   },
                       // ),
-                      const SizedBox(height: 25),
-                      Text(
-                        'Alternate Mobile Number',
-                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
-                      CommonContainer.fillingContainer(
-                        controller: _alternateMobileNumberController,
-                        verticalDivider: false,
-                        isMobile: true,
-                        text: '',
-                        keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter Alternate Mobile Number';
-                          }
-                          return null;
-                        },
-                      ),
+                      // const SizedBox(height: 25),
+                      // Text(
+                      //   'Alternate Mobile Number',
+                      //   style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      // ),
+                      // SizedBox(height: 10),
                       // CommonContainer.fillingContainer(
-                      //   controller: _whatsappController,
-                      //   verticalDivider: true,
+                      //   controller: _alternateMobileNumberController,
+                      //   verticalDivider: false,
                       //   isMobile: true,
-                      //   text: 'Mobile No',
-                      //   // validator: (value) => value == null || value.isEmpty
-                      //   //     ? 'Please Enter Whatsapp Number'
-                      //   //     : null,
+                      //   text: '',
+                      //   keyboardType: TextInputType.phone,
+                      //   validator: (value) {
+                      //     if (value == null || value.isEmpty) {
+                      //       return 'Please Enter Alternate Mobile Number';
+                      //     }
+                      //     return null;
+                      //   },
                       // ),
                       SizedBox(height: 25),
 
@@ -881,23 +824,23 @@ AppLogger.log.w(p.data. toString());
                           final verifiedPhone =
                               await AppPrefs.getVerifiedCompanyPhone();
 
-                          if (verificationToken == null ||
-                              verificationToken.isEmpty) {
-                            AppSnackBar.error(
-                              context,
-                              "Please verify OTP for company phone number",
-                            );
-                            return;
-                          }
+                          // if (verificationToken == null ||
+                          //     verificationToken.isEmpty) {
+                          //   AppSnackBar.error(
+                          //     context,
+                          //     "Please verify OTP for company phone number",
+                          //   );
+                          //   return;
+                          // }
 
-                          if (verifiedPhone == null ||
-                              verifiedPhone != _primaryMobileController.text) {
-                            AppSnackBar.error(
-                              context,
-                              "Phone changed. Please verify OTP again",
-                            );
-                            return;
-                          }
+                          // if (verifiedPhone == null ||
+                          //     verifiedPhone != _primaryMobileController.text) {
+                          //   AppSnackBar.error(
+                          //     context,
+                          //     "Phone changed. Please verify OTP again",
+                          //   );
+                          //   return;
+                          // }
                           AppLogger.log.w(_primaryMobileController.text);
                           await ref
                               .read(heaterRegisterNotifier.notifier)
@@ -942,11 +885,11 @@ AppLogger.log.w(p.data. toString());
                               "Owner information saved successfully",
                             );
                             if (widget.edit == false) {
+                              await AppPrefs.setOnboardingStep('step-4');
                               context.push(
                                 AppRoutes.vendorCompanyPhotoPath,
                               ); // ✅ correct next screen
-                            }
-                            else {
+                            } else {
                               Navigator.pop(context);
                               final notifier = ref.read(
                                 heaterHomeNotifier.notifier,
@@ -1025,6 +968,8 @@ class GpsInputField extends StatelessWidget {
           Expanded(
             child: TextFormField(
               controller: controller,
+              readOnly: true,
+             onTap: isLoading ? null : onMapTap,
               keyboardType: TextInputType.text,
               style: AppTextStyles.textWith700(fontSize: 16),
               decoration: InputDecoration(

@@ -14,6 +14,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/h
 import 'package:tringo_vendor_new/Presentation/Heater/Setting/Controller/profile_notifer.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Vendor%20Company%20Info/Screen/vendor_company_info.dart';
 import 'package:tringo_vendor_new/Presentation/Owner%20Screen/Screens/owner_info_screens.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -35,6 +36,16 @@ class HeaterSetting extends ConsumerStatefulWidget {
 }
 
 class _HeaterSettingState extends ConsumerState<HeaterSetting> {
+  Future<void> _openPrivacyPolicy() async {
+    final Uri url = Uri.parse('https://bknd.tringobiz.com/privacy-policy.html');
+
+    final launched = await launchUrl(url, mode: LaunchMode.inAppWebView);
+
+    if (!launched && mounted) {
+      AppSnackBar.error(context, 'Could not open privacy policy');
+    }
+  }
+
   Future<bool> _confirmDeleteAccount(BuildContext context) async {
     final result = await showDialog<bool>(
       context: context,
@@ -522,6 +533,7 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
       },
     );
   }
+
   Future<void> _pickAndUploadAvatar(ImageSource source) async {
     final picked = await _picker.pickImage(source: source, imageQuality: 85);
     if (picked == null) return;
@@ -558,14 +570,14 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
       AppSnackBar.success(context, "Profile photo updated");
 
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      ref.read(heaterHomeNotifier.notifier).heaterHome(
-        dateFrom: today,
-        dateTo: today,
-      );
+      ref
+          .read(heaterHomeNotifier.notifier)
+          .heaterHome(dateFrom: today, dateTo: today);
     } catch (e, st) {
       AppLogger.log.e("Avatar upload failed: $e");
       AppLogger.log.e("$st");
-      if (mounted) AppSnackBar.error(context, "Upload failed. Please try again.");
+      if (mounted)
+        AppSnackBar.error(context, "Upload failed. Please try again.");
     } finally {
       if (mounted) setState(() => _avatarUploading = false);
     }
@@ -932,14 +944,15 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                 ),
                 SizedBox(height: 15),
                 CommonContainer.profileList(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => PrivacyPolicy(showAcceptReject: false),
-                      ),
-                    );
+                  onTap: () async {
+                    await _openPrivacyPolicy();
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder:
+                    //         (context) => PrivacyPolicy(showAcceptReject: false),
+                    //   ),
+                    // );
                   },
                   label: 'Privacy Policy',
                   iconPath: AppImages.privacyPolicy,

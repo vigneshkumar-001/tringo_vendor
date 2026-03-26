@@ -12,7 +12,6 @@ import '../../Core/Const/app_color.dart';
 import '../../Core/Const/app_images.dart';
 import '../../Core/Const/app_logger.dart';
 import '../../Core/Utility/app_textstyles.dart';
-import '../../Core/Utility/app_prefs.dart';
 
 import 'Core/Widgets/app_go_routes.dart';
 import 'Core/Widgets/common_container.dart';
@@ -181,8 +180,40 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       }
 
       if (role == 'VENDOR') {
-        if (vendorStatus == 'ACTIVE') {
+        final vendorApproved = prefs.getBool('vendorApproved') ?? false;
+        final onboarding = prefs.getString('onboardingStep') ?? '';
+        final stepMatch = RegExp(r'(\d+)').firstMatch(onboarding);
+        final step =
+            stepMatch == null ? null : int.tryParse(stepMatch.group(1) ?? '');
+
+        if (vendorApproved || vendorStatus == 'ACTIVE') {
           context.go(AppRoutes.heaterHomeScreenPath);
+        } else if (step != null) {
+          switch (step) {
+            case 1:
+              context.go(AppRoutes.heaterRegister1Path);
+              break;
+            case 2:
+              context.go(AppRoutes.heaterRegister2Path);
+              break;
+            case 3:
+              context.go(AppRoutes.vendorCompanyInfoPath);
+              break;
+            case 4:
+              context.go(AppRoutes.vendorCompanyPhotoPath);
+              break;
+            case 5:
+              context.go(AppRoutes.heaterAddEmployeePath);
+              break;
+            case 6:
+              context.go(AppRoutes.employeeApprovalPendingPath);
+              break;
+            case 7:
+              context.go(AppRoutes.heaterHomeScreenPath);
+              break;
+            default:
+              context.go(AppRoutes.employeeApprovalPendingPath);
+          }
         } else {
           context.go(AppRoutes.employeeApprovalPendingPath);
         }

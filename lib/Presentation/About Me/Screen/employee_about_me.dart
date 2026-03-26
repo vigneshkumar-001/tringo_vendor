@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_snackbar.dart';
 import 'package:tringo_vendor_new/Presentation/Support/Screen/support_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -22,6 +24,16 @@ class EmployeeAboutMe extends ConsumerStatefulWidget {
 }
 
 class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
+  Future<void> _openPrivacyPolicy() async {
+    final Uri url = Uri.parse('https://bknd.tringobiz.com/privacy-policy.html');
+
+    final launched = await launchUrl(url, mode: LaunchMode.inAppWebView);
+
+    if (!launched && mounted) {
+      AppSnackBar.error(context, 'Could not open privacy policy');
+    }
+  }
+
   bool _deleteLoading = false;
   bool _logoutLoading = false;
 
@@ -35,7 +47,9 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
       builder: (dialogCtx) {
         return AlertDialog(
           backgroundColor: AppColor.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Text(
             "Logout",
             style: AppTextStyles.mulish(
@@ -65,31 +79,32 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
               ),
             ),
             TextButton(
-              onPressed: _logoutLoading
-                  ? null
-                  : () async {
-                // ✅ close dialog first
-                Navigator.pop(dialogCtx);
+              onPressed:
+                  _logoutLoading
+                      ? null
+                      : () async {
+                        // ✅ close dialog first
+                        Navigator.pop(dialogCtx);
 
-                if (!mounted) return;
+                        if (!mounted) return;
 
-                setState(() => _logoutLoading = true);
+                        setState(() => _logoutLoading = true);
 
-                try {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.remove('token');
-                  await prefs.remove('isProfileCompleted');
-                  await prefs.remove('isNewOwner');
-                  await prefs.clear();
-                } finally {
-                  if (mounted) setState(() => _logoutLoading = false);
-                }
+                        try {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('token');
+                          await prefs.remove('isProfileCompleted');
+                          await prefs.remove('isNewOwner');
+                          await prefs.clear();
+                        } finally {
+                          if (mounted) setState(() => _logoutLoading = false);
+                        }
 
-                if (!mounted) return;
+                        if (!mounted) return;
 
-                // ✅ navigate using page context (NOT dialog context)
-                context.goNamed(AppRoutes.login);
-              },
+                        // ✅ navigate using page context (NOT dialog context)
+                        context.goNamed(AppRoutes.login);
+                      },
               child: Text(
                 _logoutLoading ? "..." : "Logout",
                 style: AppTextStyles.mulish(
@@ -114,7 +129,9 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
       barrierDismissible: false,
       builder: (dialogCtx) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           elevation: 0,
           backgroundColor: Colors.transparent,
           child: StatefulBuilder(
@@ -175,9 +192,10 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                           child: SizedBox(
                             height: 52,
                             child: OutlinedButton(
-                              onPressed: _deleteLoading
-                                  ? null
-                                  : () => Navigator.of(dialogCtx).pop(),
+                              onPressed:
+                                  _deleteLoading
+                                      ? null
+                                      : () => Navigator.of(dialogCtx).pop(),
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(
                                   color: Colors.grey.shade300,
@@ -203,65 +221,78 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                           child: SizedBox(
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: _deleteLoading
-                                  ? null
-                                  : () async {
-                                // ✅ IMPORTANT: capture safe pageContext BEFORE await
-                                final pageContext = this.context;
+                              onPressed:
+                                  _deleteLoading
+                                      ? null
+                                      : () async {
+                                        // ✅ IMPORTANT: capture safe pageContext BEFORE await
+                                        final pageContext = this.context;
 
-                                setLocalState(() => _deleteLoading = true);
+                                        setLocalState(
+                                          () => _deleteLoading = true,
+                                        );
 
-                                final success = await ref
-                                    .read(aboutMeNotifierProvider.notifier)
-                                    .deleteProductAction();
+                                        final success =
+                                            await ref
+                                                .read(
+                                                  aboutMeNotifierProvider
+                                                      .notifier,
+                                                )
+                                                .deleteProductAction();
 
-                                if (!mounted) return;
+                                        if (!mounted) return;
 
-                                setLocalState(() => _deleteLoading = false);
+                                        setLocalState(
+                                          () => _deleteLoading = false,
+                                        );
 
-                                // ✅ close dialog using dialogCtx (safe)
-                                if (Navigator.of(dialogCtx).canPop()) {
-                                  Navigator.of(dialogCtx).pop();
-                                }
+                                        // ✅ close dialog using dialogCtx (safe)
+                                        if (Navigator.of(dialogCtx).canPop()) {
+                                          Navigator.of(dialogCtx).pop();
+                                        }
 
-                                if (!mounted) return;
+                                        if (!mounted) return;
 
-                                if (success) {
-                                  final prefs =
-                                  await SharedPreferences.getInstance();
-                                  await prefs.clear();
+                                        if (success) {
+                                          final prefs =
+                                              await SharedPreferences.getInstance();
+                                          await prefs.clear();
 
-                                  // ✅ show snackbar BEFORE navigation (page context)
-                                  ScaffoldMessenger.of(pageContext)
-                                      .showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Account deleted successfully',
-                                      ),
-                                    ),
-                                  );
+                                          // ✅ show snackbar BEFORE navigation (page context)
+                                          ScaffoldMessenger.of(
+                                            pageContext,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Account deleted successfully',
+                                              ),
+                                            ),
+                                          );
 
-                                  // ✅ then navigate (page context)
-                                  await Future.delayed(
-                                    const Duration(milliseconds: 150),
-                                  );
-                                  if (!mounted) return;
-                                  pageContext.go(AppRoutes.loginPath);
-                                } else {
-                                  final error = ref
-                                      .read(aboutMeNotifierProvider)
-                                      .error;
+                                          // ✅ then navigate (page context)
+                                          await Future.delayed(
+                                            const Duration(milliseconds: 150),
+                                          );
+                                          if (!mounted) return;
+                                          pageContext.go(AppRoutes.loginPath);
+                                        } else {
+                                          final error =
+                                              ref
+                                                  .read(aboutMeNotifierProvider)
+                                                  .error;
 
-                                  ScaffoldMessenger.of(pageContext)
-                                      .showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        error ?? 'Account deletion failed',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
+                                          ScaffoldMessenger.of(
+                                            pageContext,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                error ??
+                                                    'Account deletion failed',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red.shade600,
                                 foregroundColor: Colors.white,
@@ -270,22 +301,23 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                               ),
-                              child: _deleteLoading
-                                  ? const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                                  : const Text(
-                                'Delete',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              child:
+                                  _deleteLoading
+                                      ? const SizedBox(
+                                        height: 18,
+                                        width: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                      : const Text(
+                                        'Delete',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                             ),
                           ),
                         ),
@@ -398,23 +430,25 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                               width: 103,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(14),
-                                child: avatar.isNotEmpty
-                                    ? Image.network(
-                                  avatar,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: AppColor.gray84,
-                                    child: const Icon(
-                                      Icons.person,
-                                      size: 40,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                )
-                                    : Image.asset(
-                                  AppImages.profileImage,
-                                  fit: BoxFit.cover,
-                                ),
+                                child:
+                                    avatar.isNotEmpty
+                                        ? Image.network(
+                                          avatar,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (_, __, ___) => Container(
+                                                color: AppColor.gray84,
+                                                child: const Icon(
+                                                  Icons.person,
+                                                  size: 40,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                        )
+                                        : Image.asset(
+                                          AppImages.profileImage,
+                                          fit: BoxFit.cover,
+                                        ),
                               ),
                             ),
                           ],
@@ -450,14 +484,15 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                 const SizedBox(height: 15),
 
                 CommonContainer.profileList(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            PrivacyPolicy(showAcceptReject: false),
-                      ),
-                    );
+                  onTap: () async {
+                    await _openPrivacyPolicy();
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) =>
+                    //         PrivacyPolicy(showAcceptReject: false),
+                    //   ),
+                    // );
                   },
                   label: 'Privacy Policy',
                   iconPath: AppImages.privacyPolicy,
@@ -481,20 +516,21 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: _logoutLoading
-                        ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                        : Text(
-                      'Logout',
-                      style: AppTextStyles.mulish(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColor.lightRed,
-                      ),
-                    ),
+                    child:
+                        _logoutLoading
+                            ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : Text(
+                              'Logout',
+                              style: AppTextStyles.mulish(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColor.lightRed,
+                              ),
+                            ),
                   ),
                 ),
                 const SizedBox(height: 20),

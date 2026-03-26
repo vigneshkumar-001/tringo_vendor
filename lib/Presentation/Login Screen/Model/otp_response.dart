@@ -32,6 +32,7 @@
     final String role;
     final String sessionToken;
     final bool isNewOwner;
+    final String? onboardingStep;
 
     // ✅ NEW FIELD
     final bool vendorApproved;
@@ -42,6 +43,7 @@
       required this.role,
       required this.sessionToken,
       required this.isNewOwner,
+      this.onboardingStep,
       required this.vendorApproved,
     });
 
@@ -52,6 +54,7 @@
         role: json['role'] ?? '',
         sessionToken: json['sessionToken'] ?? '',
         isNewOwner: json['isNewOwner'] ?? false,
+        onboardingStep: json['onboardingStep']?.toString(),
 
         // ✅ read from API
         vendorApproved: json['vendorApproved'] ?? false,
@@ -65,6 +68,7 @@
         'role': role,
         'sessionToken': sessionToken,
         'isNewOwner': isNewOwner,
+        'onboardingStep': onboardingStep,
 
         // ✅ send back if needed
         'vendorApproved': vendorApproved,

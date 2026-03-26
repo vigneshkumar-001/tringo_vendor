@@ -239,18 +239,43 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                             fontSize: 14,
                             color: AppColor.gray84,
                           ),
+                          suffixIconConstraints: const BoxConstraints(
+                            minWidth: 26,
+                            minHeight: 26,
+                          ),
                           suffixIcon:
                               _searchKeywordController.text.isNotEmpty
-                                  ? IconButton(
-                                    icon: const Icon(
-                                      Icons.clear,
-                                      color: Colors.grey,
+                                  ? Padding(
+                                    padding: const EdgeInsets.only(right: 6),
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _keywords.length >= 5
+                                                ? Colors.grey
+                                                : AppColor.black,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: SizedBox(
+                                        width: 30,
+                                        height: 30,
+                                        child: IconButton(
+                                          icon:   Icon(Icons.check),
+                                          color: Colors.white,
+                                          iconSize: 20,
+                                          padding: EdgeInsets.zero,
+                                          constraints:
+                                              const BoxConstraints.tightFor(
+                                            width: 26,
+                                            height: 26,
+                                          ),
+                                          splashRadius: 14,
+                                          onPressed:
+                                              _keywords.length >= 5
+                                                  ? null
+                                                  : _onSubmitted,
+                                        ),
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      _searchKeywordController.clear();
-                                      setState(() => _showSuggestions = false);
-                                      _debounce?.cancel();
-                                    },
                                   )
                                   : null,
                           border: OutlineInputBorder(

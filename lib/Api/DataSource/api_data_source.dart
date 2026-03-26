@@ -661,7 +661,7 @@ class ApiDataSource {
             "companyContactVerificationToken",
             companyContactVerificationToken,
           );
-          addIfNotEmpty(payload, "alternatePhone", alternatePhone);
+          // addIfNotEmpty(payload, "alternatePhone", alternatePhone);
 
           addIfNotEmpty(payload, "companyEmail", companyEmail);
           addIfNotEmpty(payload, "gstNumber", gstNumber);

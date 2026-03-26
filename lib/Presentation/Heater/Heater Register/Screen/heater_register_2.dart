@@ -12,6 +12,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_
 import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
+import '../../../../Core/Utility/app_prefs.dart';
 import '../../../../Core/Utility/app_loader.dart';
 import '../../../../Core/Utility/app_snackbar.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
@@ -422,6 +423,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                               "Owner information saved successfully",
                             );
                             if (widget.edit == false) {
+                              await AppPrefs.setOnboardingStep('step-3');
                               context.push(AppRoutes.vendorCompanyInfoPath);
                             } else {
                               Navigator.pop(context);
