@@ -1986,7 +1986,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           final bool ok = await ref
                               .read(shopCategoryNotifierProvider.notifier)
                               .shopInfoRegister(
-                                businessProfileId: widget.employeeId ?? '',
+                                businessProfileId:
+                                    (widget.businessProfileId ?? '').trim().isNotEmpty
+                                        ? widget.businessProfileId!.trim()
+                                        : (widget.employeeId ?? '').trim(),
                                 shopId: widget.shopId,
                                 ownerImageFile: ownerFile,
                                 type: type,
@@ -2022,7 +2025,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             } else {
                               context.pushNamed(
                                 AppRoutes.shopPhotoInfo,
-                                extra: 'shopCategory',
+                                extra: {
+                                  'from': 'shopCategory',
+                                  'categorySlug': categorySlug,
+                                },
                               );
                             }
                           } else {

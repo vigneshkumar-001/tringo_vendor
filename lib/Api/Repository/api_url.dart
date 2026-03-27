@@ -42,10 +42,8 @@ class ApiUrl {
   static const String shopNumberOtpVerify =
       "${base}api/v1/auth/phone-verification/verify";
 
-
-
   static String categoriesShop({required String type}) {
-    return       "${base}api/v1/public/categories?type=$type";
+    return "${base}api/v1/public/categories?type=$type";
   }
 
   static const String employeeOverview =
@@ -63,8 +61,22 @@ class ApiUrl {
     return "${base}api/v1/support/tickets/$id";
   }
 
-  static String getKeyWords({required String type, required String query}) {
-    return "${base}api/v1/public/keywords?type=$type&q=$query";
+  static String getKeyWords({
+    required String type,
+    required String query,
+    String? categorySlug,
+  }) {
+    final slug = (categorySlug ?? '').trim();
+    final q = query;
+
+    // Prefer categorySlug-based filtering when available.
+    // Example: /api/v1/public/keywords?categorySlug=aadhaar-centers&q=
+    if (slug.isNotEmpty) {
+      return "${base}api/v1/public/keywords?categorySlug=$slug&q=$q";
+    }
+
+    // Fallback to existing type+q behavior
+    return "${base}api/v1/public/keywords?type=$type&q=$q";
   }
 
   static String heaterEmployeeEdit({required String employeeId}) {
@@ -88,7 +100,12 @@ class ApiUrl {
   }
 
   static String productCategoryList({required String shopId}) {
-    return "${base}api/v1/public/shops/$shopId/product-categories";
+    return '${base}api/v1/public/categories?kind=subcategory';
+  }
+
+  // return "${base}api/v1/public/shops/$shopId/product-categories";
+  static String employeeOnboardDeleteOwner({required String ownerUserId}) {
+    return "${base}api/v1/employee/onboard/owner/$ownerUserId";
   }
 
   static String addProducts({required String shopId}) {

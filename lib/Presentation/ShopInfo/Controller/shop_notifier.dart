@@ -219,10 +219,15 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
   Future<void> fetchKeyWords({
     required String type,
     required String query,
+    String? categorySlug,
   }) async {
     state = const ShopCategoryState(isKeyWordsLoading: true);
 
-    final result = await apiDataSource.getKeyWords(query: query, type: type);
+    final result = await apiDataSource.getKeyWords(
+      query: query,
+      type: type,
+      categorySlug: categorySlug,
+    );
 
     result.fold(
       (failure) =>

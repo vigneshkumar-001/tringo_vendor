@@ -558,7 +558,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 35),
                           child: Text(
                             'OTP sent to $maskMobileNumber, please check and enter below. '
-                            'If youâ€™ve not received OTP, you can resend after the timer ends.',
+                            'If you\'ve not received OTP, you can resend after the timer ends.',
                             style: AppTextStyles.mulish(
                               fontSize: 14,
                               color: AppColor.darkGrey,

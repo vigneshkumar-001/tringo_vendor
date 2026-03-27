@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/About%20Me/Model/delete_response.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Model/product_response.dart';
@@ -1195,15 +1194,12 @@ class ApiDataSource {
     String? primaryPhoneVerificationToken,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedShopId = prefs.getString('shop_id');
-
-      String? finalShopId;
-      if (savedShopId != null && savedShopId.trim().isNotEmpty) {
-        finalShopId = savedShopId.trim();
-      } else if (apiShopId.trim().isNotEmpty) {
-        finalShopId = apiShopId.trim();
-      }
+      // IMPORTANT:
+      // Only update a shop when the caller explicitly provides `apiShopId`.
+      // Falling back to a previously-saved `shop_id` can accidentally edit an
+      // older shop when the user is creating a new one (e.g. onboarding step-2).
+      final String? finalShopId =
+          apiShopId.trim().isNotEmpty ? apiShopId.trim() : null;
 
       final bool isUpdate = finalShopId != null;
       final url =
@@ -1516,7 +1512,9 @@ class ApiDataSource {
     }
   }
 
-  Future<Either<Failure, CategoryListResponse>> getShopCategories({required String type}) async {
+  Future<Either<Failure, CategoryListResponse>> getShopCategories({
+    required String type,
+  }) async {
     try {
       String url = ApiUrl.categoriesShop(type: type);
 
@@ -1790,6 +1788,7 @@ class ApiDataSource {
         ServerFailure(response.data['message'] ?? "Something went wrong"),
       );
     } catch (e) {
+      AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -3171,6 +3170,7 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
   //
   // Future<Either<Failure, VendorResponse>> onlyProfileChange({
   //   String? avatarUrl,
@@ -3221,7 +3221,9 @@ class ApiDataSource {
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
 
-      AppLogger.log.w("✅ RESPONSE status=${response.statusCode} data=${response.data}");
+      AppLogger.log.w(
+        "✅ RESPONSE status=${response.statusCode} data=${response.data}",
+      );
 
       final data = response.data;
 
@@ -3281,9 +3283,17 @@ class ApiDataSource {
     }
   }
 
-  Future<Either<Failure, CategoryKeywordsResponse>> getKeyWords({required String type, required String query}) async {
+  Future<Either<Failure, CategoryKeywordsResponse>> getKeyWords({
+    required String type,
+    required String query,
+    String? categorySlug,
+  }) async {
     try {
-      String url = ApiUrl.getKeyWords(type: type, query: query);
+      String url = ApiUrl.getKeyWords(
+        type: type,
+        query: query,
+        categorySlug: categorySlug,
+      );
 
       dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
 
@@ -3330,8 +3340,7 @@ class ApiDataSource {
       dynamic response = await Request.sendRequest(
         url,
         {
-          "fcmToken":
-          fcmToken,
+          "fcmToken": fcmToken,
           "platform": "android",
           if (deviceId.trim().isNotEmpty) "deviceId": deviceId,
         },
@@ -3365,6 +3374,44 @@ class ApiDataSource {
     } catch (e, st) {
       AppLogger.log.e(e);
       print('$e,$st');
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, String>> deletePendingOwnerOnboarding({
+    required String ownerUserId,
+  }) async {
+    try {
+      final id = ownerUserId.trim();
+      if (id.isEmpty) {
+        return Left(ServerFailure('Owner not found.'));
+      }
+
+      final url = ApiUrl.employeeOnboardDeleteOwner(ownerUserId: id);
+      final response = await Request.sendRequest(url, {}, 'DELETE', true);
+
+      if (response is DioException) {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData['message'] != null) {
+          return Left(ServerFailure(errorData['message'].toString()));
+        }
+        return Left(ServerFailure(response.message ?? 'Delete failed'));
+      }
+
+      final data = response.data;
+      if (data is Map) {
+        final success = data['success'] == true || data['status'] == true;
+        final message = (data['message'] ?? '').toString().trim();
+        if (success) {
+          return Right(message.isNotEmpty ? message : 'Deleted successfully');
+        }
+        return Left(
+          ServerFailure(message.isNotEmpty ? message : 'Delete failed'),
+        );
+      }
+
+      return const Right('Deleted successfully');
+    } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }

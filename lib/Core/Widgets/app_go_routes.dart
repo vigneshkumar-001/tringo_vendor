@@ -265,6 +265,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final isService = args['isService'] as bool? ?? false;
           final isIndividual = args['isIndividual'] as bool? ?? true;
           final employeeId = args['employeeId'] as String?;
+          final businessProfileId = args['businessProfileId'] as String?;
+          final shopId = args['shopId'] as String?;
 
           return ShopCategoryInfo(
             isService: isService,
@@ -273,6 +275,27 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             initialShopNameTamil: args['initialShopNameTamil'] as String?,
             pages: args['pages'] as String?,
             employeeId: employeeId,
+            businessProfileId: businessProfileId,
+            shopId: shopId,
+            initialDescriptionEnglish:
+                args['initialDescriptionEnglish'] as String?,
+            initialDescriptionTamil: args['initialDescriptionTamil'] as String?,
+            initialAddressEnglish: args['initialAddressEnglish'] as String?,
+            initialAddressTamil: args['initialAddressTamil'] as String?,
+            initialGps: args['initialGps'] as String?,
+            initialPrimaryMobile: args['initialPrimaryMobile'] as String?,
+            initialWhatsapp: args['initialWhatsapp'] as String?,
+            initialEmail: args['initialEmail'] as String?,
+            initialCategoryName: args['initialCategoryName'] as String?,
+            initialCategorySlug: args['initialCategorySlug'] as String?,
+            initialSubCategoryName: args['initialSubCategoryName'] as String?,
+            initialSubCategorySlug: args['initialSubCategorySlug'] as String?,
+            initialDoorDeliveryText: args['initialDoorDeliveryText'] as String?,
+            initialOpenTimeText: args['initialOpenTimeText'] as String?,
+            initialCloseTimeText: args['initialCloseTimeText'] as String?,
+            initialOwnerImageUrl: args['initialOwnerImageUrl'] as String?,
+            initialImageUrls:
+                (args['initialImageUrls'] as List?)?.cast<String?>(),
           );
         },
       ),
@@ -285,6 +308,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
           String pageName = '';
           List<String?>? initialImageUrls;
+          String? categorySlug;
 
           if (extra is String) {
             pageName = extra;
@@ -292,18 +316,30 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             pageName = (extra["from"] as String?) ?? '';
             initialImageUrls =
                 (extra["initialImageUrls"] as List?)?.cast<String?>();
+            categorySlug = extra["categorySlug"] as String?;
           }
 
           return ShopPhotoInfo(
             pages: pageName,
             initialImageUrls: initialImageUrls,
+            categorySlug: categorySlug,
           );
         },
       ),
       GoRoute(
         path: AppRoutes.searchKeywordPath,
         name: AppRoutes.searchKeyword,
-        builder: (context, state) => const SearchKeyword(),
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is Map) {
+            return SearchKeyword(
+              page: extra['page'] as String?,
+              isIndividual: extra['isIndividual'] as bool?,
+              categorySlug: extra['categorySlug'] as String?,
+            );
+          }
+          return const SearchKeyword();
+        },
       ),
       GoRoute(
         path: AppRoutes.productCategoryScreensPath,
@@ -315,7 +351,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: AppRoutes.addProductList,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
-          return AddProductList(isService: extra?['isService'] ?? false);
+          return AddProductList(
+            isService: extra?['isService'] ?? false,
+            categorySlug: extra?['categorySlug'] as String?,
+          );
         },
       ),
       // GoRoute(

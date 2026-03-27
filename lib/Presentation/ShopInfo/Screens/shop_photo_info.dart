@@ -19,6 +19,7 @@ import '../../../Core/Widgets/common_container.dart';
 class ShopPhotoInfo extends ConsumerStatefulWidget {
   final String? pages;
   final String? shopId;
+  final String? categorySlug;
 
   /// existing images
   final List<String?>? initialImageUrls;
@@ -27,6 +28,7 @@ class ShopPhotoInfo extends ConsumerStatefulWidget {
     super.key,
     this.pages = '',
     this.shopId,
+    this.categorySlug,
     this.initialImageUrls,
   });
 
@@ -470,7 +472,10 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
                             MaterialPageRoute(
                               builder:
                                   (context) =>
-                                      SearchKeyword(page: widget.pages),
+                                      SearchKeyword(
+                                        page: widget.pages,
+                                        categorySlug: widget.categorySlug,
+                                      ),
                             ),
                           );
                           // context.pushNamed(AppRoutes.searchKeyword);

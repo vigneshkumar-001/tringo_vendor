@@ -20,7 +20,8 @@ import '../../../Core/Widgets/common_container.dart';
 class SearchKeyword extends ConsumerStatefulWidget {
   final String? page;
   final bool? isIndividual;
-  const SearchKeyword({super.key, this.isIndividual, this.page});
+  final String? categorySlug;
+  const SearchKeyword({super.key, this.isIndividual, this.page, this.categorySlug});
 
   @override
   ConsumerState<SearchKeyword> createState() => _SearchKeywordState();
@@ -52,6 +53,7 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
           .read(shopCategoryNotifierProvider.notifier)
           .fetchKeyWords(
             type: "shop",
+            categorySlug: widget.categorySlug,
             query: "", // empty = recommended/default
           );
     });
@@ -117,7 +119,7 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
     _debounce = Timer(const Duration(milliseconds: 350), () {
       ref
           .read(shopCategoryNotifierProvider.notifier)
-          .fetchKeyWords(type: "shop", query: q);
+          .fetchKeyWords(type: "shop", query: q, categorySlug: widget.categorySlug);
     });
   }
 
@@ -397,7 +399,11 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                           if (_showRecommended) {
                             await ref
                                 .read(shopCategoryNotifierProvider.notifier)
-                                .fetchKeyWords(type: "shop", query: "");
+                                .fetchKeyWords(
+                                  type: "shop",
+                                  query: "",
+                                  categorySlug: widget.categorySlug,
+                                );
                           }
                         },
                         child: Container(

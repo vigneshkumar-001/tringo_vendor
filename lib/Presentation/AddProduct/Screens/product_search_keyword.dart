@@ -26,8 +26,14 @@ import 'add_product_list.dart';
 class ProductSearchKeyword extends ConsumerStatefulWidget {
   final bool? isCompany;
   final bool? isService;
+  final String? categorySlug;
 
-  const ProductSearchKeyword({super.key, this.isCompany, this.isService});
+  const ProductSearchKeyword({
+    super.key,
+    this.isCompany,
+    this.isService,
+    this.categorySlug,
+  });
 
   bool get isCompanyResolved =>
       isCompany ??
@@ -70,6 +76,7 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
           .read(shopCategoryNotifierProvider.notifier)
           .fetchKeyWords(
             type: isServiceFlow ? "service" : "product",
+            categorySlug: widget.categorySlug,
             query: "", // recommended/default
           );
     });
@@ -306,6 +313,7 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                                   .read(shopCategoryNotifierProvider.notifier)
                                   .fetchKeyWords(
                                     type: keywordType, // ✅ product/service
+                                    categorySlug: widget.categorySlug,
                                     query: q,
                                   );
                             },
@@ -449,12 +457,16 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                         onTap: () async {
                           setState(() => _showRecommended = !_showRecommended);
 
-                          if (_showRecommended) {
-                            await ref
-                                .read(shopCategoryNotifierProvider.notifier)
-                                .fetchKeyWords(type: keywordType, query: "");
-                          }
-                        },
+                            if (_showRecommended) {
+                              await ref
+                                  .read(shopCategoryNotifierProvider.notifier)
+                                  .fetchKeyWords(
+                                    type: keywordType,
+                                    query: "",
+                                    categorySlug: widget.categorySlug,
+                                  );
+                            }
+                          },
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppColor.brightBlue,

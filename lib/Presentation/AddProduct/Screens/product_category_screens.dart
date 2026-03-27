@@ -856,6 +856,7 @@ class _ProductCategoryScreensState
                                     builder:
                                         (_) => AddProductList(
                                           isService: isServiceFlow,
+                                          categorySlug: productCategorySlug,
                                         ),
                                   ),
                                 );
@@ -863,7 +864,10 @@ class _ProductCategoryScreensState
                             } else {
                               context.pushNamed(
                                 AppRoutes.addProductList,
-                                extra: {'isService': isServiceFlow},
+                                extra: {
+                                  'isService': isServiceFlow,
+                                  'categorySlug': productCategorySlug,
+                                },
                               );
                             }
                           }
