@@ -1,13 +1,15 @@
 // firebase_service.dart
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 
-
 class FirebaseService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   final AndroidNotificationChannel channel = const AndroidNotificationChannel(
     'flutter_notification',
@@ -22,28 +24,44 @@ class FirebaseService {
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
 
-  Future<void> initializeFirebase() async {
-    // Local notifications init
+  Future<void> initializeFirebase({
+    FutureOr<void> Function(Map<String, dynamic> data)? onNotificationTap,
+  }) async {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidInit);
 
-    // ✅ v20.x uses `settings:` (NOT `initializationSettings:`)
     await flutterLocalNotificationsPlugin.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        AppLogger.log.i('🔔 Notification tapped. payload: ${response.payload}');
+        AppLogger.log.i('Notification tapped. payload: ${response.payload}');
+
+        final payload = response.payload;
+        if (payload == null || payload.trim().isEmpty) return;
+
+        Map<String, dynamic>? data;
+        try {
+          final decoded = jsonDecode(payload);
+          if (decoded is Map) {
+            data = decoded.map((k, v) => MapEntry(k.toString(), v));
+          }
+        } catch (_) {
+          // Older builds stored payload using `message.data.toString()` (not JSON).
+          // Ignore safely rather than crashing.
+        }
+
+        if (data != null && onNotificationTap != null) {
+          Future(() => onNotificationTap(data!));
+        }
       },
     );
 
-    // Create Android channel (Android 8+)
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
     await _requestNotificationPermission();
 
-    // iOS foreground presentation (harmless on Android)
     await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
@@ -60,24 +78,23 @@ class FirebaseService {
         provisional: false,
       );
       AppLogger.log.i(
-        '🔔 Notification permission: ${settings.authorizationStatus}',
+        'Notification permission: ${settings.authorizationStatus}',
       );
     } catch (e, st) {
       AppLogger.log.w('requestPermission failed: $e\n$st');
     }
   }
 
-  // ---- Robust token fetch with backoff (handles SERVICE_NOT_AVAILABLE) ----
   Future<String?> _getTokenWithBackoff() async {
-    const delays = [1, 2, 4, 8]; // seconds
-    for (final s in delays) {
+    const delays = [1, 2, 4, 8];
+    for (final seconds in delays) {
       try {
-        final t = await FirebaseMessaging.instance.getToken();
-        if (t != null && t.isNotEmpty) return t;
+        final token = await FirebaseMessaging.instance.getToken();
+        if (token != null && token.isNotEmpty) return token;
       } catch (e) {
-        AppLogger.log.w('getToken failed (retry in ${s}s): $e');
+        AppLogger.log.w('getToken failed (retry in ${seconds}s): $e');
       }
-      await Future.delayed(Duration(seconds: s));
+      await Future.delayed(Duration(seconds: seconds));
     }
 
     try {
@@ -93,7 +110,7 @@ class FirebaseService {
     _fcmToken = prefs.getString('fcmToken');
 
     if (_fcmToken != null && _fcmToken!.isNotEmpty) {
-      AppLogger.log.i('ℹ️ Existing FCM Token: $_fcmToken');
+      AppLogger.log.i('Existing FCM Token: $_fcmToken');
       return;
     }
 
@@ -102,13 +119,14 @@ class FirebaseService {
 
     if (token != null && token.isNotEmpty) {
       await prefs.setString('fcmToken', token);
-      AppLogger.log.i('✅ FCM Token: $token');
+      AppLogger.log.i('FCM Token: $token');
     } else {
-      AppLogger.log.w('⚠️ No FCM token (device/config/network). Will retry later.');
+      AppLogger.log.w(
+        'No FCM token (device/config/network). Will retry later.',
+      );
     }
   }
 
-  /// Call this when you receive an FCM message in foreground
   Future<void> showNotification(RemoteMessage message) async {
     const androidDetails = AndroidNotificationDetails(
       'flutter_notification',
@@ -127,7 +145,7 @@ class FirebaseService {
       title: message.notification?.title ?? 'Notification',
       body: message.notification?.body ?? '',
       notificationDetails: details,
-      payload: message.data.isNotEmpty ? message.data.toString() : null,
+      payload: message.data.isNotEmpty ? jsonEncode(message.data) : null,
     );
   }
 
@@ -139,8 +157,8 @@ class FirebaseService {
     FirebaseMessaging.onMessageOpenedApp.listen(onMessageOpenedApp);
   }
 
-  /// If app was terminated and opened by tapping a notification
   Future<RemoteMessage?> getInitialMessage() {
     return FirebaseMessaging.instance.getInitialMessage();
   }
 }
+

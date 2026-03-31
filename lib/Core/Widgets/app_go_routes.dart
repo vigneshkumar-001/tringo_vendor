@@ -15,7 +15,6 @@ import 'package:tringo_vendor_new/Presentation/Shop%20Details%20Edit/Screen/shop
 import '../../Presentation/AddProduct/Screens/add_product_list.dart';
 import '../../Presentation/AddProduct/Screens/product_category_screens.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Screen/employee_approval_pending.dart';
-import '../../Presentation/Heater/Add Vendor Employee/Screen/employee_approval_rejected.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Screen/heater_add_employee.dart';
 import '../../Presentation/Heater/Employee Details/Screen/heater_employee_details.dart';
 import '../../Presentation/Heater/Employee details-edit/Screen/heater_employee_details_edit.dart';
@@ -23,27 +22,24 @@ import '../../Presentation/Heater/Heater Register/Screen/heater_register_1.dart'
 import '../../Presentation/Heater/Heater Register/Screen/heater_register_2.dart';
 import '../../Presentation/Heater/Vendor Company Info/Screen/vendor_company_info.dart';
 import '../../Presentation/Heater/Vendor Company Info/Screen/vendor_company_photo.dart';
-import '../../Presentation/Home Screen/home_screen.dart';
 import '../../Presentation/Login Screen/Screens/login_mobile_number.dart';
 import '../../Presentation/Mobile Nomber Verify/Screen/mobile_number_verify.dart';
 import '../../Presentation/OTP Screen/Screens/otp_screen.dart';
+import '../../Presentation/Notifications/Screen/notifications_list.dart';
 import '../../Presentation/Owner Screen/Screens/owner_info_screens.dart';
 import '../../Presentation/Privacy Policy/Screen/privacy_policy.dart';
 import '../../Presentation/ShopInfo/Screens/search_keyword.dart';
 import '../../Presentation/ShopInfo/Screens/shop_category_info.dart';
 import '../../Presentation/ShopInfo/Screens/shop_photo_info.dart';
 import '../../Presentation/Shops Details/Screen/shops_details.dart';
-import '../../Presentation/subscription/Screen/subscription_screen.dart';
 import '../../Splash_screen.dart';
 import '../../dummy_screen.dart';
 import '../../main.dart';
 import '../Const/app_color.dart';
-import '../Const/app_images.dart';
 import '../Utility/app_textstyles.dart';
 import 'heater_bottom_navigation_bar.dart';
 
 // ✅ IMPORTANT: make sure these providers exist in your project
-import 'package:tringo_vendor_new/Core/Offline_Data/provider/offline_providers.dart';
 
 class AppRoutes {
   static const String splashScreen = 'splashScreen';
@@ -66,6 +62,7 @@ class AppRoutes {
   static const String heaterAddEmployee = 'heaterAddEmployee';
   static const String mobileNumberVerify = 'MobileNumberVerify';
   static const String privacyPolicy = 'privacyPolicy';
+  static const String notifications = 'Notifications';
   static const String heaterEmployeeDetails = 'HeaterEmployeeDetails';
   static const String heaterEmployeeDetailsEdit = 'HeaterEmployeeDetailsEdit';
   static const String shopDetailsEdit = 'ShopDetailsEdit';
@@ -94,6 +91,7 @@ class AppRoutes {
   static const String heaterAddEmployeePath = '/heaterAddEmployeePath';
   static const String mobileNumberVerifyPath = '/MobileNumberVerify';
   static const String privacyPolicyPath = '/privacyPolicy';
+  static const String notificationsPath = '/notifications';
   static const String heaterEmployeeDetailsPath = '/HeaterEmployeeDetails';
   static const String shopDetailsEditPath = '/ShopDetailsEdit';
   static const String heaterEmployeeDetailsEditPath =
@@ -123,8 +121,7 @@ final GlobalKey<NavigatorState> rootNavKey = GlobalKey<NavigatorState>();
 /// ✅ Use provider-based router (important for redirect)
 final goRouterProvider = Provider<GoRouter>((ref) {
   // watch so router rebuilds with provider changes
-  final internetAsync = ref.watch(internetStatusProvider);
-  final isOnline = internetAsync.value ?? true;
+  ref.watch(internetStatusProvider);
 
   return GoRouter(
     navigatorKey: rootNavKey, // ✅ IMPORTANT
@@ -142,7 +139,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final location = state.matchedLocation;
 
       final isOnNoInternet = location == AppRoutes.noInternetPath;
-      final isOnOfflineDemo = location == AppRoutes.offlineDemoPath;
 
       // ✅ Pages EMPLOYEE is allowed to use even when offline (registration flow)
       const employeeOfflineAllowed = <String>{
@@ -233,6 +229,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.privacyPolicyPath,
         name: AppRoutes.privacyPolicy,
         builder: (context, state) => const PrivacyPolicy(),
+      ),
+      GoRoute(
+        path: AppRoutes.notificationsPath,
+        name: AppRoutes.notifications,
+        builder: (context, state) => const NotificationsListScreen(),
       ),
       GoRoute(
         path: AppRoutes.homePath,

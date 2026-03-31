@@ -18,6 +18,7 @@ class AppPrefs {
   static const String _role = 'role';
   static const String _kOnboardingStep = 'onboardingStep';
   static const String _kVendorApproved = 'vendorApproved';
+  static const String _kVendorId = 'vendorId';
 
   static Future<void> setToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
@@ -64,6 +65,23 @@ class AppPrefs {
   static Future<bool?> getVendorApproved() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_kVendorApproved);
+  }
+
+  static Future<void> setVendorId(String vendorId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = vendorId.trim();
+    if (v.isEmpty) {
+      await prefs.remove(_kVendorId);
+      return;
+    }
+    await prefs.setString(_kVendorId, v);
+  }
+
+  static Future<String?> getVendorId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_kVendorId);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
   }
 
   // ---------- Offline session ----------

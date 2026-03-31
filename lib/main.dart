@@ -3,15 +3,16 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Core/Firebase/firebase_service.dart';
 
 import 'Core/Const/app_color.dart';
 import 'Core/Const/app_images.dart';
+import 'Core/Utility/app_prefs.dart';
 import 'Core/Utility/app_textstyles.dart';
 import 'Core/Widgets/app_go_routes.dart';
-import 'Core/Widgets/common_container.dart';
 import 'dummy_screen.dart';
 
 @pragma('vm:entry-point')
@@ -19,6 +20,34 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Must initialize Firebase in background isolate too
   await Firebase.initializeApp();
   AppLogger.log.i('🔕 [BG] messageId=${message.messageId}');
+}
+
+Map<String, dynamic>? _pendingPushData;
+
+Future<void> _handlePushData(Map<String, dynamic> data) async {
+  final eventTypeRaw = (data['eventType'] ?? '').toString().trim();
+  final eventType = eventTypeRaw.toUpperCase();
+
+  final ctx = rootNavKey.currentContext;
+  if (ctx == null) {
+    AppLogger.log.w('Push navigation skipped (no navigation context yet).');
+    return;
+  }
+  final router = GoRouter.of(ctx);
+
+  switch (eventType) {
+    case 'VENDOR_APPROVED':
+      final vendorId = (data['vendorId'] ?? '').toString().trim();
+      if (vendorId.isNotEmpty) {
+        await AppPrefs.setVendorId(vendorId);
+      }
+      await AppPrefs.setVendorApproved(true);
+      router.goNamed(AppRoutes.heaterHomeScreen);
+      return;
+    default:
+      router.goNamed(AppRoutes.notifications);
+      return;
+  }
 }
 
 Future<void> main() async {
@@ -41,7 +70,7 @@ Future<void> main() async {
   final firebaseService = FirebaseService();
 
   // ✅ This initializes local notifications + channel + permission
-  await firebaseService.initializeFirebase();
+  await firebaseService.initializeFirebase(onNotificationTap: _handlePushData);
 
   // ✅ Small delay helps some devices (Play Services not ready immediately)
   await Future.delayed(const Duration(seconds: 3));
@@ -57,7 +86,9 @@ Future<void> main() async {
     },
     onMessageOpenedApp: (msg) {
       AppLogger.log.i('📬 [OPENED] ${msg.messageId}');
-      // TODO: navigate using msg.data if needed
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handlePushData(msg.data);
+      });
     },
   );
 
@@ -65,17 +96,34 @@ Future<void> main() async {
   final initialMsg = await firebaseService.getInitialMessage();
   if (initialMsg != null) {
     AppLogger.log.i('🚀 [TERMINATED OPEN] ${initialMsg.messageId}');
-    // TODO: navigate using initialMsg.data if needed
+    _pendingPushData = initialMsg.data;
   }
 
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final data = _pendingPushData;
+      if (data == null) return;
+      _pendingPushData = null;
+      _handlePushData(data);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(goRouterProvider);
 
     return ScreenUtilInit(

@@ -377,6 +377,7 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                                                   );
 
                                               _addKeyword(keyword);
+ _searchKeywordController.clear();
 
                                               setState(
                                                 () => _showSuggestions = false,
@@ -453,88 +454,88 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                       const SizedBox(height: 20),
 
                       // ✅ Toggle Recommended
-                      GestureDetector(
-                        onTap: () async {
-                          setState(() => _showRecommended = !_showRecommended);
+                      // GestureDetector(
+                      //   onTap: () async {
+                      //     setState(() => _showRecommended = !_showRecommended);
 
-                            if (_showRecommended) {
-                              await ref
-                                  .read(shopCategoryNotifierProvider.notifier)
-                                  .fetchKeyWords(
-                                    type: keywordType,
-                                    query: "",
-                                    categorySlug: widget.categorySlug,
-                                  );
-                            }
-                          },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColor.brightBlue,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 5,
-                            ),
-                            child: Text(
-                              _showRecommended
-                                  ? 'Hide Recommended Keywords'
-                                  : 'View Recommended Keywords',
-                              style: AppTextStyles.mulish(
-                                fontWeight: FontWeight.w700,
-                                color: AppColor.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      //       if (_showRecommended) {
+                      //         await ref
+                      //             .read(shopCategoryNotifierProvider.notifier)
+                      //             .fetchKeyWords(
+                      //               type: keywordType,
+                      //               query: "",
+                      //               categorySlug: widget.categorySlug,
+                      //             );
+                      //       }
+                      //     },
+                      //   child: Container(
+                      //     decoration: BoxDecoration(
+                      //       color: AppColor.brightBlue,
+                      //       borderRadius: BorderRadius.circular(50),
+                      //     ),
+                      //     child: Padding(
+                      //       padding: const EdgeInsets.symmetric(
+                      //         horizontal: 12,
+                      //         vertical: 5,
+                      //       ),
+                      //       child: Text(
+                      //         _showRecommended
+                      //             ? 'Hide Recommended Keywords'
+                      //             : 'View Recommended Keywords',
+                      //         style: AppTextStyles.mulish(
+                      //           fontWeight: FontWeight.w700,
+                      //           color: AppColor.white,
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
 
-                      const SizedBox(height: 20),
+                      // const SizedBox(height: 20),
 
-                      // ✅ Recommended Keywords from API
-                      if (_showRecommended)
-                        shopState.isKeyWordsLoading
-                            ? Padding(
-                              padding: EdgeInsets.all(12),
-                              child: Center(
-                                child: AppLoader.circularLoader(
-                                  color: AppColor.darkBlue,
-                                ),
-                              ),
-                            )
-                            : Wrap(
-                              spacing: 10,
-                              runSpacing: 10,
-                              children:
-                                  apiKeywords.map((keyword) {
-                                    return GestureDetector(
-                                      onTap: () => _addKeyword(keyword),
-                                      child: DottedBorder(
-                                        borderType: BorderType.RRect,
-                                        radius: const Radius.circular(12),
-                                        color: AppColor.borderGray,
-                                        strokeWidth: 1,
-                                        dashPattern: const [3, 2],
-                                        padding: const EdgeInsets.all(1),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 9,
-                                            horizontal: 16,
-                                          ),
-                                          child: Text(
-                                            keyword,
-                                            style: AppTextStyles.mulish(
-                                              color: AppColor.gray84,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                            ),
+                      // // ✅ Recommended Keywords from API
+                      // if (_showRecommended)
+                      //   shopState.isKeyWordsLoading
+                      //       ? Padding(
+                      //         padding: EdgeInsets.all(12),
+                      //         child: Center(
+                      //           child: AppLoader.circularLoader(
+                      //             color: AppColor.darkBlue,
+                      //           ),
+                      //         ),
+                      //       )
+                      //       : Wrap(
+                      //         spacing: 10,
+                      //         runSpacing: 10,
+                      //         children:
+                      //             apiKeywords.map((keyword) {
+                      //               return GestureDetector(
+                      //                 onTap: () => _addKeyword(keyword),
+                      //                 child: DottedBorder(
+                      //                   borderType: BorderType.RRect,
+                      //                   radius: const Radius.circular(12),
+                      //                   color: AppColor.borderGray,
+                      //                   strokeWidth: 1,
+                      //                   dashPattern: const [3, 2],
+                      //                   padding: const EdgeInsets.all(1),
+                      //                   child: Padding(
+                      //                     padding: const EdgeInsets.symmetric(
+                      //                       vertical: 9,
+                      //                       horizontal: 16,
+                      //                     ),
+                      //                     child: Text(
+                      //                       keyword,
+                      //                       style: AppTextStyles.mulish(
+                      //                         color: AppColor.gray84,
+                      //                       ),
+                      //                     ),
+                      //                   ),
+                      //                 ),
+                      //               );
+                      //             }).toList(),
+                      //       ),
 
-                      const SizedBox(height: 30),
+                      // const SizedBox(height: 30),
 
                       // ✅ Preview Shop
                       CommonContainer.button(
