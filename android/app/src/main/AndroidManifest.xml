@@ -8,7 +8,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Overlay + Notifications + Foreground -->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />-->
@@ -119,64 +118,11 @@
             </intent-filter>
         </activity>
 
-        <!-- RECEIVERS -->
-        <receiver
-            android:name=".TringoCallReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE" />
-                <action android:name="android.intent.action.PHONE_STATE_CHANGED" />
-                <action android:name="android.intent.action.ACTION_PHONE_STATE_CHANGED" />
-            </intent-filter>
-        </receiver>
-
-        <receiver
-            android:name=".TringoCallEndReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE" />
-                <action android:name="android.intent.action.PHONE_STATE_CHANGED" />
-                <action android:name="android.intent.action.ACTION_PHONE_STATE_CHANGED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- SERVICES -->
-        <service
-            android:name=".TringoOverlayService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
-        <service
-            android:name=".TringoCallScreeningService"
-            android:permission="android.permission.BIND_SCREENING_SERVICE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.telecom.CallScreeningService" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".TringoInCallService"
-            android:permission="android.permission.BIND_INCALL_SERVICE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.telecom.InCallService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.telecom.IN_CALL_SERVICE_UI"
-                android:value="true" />
-        </service>
-
-        <service
-            android:name=".TringoRedirectionService"
-            android:permission="android.permission.BIND_CALL_REDIRECTION_SERVICE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.telecom.CallRedirectionService" />
-            </intent-filter>
-        </service>
+        <!-- NOTE:
+             The following call-screening / in-call / overlay components were removed to avoid
+             Play Console policy blocks for dialer/call-screening/overlay functionality.
+             Re-add only if this app is intended to be a call screening / caller-id style app
+             and you can complete the required Play Console declarations. -->
 
         <meta-data
             android:name="flutterEmbedding"

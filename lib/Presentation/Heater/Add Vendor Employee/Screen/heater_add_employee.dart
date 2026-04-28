@@ -30,6 +30,7 @@ class HeaterAddEmployee extends ConsumerStatefulWidget {
 class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitted = false;
+  bool _isMobileVerified = false;
 
   final TextEditingController englishNameController = TextEditingController();
   final TextEditingController emergencyNameController = TextEditingController();
@@ -394,6 +395,20 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                             controller: mobileController,
                             isLoading: state.isSendingOtp,
                             isOtpVerifying: state.isVerifyingOtp,
+                            onVerifiedChanged:
+                                (v) => setState(() => _isMobileVerified = v),
+                            validator: (v) {
+                              if (!_isSubmitted) return null;
+                              final value = (v ?? '').trim();
+                              if (value.isEmpty) return 'Please enter mobile number';
+                              if (value.length != 10) {
+                                return 'Enter 10 digit mobile number';
+                              }
+                              if (!_isMobileVerified) {
+                                return 'Please verify mobile number';
+                              }
+                              return null;
+                            },
                             onSendOtp: (mobile) {
                               return ref
                                   .read(addEmployeeNotifier.notifier)
@@ -546,6 +561,14 @@ class _HeaterAddEmployeeState extends ConsumerState<HeaterAddEmployee> {
                               AppSnackBar.error(
                                 context,
                                 "Please upload required images",
+                              );
+                              return;
+                            }
+
+                            if (!_isMobileVerified) {
+                              AppSnackBar.error(
+                                context,
+                                "Please verify mobile number",
                               );
                               return;
                             }

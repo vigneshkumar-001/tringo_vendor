@@ -174,4 +174,15 @@ class ApiUrl {
   }) {
     return "${base}api/v1/vendor/dashboard/history?page=$page&limit=$limit&q=$search&categories=$categories&dateFrom=$dateFrom&dateTo=$dateTo";
   }
+
+  static String vendorEarnings({
+    required String limit,
+    required String page,
+    String? q,
+    String? dateFrom,
+    String? dateTo,
+    String? sort,
+  }) {
+    return "${base}api/v1/vendor/dashboard/earnings?page=$page&limit=$limit&q=$q&dateFrom=$dateFrom&dateTo=$dateTo&sort=$sort";
+  }
 }

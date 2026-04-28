@@ -28,7 +28,7 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with WidgetsBindingObserver {
-  String appVersion = '1.0.0';
+  String appVersion = '1.0.1';
 
   bool _navigated = false;
   bool _tokenSent = false;
@@ -321,6 +321,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 }
+
+
 // import 'dart:io';
 //
 // import 'package:flutter/material.dart';

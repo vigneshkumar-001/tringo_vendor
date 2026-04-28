@@ -1318,11 +1318,23 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         onMapTap: () async {
                           setState(() => _isFetchingGps = true);
 
+                          final gpsText = _gpsController.text.trim();
+                          double? initialLat;
+                          double? initialLng;
+                          final parts = gpsText.split(',');
+                          if (parts.length == 2) {
+                            initialLat = double.tryParse(parts[0].trim());
+                            initialLng = double.tryParse(parts[1].trim());
+                          }
+
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
-                                  (_) => const GoogleLocationPickerScreen(),
+                                  (_) => GoogleLocationPickerScreen(
+                                    initialLatitude: initialLat,
+                                    initialLongitude: initialLng,
+                                  ),
                             ),
                           );
 

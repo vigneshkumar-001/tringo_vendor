@@ -56,6 +56,31 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
 
   late final String ownershipType;
   late final String businessTypeForApi;
+
+  Future<bool> _handleBack() async {
+    if (showOtpCard) {
+      if (mounted) setState(() => showOtpCard = false);
+      return false;
+    }
+
+    // Onboarding flow: Step-2 back should go to Login (no blank screen)
+    if (widget.edit == false) {
+      if (!mounted) return false;
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.goNamed(AppRoutes.login);
+      }
+      return false;
+    }
+
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.goNamed(AppRoutes.login);
+    }
+    return false;
+  }
   @override
   void initState() {
     super.initState();
@@ -131,18 +156,20 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
     final state = ref.watch(heaterRegisterNotifier);
     // final bool isIndividualFlow = widget.isIndividual;
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            autovalidateMode:
-                _isSubmitted
-                    ? AutovalidateMode.onUserInteraction
-                    : AutovalidateMode.disabled,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+    return WillPopScope(
+      onWillPop: _handleBack,
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              autovalidateMode:
+                  _isSubmitted
+                      ? AutovalidateMode.onUserInteraction
+                      : AutovalidateMode.disabled,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 /// HEADER BAR
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -152,13 +179,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                   child: Row(
                     children: [
                       CommonContainer.topLeftArrow(
-                        onTap: () {
-                          if (showOtpCard) {
-                            setState(() => showOtpCard = false);
-                          } else {
-                            Navigator.pop(context);
-                          }
-                        },
+                        onTap: () => _handleBack(),
                       ),
                       SizedBox(width: 50),
                       Text(
@@ -460,7 +481,8 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
                 ),
 
                 SizedBox(height: 30),
-              ],
+                ],
+              ),
             ),
           ),
         ),

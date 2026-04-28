@@ -39,6 +39,7 @@ import '../../Presentation/Heater/Employee details-edit/Model/employee_unblock_r
 import '../../Presentation/Heater/Employee details-edit/Model/phone_verification_response.dart';
 import '../../Presentation/Heater/Employees/Model/heater_employee_response.dart';
 import '../../Presentation/Heater/Heater Home Screen/Model/heater_home_response.dart';
+import '../../Presentation/Heater/Heater Earnings/Model/heater_earnings_response.dart';
 import '../../Presentation/Heater/Heater Register/Model/vendorResponse.dart';
 import '../../Presentation/Home Screen/Model/employee_home_response.dart';
 import '../../Presentation/Login Screen/Model/app_version_response.dart';
@@ -2730,6 +2731,64 @@ class ApiDataSource {
         final errorData = response.response?.data;
         if (errorData is Map && errorData.containsKey('message')) {
           return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, HeaterEarningsResponse>> vendorEarnings({
+    required String limit,
+    required String page,
+    String? q,
+    String? dateFrom,
+    String? dateTo,
+    String? sort,
+  }) async {
+    try {
+      final url = ApiUrl.vendorEarnings(
+        page: page,
+        limit: limit,
+        q: q,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        sort: sort,
+      );
+
+      dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(HeaterEarningsResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(
+                response.data is Map
+                    ? (response.data['message'] ?? "Something went wrong")
+                    : (response.data?.toString() ?? "Something went wrong"),
+              ),
+            );
+          }
+        } else {
+          final String message =
+              response.data is Map
+                  ? (response.data['message'] ?? "Something went wrong").toString()
+                  : (response.data?.toString() ?? "Something went wrong");
+          return Left(
+            ServerFailure(message),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message'].toString()));
+        }
+        if (errorData is String && errorData.trim().isNotEmpty) {
+          return Left(ServerFailure(errorData));
         }
         return Left(ServerFailure(response.message ?? "Unknown Dio error"));
       }

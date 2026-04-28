@@ -6,7 +6,14 @@ import 'package:http/http.dart' as http;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class GoogleLocationPickerScreen extends StatefulWidget {
-  const GoogleLocationPickerScreen({super.key});
+  final double? initialLatitude;
+  final double? initialLongitude;
+
+  const GoogleLocationPickerScreen({
+    super.key,
+    this.initialLatitude,
+    this.initialLongitude,
+  });
 
   @override
   State<GoogleLocationPickerScreen> createState() =>
@@ -53,7 +60,18 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
       parent: _animationController,
       curve: Curves.easeInOut,
     );
-    _getCurrentLocation();
+
+    final hasInitial =
+        widget.initialLatitude != null && widget.initialLongitude != null;
+
+    if (hasInitial) {
+      _initFromInitialLocation(
+        widget.initialLatitude!,
+        widget.initialLongitude!,
+      );
+    } else {
+      _getCurrentLocation();
+    }
   }
 
   @override
@@ -99,6 +117,26 @@ class _GoogleLocationPickerScreenState extends State<GoogleLocationPickerScreen>
       setState(() {
         loading = false;
         locality = 'Unable to get current location';
+        fullAddress = 'Error: $e';
+      });
+    }
+  }
+
+  Future<void> _initFromInitialLocation(double lat, double lng) async {
+    try {
+      currentLocation = LatLng(lat, lng);
+      selectedLocation = currentLocation;
+
+      await _reverseGeocode(lat, lng);
+
+      if (!mounted) return;
+      setState(() => loading = false);
+      _animationController.forward();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        loading = false;
+        locality = 'Unable to load location';
         fullAddress = 'Error: $e';
       });
     }

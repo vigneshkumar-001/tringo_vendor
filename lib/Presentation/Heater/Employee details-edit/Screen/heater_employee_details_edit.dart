@@ -69,6 +69,7 @@ class _HeaterEmployeeDetailsEditState
     with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitted = false;
+  bool _isMobileVerified = false;
   bool _initialized = false;
 
   final TextEditingController englishNameController = TextEditingController();
@@ -720,6 +721,8 @@ class _HeaterEmployeeDetailsEditState
                         controller: mobileController,
                         isLoading: state.isSendingOtp,
                         isOtpVerifying: state.isVerifyingOtp,
+                        onVerifiedChanged:
+                            (v) => setState(() => _isMobileVerified = v),
                         onSendOtp: (mobile) {
                           return ref
                               .read(heaterEmployeeEditNotifier.notifier)
@@ -845,6 +848,14 @@ class _HeaterEmployeeDetailsEditState
                         final bool phoneChanged =
                             newPhone.isNotEmpty && newPhone != oldPhone;
                         final phone = phoneChanged ? newPhone : oldPhone;
+
+                        if (phoneChanged && !_isMobileVerified) {
+                          AppSnackBar.error(
+                            context,
+                            "Please verify updated mobile number",
+                          );
+                          return;
+                        }
 
                         final email =
                             emailIdController.text.trim().isEmpty

@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
+import 'package:tringo_vendor_new/Presentation/Heater/Setting/Controller/profile_notifer.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../Api/DataSource/api_data_source.dart';
@@ -68,6 +69,22 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
   bool _gpsFetched = false;
   bool _timetableInvalid = false;
   bool _isFetchingGps = false;
+
+  Future<bool> _handleBack() async {
+    // Onboarding flow: Step-3 back should go to Step-2 (no blank screen)
+    if (widget.edit == false) {
+      if (!mounted) return false;
+      context.goNamed(AppRoutes.heaterRegister2);
+      return false;
+    }
+
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.goNamed(AppRoutes.heaterHomeScreen);
+    }
+    return false;
+  }
 
   String _withCountryCode(String number) {
     final n = number.trim();
@@ -497,14 +514,16 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
   Widget build(BuildContext context) {
     final state = ref.watch(heaterRegisterNotifier);
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+    return WillPopScope(
+      onWillPop: _handleBack,
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15,
@@ -513,7 +532,7 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                   child: Row(
                     children: [
                       CommonContainer.topLeftArrow(
-                        onTap: () => Navigator.pop(context),
+                        onTap: () => _handleBack(),
                       ),
                       SizedBox(width: 50),
                       Text(
@@ -620,11 +639,23 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                         onMapTap: () async {
                           setState(() => _isFetchingGps = true);
 
+                          final gpsText = _gpsController.text.trim();
+                          double? initialLat;
+                          double? initialLng;
+                          final parts = gpsText.split(',');
+                          if (parts.length == 2) {
+                            initialLat = double.tryParse(parts[0].trim());
+                            initialLng = double.tryParse(parts[1].trim());
+                          }
+
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
-                                  (_) => const GoogleLocationPickerScreen(),
+                                  (_) => GoogleLocationPickerScreen(
+                                    initialLatitude: initialLat,
+                                    initialLongitude: initialLng,
+                                  ),
                             ),
                           );
 
@@ -890,6 +921,11 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                                 AppRoutes.vendorCompanyPhotoPath,
                               ); // ✅ correct next screen
                             } else {
+                              // Refresh cached profile so Settings edit shows latest data next time
+                              await ref
+                                  .read(profileNotifierProvider.notifier)
+                                  .getProfile(silent: true);
+
                               Navigator.pop(context);
                               final notifier = ref.read(
                                 heaterHomeNotifier.notifier,
@@ -930,7 +966,8 @@ class _VendorCompanyInfoState extends ConsumerState<VendorCompanyInfo> {
                     ],
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
