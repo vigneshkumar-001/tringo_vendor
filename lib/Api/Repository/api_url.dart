@@ -34,6 +34,14 @@ class ApiUrl {
   static const String heaterEmployee = "${base}api/v1/vendor/employees";
   static const String plans = "${base}api/v1/subscriptions/plans";
   static const String purchase = "${base}api/v1/subscriptions/purchase";
+
+  // ----- CCAvenue subscription flow -----
+  static const String ccAvenueInit =
+      "${base}api/v1/subscriptions/ccavenue/init";
+  static const String ccAvenueExtendInit =
+      "${base}api/v1/subscriptions/ccavenue/extend/init";
+  static const String ccAvenueConfirm =
+      "${base}api/v1/subscriptions/ccavenue/confirm";
   static const String accountDelete = "${base}api/v1/auth/me";
   static const String supportTicketsList = "${base}api/v1/support/tickets";
 

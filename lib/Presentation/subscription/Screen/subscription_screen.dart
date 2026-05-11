@@ -3,16 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
-import 'package:tringo_vendor_new/Presentation/subscription/Screen/subscription_history.dart';
+import 'package:tringo_vendor_new/Presentation/subscription/Model/plan_list_response.dart';
 
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
 import '../../../Core/Session/registration_product_seivice.dart';
 import '../../../Core/Utility/app_textstyles.dart';
+import '../../../Core/Utility/app_prefs.dart';
 import '../../../Core/Widgets/app_go_routes.dart';
 import '../../pay_success_and_cancel.dart';
 import '../Controller/subscription_notifier.dart';
-import '../Model/plan_list_response.dart';
+import 'ccavenue_checkout_screen.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
   final bool showSkip;
@@ -35,12 +36,16 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   @override
   void initState() {
     super.initState();
-    AppLogger.log.e(widget.businessProfileId);
+      AppLogger.log.e(widget.businessProfileId);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(subscriptionNotifier.notifier).getPlanList();
       await ref
           .read(subscriptionNotifier.notifier)
-          .getCurrentPlan(businessProfileId: widget.businessProfileId);
+          .getCurrentPlan(
+            businessProfileId: widget.businessProfileId,
+            force: true,
+            keepExisting: true,
+          );
     });
   }
 
@@ -49,8 +54,24 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     final state = ref.watch(subscriptionNotifier);
 
     final planAmount = state.planListResponse?.data;
-    final businessProfileId = state.purchaseResponse?.data;
 
+    final List<PlanFeature> comparisonFeatures = () {
+      final plans = planAmount ?? const <PlanModel>[];
+      if (plans.isEmpty) return <PlanFeature>[];
+
+      if (_selectedBilling >= 0 && _selectedBilling < plans.length) {
+        final selected = plans[_selectedBilling].features;
+        if (selected.isNotEmpty) {
+          return selected;
+        }
+      }
+
+      for (final p in plans) {
+        if (p.features.isNotEmpty) return p.features;
+      }
+
+      return <PlanFeature>[];
+    }();
     return Scaffold(
       backgroundColor: Color(0xFFF3F3F3),
       body: SafeArea(
@@ -128,34 +149,31 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                         ],
                       ),
                       SizedBox(height: 10),
-                      Image.asset(
-                        AppImages.crown,
-                        height: 105,
-                        fit: BoxFit.contain,
-                      ),
-                      SizedBox(height: 10),
                       Text(
-                        "Unlock the Tringo’s",
-                        style: AppTextStyles.mulish(fontSize: 22),
-                      ),
-                      Text(
-                        "Super Power",
+                        "Unlock your business growth",
                         style: AppTextStyles.mulish(
-                          fontSize: 22,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 20),
-                      _ComparisonCard(),
-                      SizedBox(height: 20),
-                      Center(
-                        child: Text(
-                          'Cancel Subscription Any time',
-                          style: AppTextStyles.mulish(color: AppColor.darkGrey),
+                      Text(
+                        "Get more customers .Close more deals faster",
+                        style: AppTextStyles.mulish(
+                          fontSize: 12,
+                          color: AppColor.darkGrey,
                         ),
                       ),
-                      SizedBox(height: 20),
-                      // if (widget.showSkip)
+                      SizedBox(height: 15),
+                      _ComparisonCard(features: comparisonFeatures),
+                       SizedBox(height: 20),
+                      // Center(
+                      //   child: Text(
+                      //     'Cancel Subscription Any time',
+                      //     style: AppTextStyles.mulish(color: AppColor.darkGrey),
+                      //   ),
+                      // ),
+                      // SizedBox(height: 20),
+                       if (widget.showSkip)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 31),
                         child: InkWell(
@@ -221,6 +239,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               ),
               SizedBox(height: 15),
 
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                child: _UpgradeNoticeCard(),
+              ),
+              const SizedBox(height: 10),
+
               // SizedBox(
               //   height: 90,
               //   child: Padding(
@@ -264,6 +288,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                         child: _BillingOptions(
                           index: index, //  add this
                           price: data.price.toString(),
+                          isBestValue: data.isBestValue,
 
                           type:
                               data.type
@@ -310,61 +335,135 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
                               debugPrint('Selected planId: $planId');
 
-                              await ref
-                                  .read(subscriptionNotifier.notifier)
-                                  .purchasePlan(
-                                    planId: planId,
-                                    businessProfileId: widget.businessProfileId,
-                                  );
-
-                              final subState = ref.read(subscriptionNotifier);
-
-                              // ✅ SUCCESS → navigate
-                              if (subState.purchaseResponse != null &&
-                                  subState.purchaseResponse!.status == true) {
-                                Navigator.push(
+                              final shopId = (await AppPrefs.getSopId() ?? '')
+                                  .trim();
+                              if (shopId.isEmpty) {
+                                showTopSnackBar(
                                   context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => PaySuccessAndCancel(
-                                          isSuccess: true,
-                                          tittle:
-                                              subState
-                                                  .purchaseResponse
-                                                  ?.data
-                                                  .plan
-                                                  .durationLabel
-                                                  .toString() ??
-                                              '',
-                                          planId: planId,
-                                          startAt:
-                                              subState
-                                                  .purchaseResponse
-                                                  ?.data
-                                                  .period
-                                                  .startsAtLabel
-                                                  .toString() ??
-                                              '',
-                                          endsAt:
-                                              subState
-                                                  .purchaseResponse
-                                                  ?.data
-                                                  .period
-                                                  .endsAtLabel
-                                                  .toString() ??
-                                              '',
-                                        ),
+                                  const CustomSnackBar.error(
+                                    message: "Please select a shop and try again",
                                   ),
                                 );
+                                return;
                               }
-                              // ❌ ERROR → show snackbar
-                              else {
+
+                              final current = ref
+                                  .read(subscriptionNotifier)
+                                  .currentPlanResponse
+                                  ?.data;
+                              final shouldExtend =
+                                  (current?.isFreemium == false) &&
+                                  ((current?.status ?? '')
+                                          .trim()
+                                          .toUpperCase() ==
+                                      'ACTIVE');
+
+                              final initData = await ref
+                                  .read(subscriptionNotifier.notifier)
+                                  .initCcAvenue(
+                                    planId: planId,
+                                    businessProfileId: widget.businessProfileId,
+                                    shopId: shopId,
+                                    extend: shouldExtend,
+                                  );
+
+                              if (!mounted) return;
+                              if (initData == null) {
+                                final subState = ref.read(subscriptionNotifier);
                                 showTopSnackBar(
                                   context,
                                   CustomSnackBar.error(
                                     message:
                                         subState.error ??
-                                        "Something went wrong",
+                                        "Unable to start payment",
+                                  ),
+                                );
+                                return;
+                              }
+
+                              final result = await Navigator.of(context)
+                                  .push<CcAvenueCheckoutResult>(
+                                MaterialPageRoute(
+                                  builder: (_) => CcAvenueCheckoutScreen(
+                                    initData: initData,
+                                  ),
+                                ),
+                              );
+
+                              if (!mounted) return;
+                              if (result == null) return;
+
+                              if (result.cancelled) {
+                                showTopSnackBar(
+                                  context,
+                                  const CustomSnackBar.info(
+                                    message: "Payment cancelled",
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Optional fallback ONLY when encResp is directly available.
+                              if (result.encResp != null &&
+                                  result.encResp!.trim().isNotEmpty) {
+                                await ref
+                                    .read(subscriptionNotifier.notifier)
+                                    .confirmCcAvenue(encResp: result.encResp!.trim());
+                              }
+
+                              // Always refresh the subscription state from backend.
+                              await ref
+                                  .read(subscriptionNotifier.notifier)
+                                  .getCurrentPlan(
+                                    businessProfileId: widget.businessProfileId,
+                                    force: true,
+                                    keepExisting: true,
+                                  );
+
+                              final refreshed = ref
+                                  .read(subscriptionNotifier)
+                                  .currentPlanResponse
+                                  ?.data;
+
+                              final status =
+                                  (refreshed?.status ?? '').trim().toUpperCase();
+
+                              if (status == 'ACTIVE' && refreshed != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PaySuccessAndCancel(
+                                      isSuccess: true,
+                                      tittle:
+                                          (refreshed.plan?.durationLabel ??
+                                                  selectedPlan.type)
+                                              .toString(),
+                                      planId: planId,
+                                      startAt:
+                                          (refreshed.period?.startsAtLabel ??
+                                                  '')
+                                              .toString(),
+                                      endsAt:
+                                          (refreshed.period?.endsAtLabel ?? '')
+                                              .toString(),
+                                    ),
+                                  ),
+                                );
+                              } else if (status == 'PENDING') {
+                                showTopSnackBar(
+                                  context,
+                                  const CustomSnackBar.info(
+                                    message:
+                                        "Payment submitted. Awaiting confirmation.",
+                                  ),
+                                );
+                              } else {
+                                showTopSnackBar(
+                                  context,
+                                  CustomSnackBar.error(
+                                    message:
+                                        ref.read(subscriptionNotifier).error ??
+                                        "Payment failed. Please try again.",
                                   ),
                                 );
                               }
@@ -395,9 +494,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                               ),
                             )
                             : Text(
-                              'Pay for Premium',
+                              'Upgrade now and get leads',
                               style: AppTextStyles.mulish(
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
                               ),
@@ -448,7 +547,8 @@ void showTopSnackBar(
 }
 
 class _ComparisonCard extends StatelessWidget {
-  _ComparisonCard();
+  final List<PlanFeature> features;
+  const _ComparisonCard({required this.features});
 
   @override
   Widget build(BuildContext context) {
@@ -458,16 +558,25 @@ class _ComparisonCard extends StatelessWidget {
       colors: [Color(0xFF0797FD), Color(0xFF07C8FD), Color(0xFF0797FD)],
     );
 
-    // text + availability in Free
-    const features = <({String text, bool free, bool premium})>[
-      (text: 'Search engine visibility upto 5km', free: true, premium: true),
-      (text: 'Unlimited Reply in Smart Connect', free: false, premium: true),
-      (text: 'Reach your entire district', free: false, premium: true),
-      (text: 'Search engine priority', free: false, premium: true),
-      (text: 'Place 2 ads per month', free: false, premium: true),
-      (text: 'Get Trusted Batch to gain clients', free: false, premium: true),
-      (text: 'View Followers Picture', free: false, premium: true),
-    ];
+    final rows = features.isNotEmpty
+        ? (List<PlanFeature>.from(features)
+          ..sort((a, b) => a.sort.compareTo(b.sort)))
+        : <PlanFeature>[
+            PlanFeature(
+              key: 'limited_visibility_5_km_only',
+              label: 'Limited visibility (5 km only)',
+              free: true,
+              premium: false,
+              sort: 1,
+            ),
+            PlanFeature(
+              key: 'get_priority_in_search',
+              label: 'Get priority in search',
+              free: false,
+              premium: true,
+              sort: 2,
+            ),
+          ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -523,9 +632,8 @@ class _ComparisonCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
-                      children: [
+                      children: const [
                         Expanded(flex: 3, child: Text('')),
-
                         Expanded(
                           flex: 3,
                           child: Center(
@@ -539,7 +647,7 @@ class _ComparisonCard extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          flex: 0,
+                          flex: 2,
                           child: Center(
                             child: Text(
                               'Premium',
@@ -554,31 +662,31 @@ class _ComparisonCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
 
-                    ...features.map(
+                    ...rows.map(
                       (f) => Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Expanded(
-                            flex: 4,
-                            child: Text(
-                              f.text,
-                              style: AppTextStyles.mulish(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: AppColor.darkBlue,
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                f.label,
+                                style: AppTextStyles.mulish(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                  color: AppColor.darkBlue,
+                                ),
                               ),
                             ),
-                          ),
 
-                          Expanded(
-                            flex: 3,
-                            child: Center(
-                              child:
-                                  f.free
-                                      ? star(color: AppColor.skyBlue)
-                                      : SizedBox.shrink(),
+                            Expanded(
+                              flex: 3,
+                              child: Center(
+                                child:
+                                    f.free
+                                        ? star(color: AppColor.skyBlue)
+                                        : SizedBox.shrink(),
+                              ),
                             ),
-                          ),
 
                           Expanded(
                             flex: 2,
@@ -617,6 +725,7 @@ class _BillingOptions extends StatelessWidget {
     required this.type,
     required this.onChanged,
     required this.price,
+    required this.isBestValue,
   });
 
   final int index; // ✅ current item index
@@ -625,6 +734,7 @@ class _BillingOptions extends StatelessWidget {
 
   final String type;
   final String price;
+  final bool isBestValue;
 
   @override
   Widget build(BuildContext context) {
@@ -633,7 +743,7 @@ class _BillingOptions extends StatelessWidget {
       labelBottom: type,
       selected: selectedIndex == index, // ✅ compare with index
       onTap: () => onChanged(index), // ✅ send index
-      highlight: index == 0, // optional
+      highlight: isBestValue,
     );
   }
 }
@@ -662,44 +772,173 @@ class _BillingChip extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
-        decoration: BoxDecoration(
-          color: selected ? Colors.white : const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: border, width: 2),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          SizedBox(
+            width: 145,
+            height: 72,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: EdgeInsets.only(
+                top: highlight ? 16 : 10,
+                bottom: 10,
+                left: 12,
+                right: 12,
+              ),
+              decoration: BoxDecoration(
+                color: selected ? Colors.white : const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: border, width: 2),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    labelTop,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color:
+                          selected ? const Color(0xff0797FD) : AppColor.black,
+                      fontSize: 18,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    labelBottom,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.mulish(
+                      fontWeight:
+                          selected ? FontWeight.bold : FontWeight.normal,
+                      color: selected ? AppColor.darkBlue : AppColor.gray84,
+                      fontSize: 11,
+                      height: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (highlight)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 95),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.local_fire_department_rounded,
+                          size: 10,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          'Best Value',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.mulish(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UpgradeNoticeCard extends StatelessWidget {
+  const _UpgradeNoticeCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFE7C7), Color(0xFFFFF3E3)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
         ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Color(0xFFF59E0B),
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  labelTop,
-                  style: TextStyle(
+                  "Don't miss customers",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.mulish(
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: selected ? const Color(0xff0797FD) : AppColor.black,
-                    fontSize: 18,
+                    color: Colors.red,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    style: AppTextStyles.mulish(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColor.black,
+                    ),
+                    children: const [
+                      TextSpan(text: 'Customers choose vendors '),
+                      TextSpan(
+                        text: 'who reply first',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      TextSpan(text: '.\n'),
+                      TextSpan(
+                        text: 'Upgrade now and stay ahead of competitors.',
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              labelBottom,
-
-              style: AppTextStyles.mulish(
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? AppColor.darkBlue : AppColor.gray84,
-              ),
-              // style: TextStyle(
-              //   fontSize: 12,
-              //   color: selected ? AppColor.darkBlue : AppColor.gray84,
-              // ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

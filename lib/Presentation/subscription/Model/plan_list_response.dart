@@ -16,6 +16,33 @@ class PlanListResponse {
     );
   }
 }
+
+class PlanFeature {
+  final String key;
+  final String label;
+  final bool free;
+  final bool premium;
+  final int sort;
+
+  PlanFeature({
+    required this.key,
+    required this.label,
+    required this.free,
+    required this.premium,
+    required this.sort,
+  });
+
+  factory PlanFeature.fromJson(Map<String, dynamic> json) {
+    return PlanFeature(
+      key: (json['key'] ?? '').toString(),
+      label: (json['label'] ?? '').toString(),
+      free: json['free'] == true,
+      premium: json['premium'] == true,
+      sort: (json['sort'] is num) ? (json['sort'] as num).toInt() : 0,
+    );
+  }
+}
+
 class PlanModel {
   final String id;
   final DateTime createdAt;
@@ -24,7 +51,8 @@ class PlanModel {
   final String type;
   final String price;
   final int durationDays;
-  final List<String> features;
+  final bool isBestValue;
+  final List<PlanFeature> features;
 
   PlanModel({
     required this.id,
@@ -34,6 +62,7 @@ class PlanModel {
     required this.type,
     required this.price,
     required this.durationDays,
+    required this.isBestValue,
     required this.features,
   });
 
@@ -48,9 +77,13 @@ class PlanModel {
       type: json['type'] ?? '',
       price: json['price'] ?? '0',
       durationDays: json['durationDays'] ?? 0,
-      features: (json['features'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
-          .toList(),
+      isBestValue: json['isBestValue'] == true,
+      features: (json['features'] is List)
+          ? (json['features'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map(PlanFeature.fromJson)
+              .toList()
+          : const [],
     );
   }
 }

@@ -499,23 +499,15 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                             keywords: _keywords,
                           );
 
-                          if (success) {
-                            final shopId = await AppPrefs.getSopId();
-                            if (widget.page == 'shopDetailsEdit') {
-                              final businessProfileId =
-                                  await AppPrefs.getBusinessProfileId();
-                              context.goNamed(
-                                AppRoutes.shopDetailsEdit,
-                                extra: <String, dynamic>{
-                                  'shopId': shopId,
-                                  'businessProfileId': businessProfileId,
-                                },
-                              );
-                            } else {
-                              context.pushNamed(
-                                AppRoutes.productCategoryScreens,
-                                extra: 'SearchKeyword',
-                              );
+                           if (success) {
+                             final shopId = await AppPrefs.getSopId();
+                             if (widget.page == 'shopDetailsEdit') {
+                              Navigator.pop(context, true);
+                             } else {
+                               context.pushNamed(
+                                 AppRoutes.productCategoryScreens,
+                                 extra: 'SearchKeyword',
+                               );
                             }
                           } else {
                             final errorMsg =

@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/add_employee_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Model/employee_list_response.dart';
+import 'package:tringo_vendor_new/Presentation/subscription/Model/ccavenue_models.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/current_plan_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/plan_list_response.dart';
 import 'package:tringo_vendor_new/Presentation/subscription/Model/purchase_response.dart';
+import 'package:tringo_vendor_new/Presentation/subscription/Service/ccavenue_subscription_service.dart';
 
 import '../../../../Api/DataSource/api_data_source.dart';
 
@@ -18,6 +20,9 @@ class SubscriptionState {
   final PlanListResponse? planListResponse;
   final PurchaseResponse? purchaseResponse;
   final CurrentPlanResponse? currentPlanResponse;
+  final String? currentPlanBusinessProfileId;
+  final CcAvenueInitResponse? ccAvenueInitResponse;
+  final CcAvenueConfirmResponse? ccAvenueConfirmResponse;
 
   const SubscriptionState({
     this.isLoading = false,
@@ -26,6 +31,9 @@ class SubscriptionState {
     this.planListResponse,
     this.purchaseResponse,
     this.currentPlanResponse,
+    this.currentPlanBusinessProfileId,
+    this.ccAvenueInitResponse,
+    this.ccAvenueConfirmResponse,
   });
 
   factory SubscriptionState.initial() => const SubscriptionState();
@@ -37,6 +45,9 @@ class SubscriptionState {
     PurchaseResponse? purchaseResponse,
     PlanListResponse? planListResponse,
     CurrentPlanResponse? currentPlanResponse,
+    String? currentPlanBusinessProfileId,
+    CcAvenueInitResponse? ccAvenueInitResponse,
+    CcAvenueConfirmResponse? ccAvenueConfirmResponse,
     bool clearError = false,
   }) {
     return SubscriptionState(
@@ -46,19 +57,25 @@ class SubscriptionState {
       planListResponse: planListResponse ?? this.planListResponse,
       purchaseResponse: purchaseResponse ?? this.purchaseResponse,
       currentPlanResponse: currentPlanResponse ?? this.currentPlanResponse,
+      currentPlanBusinessProfileId:
+          currentPlanBusinessProfileId ?? this.currentPlanBusinessProfileId,
+      ccAvenueInitResponse: ccAvenueInitResponse ?? this.ccAvenueInitResponse,
+      ccAvenueConfirmResponse:
+          ccAvenueConfirmResponse ?? this.ccAvenueConfirmResponse,
     );
   }
 }
 
 class SubscriptionNotifier extends Notifier<SubscriptionState> {
   late final ApiDataSource api;
+  late final CcAvenueSubscriptionService ccApi;
 
   @override
   SubscriptionState build() {
     api = ref.read(apiDataSourceProvider);
+    ccApi = ref.read(ccAvenueSubscriptionServiceProvider);
     Future.microtask(() async {
       await getPlanList();
-      await getCurrentPlan(businessProfileId: '');
     });
     return SubscriptionState.initial();
   }
@@ -87,10 +104,29 @@ class SubscriptionNotifier extends Notifier<SubscriptionState> {
     );
   }
 
-  Future<void> getCurrentPlan({required String businessProfileId}) async {
-    state = state.copyWith(isLoading: true, currentPlanResponse: null);
+  Future<void> getCurrentPlan({
+    required String businessProfileId,
+    bool force = false,
+    bool keepExisting = true,
+  }) async {
+    final id = businessProfileId.trim();
+    if (id.isEmpty) return;
 
-    final result = await api.getCurrentPlan(businessProfileId : businessProfileId);
+    if (!force &&
+        !state.isLoading &&
+        state.currentPlanResponse != null &&
+        state.currentPlanBusinessProfileId == id) {
+      return;
+    }
+
+    state = state.copyWith(
+      isLoading: state.currentPlanResponse == null,
+      currentPlanResponse: keepExisting ? state.currentPlanResponse : null,
+      currentPlanBusinessProfileId: id,
+      clearError: true,
+    );
+
+    final result = await ccApi.current(businessProfileId: id);
 
     result.fold(
       (failure) {
@@ -105,6 +141,7 @@ class SubscriptionNotifier extends Notifier<SubscriptionState> {
           isLoading: false,
           error: null,
           currentPlanResponse: response,
+          currentPlanBusinessProfileId: id,
         );
       },
     );
@@ -141,6 +178,88 @@ class SubscriptionNotifier extends Notifier<SubscriptionState> {
 
   void resetState() {
     state = SubscriptionState.initial();
+  }
+
+  Future<CcAvenueInitData?> initCcAvenue({
+    required String planId,
+    required String businessProfileId,
+    required String shopId,
+    required bool extend,
+  }) async {
+    final p = planId.trim();
+    final b = businessProfileId.trim();
+    final s = shopId.trim();
+    if (p.isEmpty || b.isEmpty || s.isEmpty) {
+      state = state.copyWith(
+        isInsertLoading: false,
+        error: "Missing required data. Please try again.",
+        ccAvenueInitResponse: null,
+      );
+      return null;
+    }
+
+    state = state.copyWith(
+      isInsertLoading: true,
+      clearError: true,
+      ccAvenueInitResponse: null,
+    );
+
+    final result = await ccApi.init(
+      body: CcAvenueInitRequest(
+        planId: p,
+        businessProfileId: b,
+        shopId: s,
+      ),
+      extend: extend,
+    );
+
+    return result.fold((failure) {
+      state = state.copyWith(
+        isInsertLoading: false,
+        error: failure.message,
+        ccAvenueInitResponse: null,
+      );
+      return null;
+    }, (resp) {
+      state = state.copyWith(
+        isInsertLoading: false,
+        error: null,
+        ccAvenueInitResponse: resp,
+      );
+      return resp.data;
+    });
+  }
+
+  Future<CcAvenueConfirmResponse?> confirmCcAvenue({
+    required String encResp,
+  }) async {
+    final v = encResp.trim();
+    if (v.isEmpty) return null;
+
+    state = state.copyWith(
+      isInsertLoading: true,
+      clearError: true,
+      ccAvenueConfirmResponse: null,
+    );
+
+    final result =
+        await ccApi.confirm(body: CcAvenueConfirmRequest(encResp: v));
+
+    return result.fold((failure) {
+      state = state.copyWith(
+        isInsertLoading: false,
+        error: failure.message,
+        ccAvenueConfirmResponse: null,
+      );
+      return null;
+    }, (resp) {
+      state = state.copyWith(
+        isInsertLoading: false,
+        error: null,
+        ccAvenueConfirmResponse: resp,
+      );
+      return resp;
+    });
   }
 }
 

@@ -905,8 +905,7 @@ class ApiDataSource {
       final url = ApiUrl.heaterHome(dateFrom: dateFrom, dateTo: dateFrom);
 
       dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
-
-      AppLogger.log.i(response);
+      // Avoid logging full response because it can include invoice URLs/tokens.
 
       if (response is! DioException) {
         // If status code is success
@@ -3395,12 +3394,13 @@ class ApiDataSource {
   }) async {
     try {
       final url = ApiUrl.fcmToken;
+      final p = platform.trim().isNotEmpty ? platform.trim() : "android";
 
       dynamic response = await Request.sendRequest(
         url,
         {
           "fcmToken": fcmToken,
-          "platform": "android",
+          "platform": p,
           if (deviceId.trim().isNotEmpty) "deviceId": deviceId,
         },
         'POST',

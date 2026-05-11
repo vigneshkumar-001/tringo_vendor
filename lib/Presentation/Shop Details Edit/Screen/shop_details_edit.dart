@@ -26,6 +26,7 @@ import '../../ShopInfo/Screens/shop_category_info.dart';
 import '../../Shops Details/Controller/shop_details_notifier.dart';
 import '../../subscription/Controller/subscription_notifier.dart';
 import '../../subscription/Screen/subscription_screen.dart';
+import '../../subscription/Screen/subscription_history.dart';
 
 class ShopDetailsEdit extends ConsumerStatefulWidget {
   final String shopId;
@@ -52,7 +53,11 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
           .fetchShopDetails(apiShopId: widget.shopId);
       await ref
           .read(subscriptionNotifier.notifier)
-          .getCurrentPlan(businessProfileId: widget.businessProfileId);
+          .getCurrentPlan(
+            businessProfileId: widget.businessProfileId,
+            force: true,
+            keepExisting: true,
+          );
     });
   }
 
@@ -1350,30 +1355,54 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                             title:
                                 '${planData?.plan.durationLabel} Premium Activated',
                             description: '${time} @ ${date}',
-                            onTap: () {
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) => SubscriptionScreen(),
-                              //   ),
-                              // );
+                            onTap: () async {
+                              final businessProfileId =
+                                  (shop?.businessProfileId ?? '').trim();
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => SubscriptionHistory(
+                                        businessProfileId: businessProfileId,
+                                      ),
+                                ),
+                              );
+                              if (!mounted) return;
+                              if (businessProfileId.isEmpty) return;
+                              await ref
+                                  .read(subscriptionNotifier.notifier)
+                                  .getCurrentPlan(
+                                    businessProfileId: businessProfileId,
+                                    force: true,
+                                    keepExisting: true,
+                                  );
                             },
                           )
                           : CommonContainer.attractCustomerCard(
                             title: 'Attract More Customers',
                             description:
                                 'Unlock premium to attract more customers',
-                            onTap: () {
-                              Navigator.push(
+                            onTap: () async {
+                              final businessProfileId =
+                                  (shop?.businessProfileId ?? '').trim();
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder:
                                       (context) => SubscriptionScreen(
-                                        businessProfileId:
-                                            shop?.businessProfileId ?? '',
+                                        businessProfileId: businessProfileId,
                                       ),
                                 ),
                               );
+                              if (!mounted) return;
+                              if (businessProfileId.isEmpty) return;
+                              await ref
+                                  .read(subscriptionNotifier.notifier)
+                                  .getCurrentPlan(
+                                    businessProfileId: businessProfileId,
+                                    force: true,
+                                    keepExisting: true,
+                                  );
                             },
                           ),
                       // CommonContainer.attractCustomerCard(
@@ -1487,7 +1516,12 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                       ),
                     );
                     // 1️⃣ Always navigate immediately
-                    // context.goNamed(AppRoutes.aboutMeScreens, extra: 3);
+                    if (updated == true && mounted) {
+                      await ref
+                          .read(shopDetailsNotifierProvider.notifier)
+                          .fetchShopDetails(apiShopId: widget.shopId);
+                      setState(() {});
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,

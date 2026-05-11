@@ -47,7 +47,6 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
 
   // Errors
   List<bool> _hasError = List<bool>.filled(4, false);
-  bool _insidePhotoError = false;
 
   bool get isIndividualFlow {
     final session = RegistrationProductSeivice.instance;
@@ -125,15 +124,6 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
           _hasError[index] = false;
         }
 
-        final hasInside =
-            _pickedImages[2] != null ||
-            _pickedImages[3] != null ||
-            (_existingUrls[2] != null && _existingUrls[2]!.isNotEmpty) ||
-            (_existingUrls[3] != null && _existingUrls[3]!.isNotEmpty);
-
-        if (hasInside) {
-          _insidePhotoError = false;
-        }
       });
     }
   }
@@ -153,16 +143,6 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
           _hasError[index] = false;
         }
 
-        // For inside photos (2 & 3)
-        final hasInside =
-            _pickedImages[2] != null ||
-            _pickedImages[3] != null ||
-            (_existingUrls[2] != null && _existingUrls[2]!.isNotEmpty) ||
-            (_existingUrls[3] != null && _existingUrls[3]!.isNotEmpty);
-
-        if (hasInside) {
-          _insidePhotoError = false;
-        }
       });
     }
   }
@@ -292,7 +272,7 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
     bool valid = true;
 
     setState(() {
-      // Slot 0 & 1: must have File OR URL
+      // Slot 0 & 1: must have File OR URL (mandatory)
       for (int i = 0; i <= 1; i++) {
         final has =
             _pickedImages[i] != null ||
@@ -306,19 +286,6 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
         }
       }
 
-      // Inside photos validation (2 OR 3)
-      final hasInside =
-          _pickedImages[2] != null ||
-          _pickedImages[3] != null ||
-          (_existingUrls[2] != null && _existingUrls[2]!.isNotEmpty) ||
-          (_existingUrls[3] != null && _existingUrls[3]!.isNotEmpty);
-
-      if (!hasInside) {
-        _insidePhotoError = true;
-        valid = false;
-      } else {
-        _insidePhotoError = false;
-      }
     });
 
     if (!valid) return;
@@ -405,10 +372,9 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
 
                     CommonContainer.containerTitle(
                       context: context,
-                      title: 'Shop Outside Photo',
+                      title: 'Shop Advertisement Photo',
                       image: AppImages.iImage,
-                      infoMessage:
-                          'Please upload a clear photo of the shop exterior.',
+                      infoMessage: 'Please upload your shop advertisement photo.',
                     ),
                     const SizedBox(height: 10),
                     _addImageContainer(index: 1, checkIndividualError: true),
@@ -417,28 +383,14 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
 
                     CommonContainer.containerTitle(
                       context: context,
-                      title: 'Shop Inside Photo',
+                      title: 'Shop Indoor Photo (optional)',
                       image: AppImages.iImage,
-                      infoMessage:
-                          'Please upload at least one inside shop image.',
+                      infoMessage: 'Optional: upload indoor shop photos.',
                     ),
                     const SizedBox(height: 10),
                     _addImageContainer(index: 2),
                     const SizedBox(height: 10),
                     _addImageContainer(index: 3),
-
-                    if (_insidePhotoError)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6, left: 5),
-                        child: Text(
-                          'Please upload at least one inside photo',
-                          style: AppTextStyles.mulish(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
 
                     const SizedBox(height: 30),
 
@@ -446,10 +398,10 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
                       buttonColor: AppColor.black,
                       onTap: () async {
                         // 🔹 Validation ONLY for registration flow
-                        if (widget.pages != "shopDetailsEdit") {
+                        if (true) {
                           await _validateImages();
 
-                          if (_hasError.contains(true) || _insidePhotoError) {
+                          if (_hasError.contains(true)) {
                             AppSnackBar.error(
                               context,
                               'Please fix the highlighted errors before continuing',
@@ -467,7 +419,7 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
                         );
 
                         if (success) {
-                          Navigator.push(
+                          final updated = await Navigator.push<bool>(
                             context,
                             MaterialPageRoute(
                               builder:
@@ -478,7 +430,12 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
                                       ),
                             ),
                           );
-                          // context.pushNamed(AppRoutes.searchKeyword);
+
+                          if (!context.mounted) return;
+
+                          if (widget.pages == 'shopDetailsEdit') {
+                            Navigator.pop(context, updated == true);
+                          }
                         } else {
                           final err =
                               ref.read(shopCategoryNotifierProvider).error;

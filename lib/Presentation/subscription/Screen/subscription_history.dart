@@ -1,20 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../Core/Const/app_color.dart';
 import '../../../Core/Const/app_images.dart';
 import '../../../Core/Utility/app_textstyles.dart';
 import '../../../Core/Widgets/common_container.dart';
+import '../Controller/subscription_notifier.dart';
+import 'subscription_screen.dart';
 
-class SubscriptionHistory extends StatefulWidget {
-  const SubscriptionHistory({super.key});
+class SubscriptionHistory extends ConsumerStatefulWidget {
+  final String businessProfileId;
+  const SubscriptionHistory({
+    super.key,
+    required this.businessProfileId,
+  });
 
   @override
-  State<SubscriptionHistory> createState() => _SubscriptionHistoryState();
+  ConsumerState<SubscriptionHistory> createState() =>
+      _SubscriptionHistoryState();
 }
 
-class _SubscriptionHistoryState extends State<SubscriptionHistory> {
+class _SubscriptionHistoryState extends ConsumerState<SubscriptionHistory> {
+  void _extendPlan() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubscriptionScreen(
+          businessProfileId: widget.businessProfileId,
+          showSkip: false,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() async {
+      final id = widget.businessProfileId.trim();
+      if (id.isEmpty) return;
+      ref.read(subscriptionNotifier.notifier).getCurrentPlan(
+            businessProfileId: id,
+            force: true,
+            keepExisting: true,
+          );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final subState = ref.watch(subscriptionNotifier);
+    final planData = subState.currentPlanResponse?.data;
+    final plan = planData?.plan;
+    final period = planData?.period;
+    final payment = planData?.payment;
+    final invoice = planData?.invoice;
+    final premiumFeatureLabels = (plan?.features ?? const [])
+        .where((f) => f.premium)
+        .toList()
+      ..sort((a, b) => a.sort.compareTo(b.sort));
+    final premiumFeatureTexts = premiumFeatureLabels
+        .map((f) => f.label.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+
     return Scaffold(
       backgroundColor: Color(0xFFF3F3F3),
       body: SafeArea(
@@ -47,6 +97,24 @@ class _SubscriptionHistoryState extends State<SubscriptionHistory> {
                 ],
               ),
               SizedBox(height: 30),
+              if (subState.isLoading && planData == null) ...[
+                const SizedBox(height: 40),
+                const Center(child: CircularProgressIndicator()),
+                const SizedBox(height: 40),
+              ] else if (subState.error != null) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    subState.error!,
+                    style: AppTextStyles.mulish(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
               Text.rich(
                 TextSpan(
                   children: [
@@ -92,7 +160,9 @@ class _SubscriptionHistoryState extends State<SubscriptionHistory> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '1 Year Premium Plan',
+                                    plan != null
+                                        ? '${plan.durationLabel} Premium Plan'
+                                        : 'Premium Plan',
                                     style: AppTextStyles.mulish(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -111,7 +181,9 @@ class _SubscriptionHistoryState extends State<SubscriptionHistory> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: '18-Jun-2025',
+                                          text:
+                                              period?.startsAtLabel ??
+                                              (payment?.paidAt ?? 'N/A'),
                                           style: AppTextStyles.mulish(
                                             color: AppColor.gray84,
                                             fontSize: 12,
@@ -134,7 +206,7 @@ class _SubscriptionHistoryState extends State<SubscriptionHistory> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: '18-Jun-2025',
+                                          text: period?.endsAtLabel ?? 'N/A',
                                           style: AppTextStyles.mulish(
                                             color: AppColor.gray84,
                                             fontSize: 12,
@@ -154,65 +226,144 @@ class _SubscriptionHistoryState extends State<SubscriptionHistory> {
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 20),
+              ),
+              SizedBox(height: 20),
+            
                   SingleChildScrollView(
                     physics: BouncingScrollPhysics(),
                     padding: EdgeInsets.symmetric(horizontal: 30),
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.black,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Row(
-                            children: [
-                              Image.asset(AppImages.downLoad, height: 20),
-                              SizedBox(width: 10),
-                              Text(
-                                'Download Invoice',
-                                style: AppTextStyles.mulish(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: AppColor.white,
+                        GestureDetector(
+                          onTap: () async {
+                            final inv = invoice;
+                            if (inv == null) return;
+
+                            final url = inv.downloadUrl.trim().isNotEmpty
+                                ? inv.downloadUrl.trim()
+                                : inv.url.trim();
+                            if (url.isEmpty) return;
+
+                            final uri = Uri.tryParse(url);
+                            if (uri == null) return;
+
+                            try {
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            } catch (_) {
+                              // no-op
+                            }
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColor.black,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Row(
+                              children: [
+                                Image.asset(AppImages.downLoad, height: 20),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Download Invoice',
+                                  style: AppTextStyles.mulish(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: AppColor.white,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                         SizedBox(width: 10),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
+                        GestureDetector(
+                          onTap: _extendPlan,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColor.white,
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(color: AppColor.white4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.autorenew,
+                                  size: 18,
+                                  color: Colors.black,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Extend My Plan',
+                                  style: AppTextStyles.mulish(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          decoration: BoxDecoration(
-                            color: AppColor.lightRed,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Row(
-                            children: [
-                              Image.asset(
-                                AppImages.closeImage,
-                                height: 20,
-                                color: AppColor.white,
-                              ),
-                              SizedBox(width: 5),
-                              Text(
-                                'Cancel Subscription',
-                                style: AppTextStyles.mulish(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
+                        ),
+                        SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Cancel subscription'),
+                                  content: const Text(
+                                    'To cancel your subscription, please contact support.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColor.lightRed,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  AppImages.closeImage,
+                                  height: 20,
                                   color: AppColor.white,
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: 5),
+                                Text(
+                                  'Cancel Subscription',
+                                  style: AppTextStyles.mulish(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColor.white,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -233,7 +384,7 @@ class _SubscriptionHistoryState extends State<SubscriptionHistory> {
                           ),
                         ),
                         SizedBox(height: 20),
-                        _ComparisonCard(),
+                        _ComparisonCard(features: premiumFeatureTexts),
                         SizedBox(height: 20),
                       ],
                     ),
@@ -249,7 +400,8 @@ class _SubscriptionHistoryState extends State<SubscriptionHistory> {
 }
 
 class _ComparisonCard extends StatelessWidget {
-  _ComparisonCard();
+  final List<String> features;
+  const _ComparisonCard({required this.features});
 
   @override
   Widget build(BuildContext context) {
@@ -259,16 +411,17 @@ class _ComparisonCard extends StatelessWidget {
       colors: [Color(0xFF0797FD), Color(0xFF07C8FD), Color(0xFF0797FD)],
     );
 
-    // text + availability in Free
-    const features = <({String text, bool premium})>[
-      (text: 'Search engine visibility upto 5km', premium: true),
-      (text: 'Unlimited Reply in Smart Connect', premium: true),
-      (text: 'Reach your entire district', premium: true),
-      (text: 'Search engine priority', premium: true),
-      (text: 'Place 2 ads per month', premium: true),
-      (text: 'Get Trusted Batch to gain clients', premium: true),
-      (text: 'View Followers Picture', premium: true),
-    ];
+    final rows = this.features.isNotEmpty
+        ? this.features.map((t) => (text: t, premium: true)).toList()
+        : const <({String text, bool premium})>[
+            (text: 'Search engine visibility upto 5km', premium: true),
+            (text: 'Unlimited Reply in Smart Connect', premium: true),
+            (text: 'Reach your entire district', premium: true),
+            (text: 'Search engine priority', premium: true),
+            (text: 'Place 2 ads per month', premium: true),
+            (text: 'Get Trusted Batch to gain clients', premium: true),
+            (text: 'View Followers Picture', premium: true),
+          ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -294,7 +447,7 @@ class _ComparisonCard extends StatelessWidget {
               Positioned.fill(
                 child: Row(
                   children: [
-                    Expanded(flex: 2, child: Text('')),
+                    const Expanded(flex: 3, child: SizedBox.shrink()),
                     // Free
                     Expanded(
                       flex: 1,
@@ -340,7 +493,7 @@ class _ComparisonCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
 
-                    ...features.map(
+                    ...rows.map(
                       (f) => Row(
                         children: [
                           Expanded(

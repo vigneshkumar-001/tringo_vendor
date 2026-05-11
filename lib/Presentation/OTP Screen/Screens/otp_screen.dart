@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Firebase/fcm_token_helper.dart';
 import 'package:tringo_vendor_new/Core/Utility/device_helper.dart';
 import 'package:tringo_vendor_new/Presentation/Login%20Screen/Controller/app_version_notifier.dart';
 
@@ -53,10 +54,17 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final fcmToken = prefs.getString('fcmToken') ?? '';
+      var fcmToken = (prefs.getString('fcmToken') ?? '').trim();
 
       if (fcmToken.isEmpty) {
         AppLogger.log.w("âš ï¸ FCM token empty after login");
+        fcmToken =
+            (await FcmTokenHelper.ensureCachedToken(forceRefresh: true)) ?? '';
+        fcmToken = fcmToken.trim();
+      }
+
+      if (fcmToken.isEmpty) {
+        AppLogger.log.w("âš ï¸ Still no FCM token after login");
         return;
       }
 

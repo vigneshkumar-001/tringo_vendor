@@ -4,8 +4,8 @@ import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Firebase/fcm_token_helper.dart';
 
 class FirebaseService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -23,6 +23,8 @@ class FirebaseService {
 
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
+
+  StreamSubscription<String>? _tokenRefreshSub;
 
   Future<void> initializeFirebase({
     FutureOr<void> Function(Map<String, dynamic> data)? onNotificationTap,
@@ -67,6 +69,8 @@ class FirebaseService {
       badge: true,
       sound: true,
     );
+
+    _startTokenRefreshListener();
   }
 
   Future<void> _requestNotificationPermission() async {
@@ -85,46 +89,38 @@ class FirebaseService {
     }
   }
 
-  Future<String?> _getTokenWithBackoff() async {
-    const delays = [1, 2, 4, 8];
-    for (final seconds in delays) {
-      try {
-        final token = await FirebaseMessaging.instance.getToken();
-        if (token != null && token.isNotEmpty) return token;
-      } catch (e) {
-        AppLogger.log.w('getToken failed (retry in ${seconds}s): $e');
-      }
-      await Future.delayed(Duration(seconds: seconds));
-    }
+  void _startTokenRefreshListener() {
+    _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen(
+      (token) async {
+        final t = token.trim();
+        if (t.isEmpty) return;
 
-    try {
-      return await FirebaseMessaging.instance.getToken();
-    } catch (e, st) {
-      AppLogger.log.e('getToken final failure: $e\n$st');
-      return null;
+        _fcmToken = t;
+        await FcmTokenHelper.cacheToken(t);
+        AppLogger.log.i('FCM token refreshed: ${FcmTokenHelper.redact(t)}');
+      },
+      onError: (e) {
+        AppLogger.log.w('FCM onTokenRefresh error: $e');
+      },
+    );
+  }
+
+  /// Fetches FCM token and caches it (and updates cache if token rotated).
+  Future<void> fetchFCMTokenIfNeeded({bool forceRefresh = false}) async {
+    // Keep local value in sync with prefs + Firebase.
+    _fcmToken = await FcmTokenHelper.ensureCachedToken(
+      forceRefresh: forceRefresh,
+    );
+
+    if (_fcmToken == null || _fcmToken!.trim().isEmpty) {
+      AppLogger.log.w('No FCM token available yet. Will retry later.');
     }
   }
 
-  Future<void> fetchFCMTokenIfNeeded() async {
-    final prefs = await SharedPreferences.getInstance();
-    _fcmToken = prefs.getString('fcmToken');
-
-    if (_fcmToken != null && _fcmToken!.isNotEmpty) {
-      AppLogger.log.i('Existing FCM Token: $_fcmToken');
-      return;
-    }
-
-    final token = await _getTokenWithBackoff();
-    _fcmToken = token;
-
-    if (token != null && token.isNotEmpty) {
-      await prefs.setString('fcmToken', token);
-      AppLogger.log.i('FCM Token: $token');
-    } else {
-      AppLogger.log.w(
-        'No FCM token (device/config/network). Will retry later.',
-      );
-    }
+  Future<void> dispose() async {
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = null;
   }
 
   Future<void> showNotification(RemoteMessage message) async {

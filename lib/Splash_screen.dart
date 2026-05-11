@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Utility/device_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:tringo_vendor_new/Core/Firebase/fcm_token_helper.dart';
 
 import '../../Core/Const/app_color.dart';
 import '../../Core/Const/app_images.dart';
@@ -61,15 +62,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   // ---------------------------------------------------------
   Future<void> _sendDeviceTokenIfNeeded() async {
     if (_tokenSent) return;
-    _tokenSent = true;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final fcmToken = prefs.getString('fcmToken') ?? '';
-      AppLogger.log.i(fcmToken);
+      var fcmToken = (prefs.getString('fcmToken') ?? '').trim();
       if (fcmToken.isEmpty) {
         AppLogger.log.w("⚠️ No fcmToken in prefs yet");
-        return;
+        fcmToken =
+            (await FcmTokenHelper.ensureCachedToken(forceRefresh: true)) ?? '';
+        fcmToken = fcmToken.trim();
+        if (fcmToken.isEmpty) return;
       }
+      _tokenSent = true;
       final deviceId = await DeviceIdHelper.getDeviceId();
       final platform = Platform.isAndroid ? "android" : "ios";
       await ref
@@ -84,6 +87,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         "✅ device-token api response: ${st.deviceTokenResponse?.status}",
       );
     } catch (e, st) {
+      _tokenSent = false;
       AppLogger.log.e("❌ sendDeviceToken failed: $e");
       AppLogger.log.e(st);
     }

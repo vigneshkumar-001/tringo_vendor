@@ -2033,7 +2033,21 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                           if (ok == true) {
                             if (widget.pages == 'shopDetailsEdit') {
-                              Navigator.pop(context, true);
+                              final updated = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => ShopPhotoInfo(
+                                        pages: 'shopDetailsEdit',
+                                        shopId: widget.shopId,
+                                        categorySlug: categorySlug,
+                                        initialImageUrls: widget.initialImageUrls,
+                                      ),
+                                ),
+                              );
+
+                              if (!context.mounted) return;
+                              Navigator.pop(context, updated == true);
                             } else {
                               context.pushNamed(
                                 AppRoutes.shopPhotoInfo,
