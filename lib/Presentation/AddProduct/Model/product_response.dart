@@ -61,20 +61,26 @@ class ProductData {
   });
 
   factory ProductData.fromJson(Map<String, dynamic> json) => ProductData(
-    id: json['id'],
-    shopId: json['shopId'],
-    category: json['category'],
-    subCategory: json['subCategory'],
-    englishName: json['englishName'],
+    id: (json['id'] ?? '').toString(),
+    shopId: (json['shopId'] ?? '').toString(),
+    category: (json['category'] ?? '').toString(),
+    subCategory: (json['subCategory'] ?? '').toString(),
+    englishName: (json['englishName'] ?? '').toString(),
     // tamilName: json['tamilName'],
     tamilName: json['tamilName'] as String?,
-    price: json['price'] is String
-        ? num.tryParse(json['price']) ?? 0
-        : json['price'] ?? 0,
-    offerLabel: json['offerLabel'],
-    offerValue: json['offerValue'],
-    description: json['description'],
-    keywords: List<String>.from(json['keywords'] ?? []),
+    price:
+        json['price'] is String
+            ? num.tryParse(json['price']) ?? 0
+            : json['price'] ?? 0,
+    offerLabel: json['offerLabel']?.toString(),
+    offerValue: json['offerValue']?.toString(),
+    description: (json['description'] ?? '').toString(),
+    keywords:
+        (json['keywords'] as List?)
+            ?.map((e) => (e ?? '').toString())
+            .where((e) => e.isNotEmpty)
+            .toList() ??
+        const [],
     // readyTimeMinutes: json['readyTimeMinutes'] ?? 0,
     readyTimeMinutes: json['readyTimeMinutes'] as int?,
     // doorDelivery: json['doorDelivery'] ?? false,
@@ -89,19 +95,20 @@ class ProductData {
       return false;
     }(),
     status: json['status'] ?? 'DRAFT',
-    rating: json['rating'] is String
-        ? num.tryParse(json['rating']) ?? 0
-        : json['rating'] ?? 0,
+    rating:
+        json['rating'] is String
+            ? num.tryParse(json['rating']) ?? 0
+            : json['rating'] ?? 0,
     ratingCount: json['ratingCount'] ?? 0,
     features:
-    (json['features'] as List<dynamic>?)
-        ?.map((e) => Feature.fromJson(e))
-        .toList() ??
+        (json['features'] as List<dynamic>?)
+            ?.map((e) => Feature.fromJson(e))
+            .toList() ??
         [],
     skus:
-    (json['skus'] as List<dynamic>?)
-        ?.map((e) => SKU.fromJson(e))
-        .toList() ??
+        (json['skus'] as List<dynamic>?)
+            ?.map((e) => SKU.fromJson(e))
+            .toList() ??
         [],
     media: json['media'] ?? [],
   );
@@ -182,12 +189,14 @@ class SKU {
 
   factory SKU.fromJson(Map<String, dynamic> json) => SKU(
     id: json['id'],
-    mrp: json['mrp'] is String
-        ? num.tryParse(json['mrp']) ?? 0
-        : json['mrp'] ?? 0,
-    price: json['price'] is String
-        ? num.tryParse(json['price']) ?? 0
-        : json['price'] ?? 0,
+    mrp:
+        json['mrp'] is String
+            ? num.tryParse(json['mrp']) ?? 0
+            : json['mrp'] ?? 0,
+    price:
+        json['price'] is String
+            ? num.tryParse(json['price']) ?? 0
+            : json['price'] ?? 0,
     stockQty: json['stockQty'] ?? 0,
     isPrimary: json['isPrimary'] ?? false,
     variantLabel: json['variantLabel'],

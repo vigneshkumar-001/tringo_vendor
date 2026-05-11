@@ -74,6 +74,7 @@ class OwnerVerifyField extends StatefulWidget {
   final bool isLoading;
   final bool isOtpVerifying;
   final bool readOnly;
+  final ValueChanged<bool>? onVerifiedChanged;
 
   final Future<String?> Function(String mobile)? onSendOtp;
   final Future<bool> Function(String mobile, String otp)? onVerifyOtp;
@@ -86,6 +87,7 @@ class OwnerVerifyField extends StatefulWidget {
     this.isLoading = false,
     this.isOtpVerifying = false,
     this.readOnly = false,
+    this.onVerifiedChanged,
     this.onSendOtp,
     this.onVerifyOtp,
   });
@@ -105,6 +107,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
   bool showOtp = false;
   bool isVerified = false;
   bool showOtpError = false;
+  String? _verifiedMobile;
 
   int resendSeconds = 30;
   Timer? resendTimer;
@@ -256,10 +259,28 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                                     ? null
                                     : (v) {
                                       state.didChange(v);
+                                      final wasVerified = isVerified;
+                                      if (!mounted) return;
                                       setState(() {
                                         showOtpError = false;
-                                        if (!isVerified) showOtp = false;
+
+                                        // âœ… If user edits verified number, require re-verify
+                                        if (isVerified &&
+                                            (_verifiedMobile == null ||
+                                                v != _verifiedMobile)) {
+                                          isVerified = false;
+                                          _verifiedMobile = null;
+                                          showOtp = false;
+                                          resendTimer?.cancel();
+                                        } else {
+                                          // When not verified, any change hides OTP box
+                                          if (!isVerified) showOtp = false;
+                                        }
                                       });
+
+                                      if (wasVerified && !isVerified) {
+                                        widget.onVerifiedChanged?.call(false);
+                                      }
                                     },
                           ),
                         ),
@@ -273,7 +294,10 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                                 showOtp = false;
                                 showOtpError = false;
                                 resendTimer?.cancel();
+                                isVerified = false;
+                                _verifiedMobile = null;
                               });
+                              widget.onVerifiedChanged?.call(false);
                             },
                             child: const Icon(
                               Icons.close,
@@ -614,11 +638,14 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                                             if (!mounted) return;
                                             setState(() {
                                               isVerified = true;
+                                              _verifiedMobile =
+                                                  widget.controller!.text;
                                               showOtp = false;
                                               showOtpError = false;
                                               resendTimer?.cancel();
                                             });
 
+                                            widget.onVerifiedChanged?.call(true);
                                             FocusScope.of(context).unfocus();
                                           },
                                   child: Container(

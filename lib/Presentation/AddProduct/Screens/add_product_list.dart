@@ -18,7 +18,8 @@ import '../../../Core/Widgets/common_container.dart';
 
 class AddProductList extends ConsumerStatefulWidget {
   final bool? isService;
-  const AddProductList({super.key, this.isService});
+  final String? categorySlug;
+  const AddProductList({super.key, this.isService, this.categorySlug});
 
   @override
   ConsumerState<AddProductList> createState() => _AddProductListState();
@@ -501,6 +502,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                                           (context) => ProductSearchKeyword(
                                             isService: isService,
                                             isCompany: isCompany,
+                                            categorySlug: widget.categorySlug,
                                           ),
                                     ),
                                   );

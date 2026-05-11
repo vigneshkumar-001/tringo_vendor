@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -143,7 +143,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   bool _timetableInvalid = false;
   bool _isFetchingGps = false;
 
-  // 🔹 Extra validation error texts
+  // ðŸ”¹ Extra validation error texts
   String? _categoryErrorText;
   String? _subCategoryErrorText;
   String? _timeErrorText;
@@ -286,7 +286,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         ),
                         const SizedBox(height: 10),
 
-                        // 🔍 Search box
+                        // ðŸ” Search box
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -385,7 +385,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   }
 
   Future<void> openGoogleMapsApp() async {
-    // optional: current location எடுத்துக்கொள்
+    // optional: current location à®Žà®Ÿà¯à®¤à¯à®¤à¯à®•à¯à®•à¯Šà®³à¯
     final pos = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
@@ -447,7 +447,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                     ),
                     const SizedBox(height: 10),
 
-                    // 🔹 Search field with no underline
+                    // ðŸ”¹ Search field with no underline
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -481,7 +481,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none, // ❌ No divider
+                            borderSide: BorderSide.none, // âŒ No divider
                           ),
                         ),
                       ),
@@ -543,13 +543,13 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     if (pickedFile == null) return;
 
     setState(() {
-      _pickedImage = File(pickedFile.path); // ✅ THIS is what UI shows
-      _existingUrl = null; // ✅ clear server image
+      _pickedImage = File(pickedFile.path); // âœ… THIS is what UI shows
+      _existingUrl = null; // âœ… clear server image
       _imageInvalid = false;
       _imageErrorText = null;
     });
 
-    debugPrint("✅ picked image path: ${_pickedImage!.path}");
+    debugPrint("âœ… picked image path: ${_pickedImage!.path}");
   }
 
   final ImagePicker _picker = ImagePicker();
@@ -602,12 +602,15 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     AppLogger.log.i("shopId=${widget.shopId}");
     AppLogger.log.i("isService=${widget.isService}");
     AppLogger.log.i("offlineSid=${widget.offlineSessionId}");
-
+    final bool isServiceFlow = widget.isService ?? false;
+    final String typeText = isServiceFlow ? 'service' : 'product';
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // ✅ fetch category
-      ref.read(shopCategoryNotifierProvider.notifier).fetchCategories();
+      // âœ… fetch category
+      ref
+          .read(shopCategoryNotifierProvider.notifier)
+          .fetchCategories(type: typeText);
 
-      // ✅ edit mode prefill first (so offline won't overwrite)
+      // âœ… edit mode prefill first (so offline won't overwrite)
       if (widget.isEditMode) {
         _prefillFields();
       }
@@ -615,7 +618,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
         await _prefillShopFromOffline();
         if (mounted) mobileFocusNode.requestFocus();
       }
-      // ✅ offline prefill
+      // âœ… offline prefill
     });
   }
 
@@ -652,34 +655,34 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   bool _prefilledShop = false;
 
   Future<void> _prefillShopFromOffline() async {
-    AppLogger.log.i("🟦 prefillShopFromOffline called");
-    AppLogger.log.i("🟦 widget.offlineSessionId = ${widget.offlineSessionId}");
+    AppLogger.log.i("ðŸŸ¦ prefillShopFromOffline called");
+    AppLogger.log.i("ðŸŸ¦ widget.offlineSessionId = ${widget.offlineSessionId}");
 
     if (_prefilledShop) return;
 
     String? sid = widget.offlineSessionId;
     if (sid == null || sid.trim().isEmpty) {
-      // ✅ fallback: prefs la irundhu eduthuko
+      // âœ… fallback: prefs la irundhu eduthuko
       sid = await AppPrefs.getOfflineSessionId();
-      AppLogger.log.i("🟨 fallback sid(from prefs) = $sid");
+      AppLogger.log.i("ðŸŸ¨ fallback sid(from prefs) = $sid");
     }
 
     if (sid == null || sid.trim().isEmpty) {
-      AppLogger.log.i("🟥 sid empty -> cannot prefill");
+      AppLogger.log.i("ðŸŸ¥ sid empty -> cannot prefill");
       return;
     }
 
     final db = ref.read(offlineSyncDbProvider);
 
     final raw = await db.getPayload(sid.trim(), SyncStepType.shop);
-    AppLogger.log.i("🟦 raw payload = $raw");
+    AppLogger.log.i("ðŸŸ¦ raw payload = $raw");
 
     if (raw == null) {
-      AppLogger.log.i("🟥 raw is null -> stepType mismatch or not saved");
+      AppLogger.log.i("ðŸŸ¥ raw is null -> stepType mismatch or not saved");
       return;
     }
 
-    // ✅ Shop fields
+    // âœ… Shop fields
     _setIfEmpty(
       _shopNameEnglishController,
       (raw["englishName"] ?? "").toString(),
@@ -690,13 +693,13 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     );
     _setIfEmpty(_addressEnglishController, (raw["addressEn"] ?? "").toString());
 
-    // ✅ GPS -> "lat, lng"
+    // âœ… GPS -> "lat, lng"
     final lat = raw["gpsLatitude"];
     final lng = raw["gpsLongitude"];
     final gpsText = "${lat ?? 0}, ${lng ?? 0}";
     _setIfEmpty(_gpsController, gpsText);
 
-    // ✅ Phones (strip +91)
+    // âœ… Phones (strip +91)
     final p1 = (raw["primaryPhone"] ?? "").toString();
     final p2 = (raw["alternatePhone"] ?? "").toString();
     _setIfEmpty(_primaryMobileController, _stripIndianCode(p1));
@@ -704,12 +707,12 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
     _setIfEmpty(_emailController, (raw["contactEmail"] ?? "").toString());
 
-    // ✅ Door delivery (bool -> Yes/No)
+    // âœ… Door delivery (bool -> Yes/No)
     final dd = raw["doorDelivery"];
     final ddBool = dd == true || dd == 1 || dd.toString() == "true";
     _setIfEmpty(_doorDeliveryController, ddBool ? "Yes" : "No");
 
-    // ✅ WeeklyHours -> Open/Close
+    // âœ… WeeklyHours -> Open/Close
     final wh = (raw["weeklyHours"] ?? "").toString().trim();
     if (wh.contains("-")) {
       final parts = wh.split("-");
@@ -727,14 +730,14 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       _setIfEmpty(_openTimeController, wh);
     }
 
-    AppLogger.log.i("✅ after set: shopName=${_shopNameEnglishController.text}");
+    AppLogger.log.i("âœ… after set: shopName=${_shopNameEnglishController.text}");
 
     _prefilledShop = true;
     if (mounted) setState(() {});
   }
 
   void _prefillFields() {
-    // 👉 shop name
+    // ðŸ‘‰ shop name
     if (widget.initialShopNameEnglish?.isNotEmpty ?? false) {
       _shopNameEnglishController.text = widget.initialShopNameEnglish!;
     }
@@ -746,7 +749,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       _prefillTamilFromEnglishOnce();
     }
 
-    // 👉 description
+    // ðŸ‘‰ description
     if (widget.initialDescriptionEnglish?.isNotEmpty ?? false) {
       _descriptionEnglishController.text = widget.initialDescriptionEnglish!;
     }
@@ -754,7 +757,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       descriptionTamilController.text = widget.initialDescriptionTamil!;
     }
 
-    // 👉 address
+    // ðŸ‘‰ address
     if (widget.initialAddressEnglish?.isNotEmpty ?? false) {
       _addressEnglishController.text = widget.initialAddressEnglish!;
     }
@@ -762,13 +765,13 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       addressTamilNameController.text = widget.initialAddressTamil!;
     }
 
-    // 👉 GPS
+    // ðŸ‘‰ GPS
     if (widget.initialGps?.isNotEmpty ?? false) {
       _gpsController.text = widget.initialGps!;
       _gpsFetched = true;
     }
 
-    // 👉 phones (strip +91 / 91 for edit mode)
+    // ðŸ‘‰ phones (strip +91 / 91 for edit mode)
     if (widget.initialPrimaryMobile?.isNotEmpty ?? false) {
       var phone = widget.initialPrimaryMobile!.trim();
       phone = _stripIndianCode(phone);
@@ -781,12 +784,12 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       _whatsappController.text = wa;
     }
 
-    // 👉 email
+    // ðŸ‘‰ email
     if (widget.initialEmail?.isNotEmpty ?? false) {
       _emailController.text = widget.initialEmail!;
     }
 
-    // 👉 category / subcategory
+    // ðŸ‘‰ category / subcategory
     if (widget.initialCategoryName?.isNotEmpty ?? false) {
       _categoryController.text = widget.initialCategoryName!;
       categorySlug = widget.initialCategorySlug ?? '';
@@ -796,12 +799,12 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       subCategorySlug = widget.initialSubCategorySlug ?? '';
     }
 
-    // 👉 door delivery (for product flow)
+    // ðŸ‘‰ door delivery (for product flow)
     if (widget.initialDoorDeliveryText?.isNotEmpty ?? false) {
       _doorDeliveryController.text = widget.initialDoorDeliveryText!;
     }
 
-    // 👉 open / close time – text + parse to TimeOfDay
+    // ðŸ‘‰ open / close time â€“ text + parse to TimeOfDay
     if (widget.initialOpenTimeText?.isNotEmpty ?? false) {
       final parsedOpen = _parseTimeOfDay(widget.initialOpenTimeText!);
       if (parsedOpen != null) {
@@ -830,7 +833,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       }
     }
 
-    // 👉 owner image
+    // ðŸ‘‰ owner image
     if ((widget.initialOwnerImageUrl?.isNotEmpty ?? false) &&
         (widget.isService == true)) {
       _existingUrl = widget.initialOwnerImageUrl; // optional
@@ -879,11 +882,11 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     super.dispose();
   }
 
-  // 🔹 Central validation function
+  // ðŸ”¹ Central validation function
   bool _validateAll() {
     final bool isEditFromAboutMe = widget.pages == "shopDetailsEdit";
     if (isEditFromAboutMe) {
-      // ✅ AboutMe update screen: no validation at all
+      // âœ… AboutMe update screen: no validation at all
       return true;
     }
 
@@ -972,6 +975,8 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   Widget build(BuildContext context) {
     final state = ref.watch(shopCategoryNotifierProvider);
     final bool isServiceFlow = widget.isService ?? false;
+
+    final String typeText = isServiceFlow ? 'service' : 'product';
     final bool isIndividualFlow = widget.isIndividual ?? true;
     final bool isEditFromAboutMe = widget.pages == "shopDetailsEdit";
     return Scaffold(
@@ -1073,12 +1078,12 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                       SizedBox(height: 10),
                       GestureDetector(
                         onTap: () {
-                          // 1️⃣ Start API call – this will set isLoading = true
+                          // 1ï¸âƒ£ Start API call â€“ this will set isLoading = true
                           ref
                               .read(shopCategoryNotifierProvider.notifier)
-                              .fetchCategories();
+                              .fetchCategories(type: typeText);
 
-                          // 2️⃣ Open bottom sheet immediately
+                          // 2ï¸âƒ£ Open bottom sheet immediately
                           _showCategoryBottomSheet(
                             context,
                             _categoryController,
@@ -1140,134 +1145,72 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           ),
                         ),
 
-                      const SizedBox(height: 10),
-
-                      GestureDetector(
-                        onTap: () {
-                          if (_categoryController.text.isEmpty ||
-                              _selectedCategoryChildren == null) {
-                            AppSnackBar.info(
-                              context,
-                              'Please select a category first',
-                            );
-                            return;
-                          }
-                          _showCategoryChildrenBottomSheet(
-                            context,
-                            _selectedCategoryChildren!,
-                            _subCategoryController,
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 19,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.lowGery1,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _subCategoryController.text.isEmpty
-                                        ? " "
-                                        : _subCategoryController.text,
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 18,
-                                      color:
-                                          _subCategoryController.text.isEmpty
-                                              ? Colors.grey
-                                              : Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Image.asset(
-                                  AppImages.drapDownImage,
-                                  height: 30,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_subCategoryErrorText != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6.0, left: 4),
-                          child: Text(
-                            _subCategoryErrorText!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-
-                      // const SizedBox(height: 15),
-                      // CommonContainer.fillingContainer(
-                      //   controller: tamilNameController,
-                      //   text: 'Tamil',
-                      //   isTamil: true,
-                      //   validator: (v) => (v == null || v.isEmpty)
-                      //       ? 'Please Enter Shop Name in Tamil'
-                      //       : null,
-                      //   onChanged: (value) async {
-                      //     // your existing suggestion logic can remain
-                      //     setState(() => isTamilNameLoading = true);
-                      //     final result =
-                      //         await TanglishTamilHelper.transliterate(value);
-                      //     setState(() {
-                      //       tamilNameSuggestion = result;
-                      //       isTamilNameLoading = false;
-                      //       _tamilPrefilled =
-                      //           true; // user started typing; stop auto-updates
-                      //     });
+                      // const SizedBox(height: 10),
+                      //
+                      // GestureDetector(
+                      //   onTap: () {
+                      //     if (_categoryController.text.isEmpty ||
+                      //         _selectedCategoryChildren == null) {
+                      //       AppSnackBar.info(
+                      //         context,
+                      //         'Please select a category first',
+                      //       );
+                      //       return;
+                      //     }
+                      //     _showCategoryChildrenBottomSheet(
+                      //       context,
+                      //       _selectedCategoryChildren!,
+                      //       _subCategoryController,
+                      //     );
                       //   },
-                      // ),
-                      // if (isTamilNameLoading)
-                      //   const Padding(
-                      //     padding: EdgeInsets.all(8.0),
-                      //     child: CircularProgressIndicator(strokeWidth: 2),
-                      //   ),
-                      // if (isTamilNameLoading)
-                      //   const Padding(
-                      //     padding: EdgeInsets.all(8.0),
-                      //     child: CircularProgressIndicator(strokeWidth: 2),
-                      //   ),
-                      // if (tamilNameSuggestion.isNotEmpty)
-                      //   Container(
-                      //     margin: const EdgeInsets.only(top: 4),
-                      //     constraints: const BoxConstraints(maxHeight: 150),
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.white,
-                      //       borderRadius: BorderRadius.circular(15),
-                      //       border: Border.all(color: Colors.grey),
+                      //   child: Container(
+                      //     padding: const EdgeInsets.symmetric(
+                      //       horizontal: 12,
+                      //       vertical: 19,
                       //     ),
-                      //     child: ListView.builder(
-                      //       shrinkWrap: true,
-                      //       itemCount: tamilNameSuggestion.length,
-                      //       itemBuilder: (context, index) {
-                      //         final suggestion = tamilNameSuggestion[index];
-                      //         return ListTile(
-                      //           title: Text(suggestion),
-                      //           onTap: () {
-                      //             print("Selected suggestion: $suggestion");
-                      //             TanglishTamilHelper.applySuggestion(
-                      //               controller: tamilNameController,
-                      //               suggestion: suggestion,
-                      //               onSuggestionApplied: () {
-                      //                 setState(() => tamilNameSuggestion = []);
-                      //               },
-                      //             );
-                      //           },
-                      //         );
-                      //       },
+                      //     decoration: BoxDecoration(
+                      //       color: AppColor.lowGery1,
+                      //       borderRadius: BorderRadius.circular(20),
+                      //     ),
+                      //     child: Padding(
+                      //       padding: const EdgeInsets.symmetric(
+                      //         horizontal: 8.0,
+                      //       ),
+                      //       child: Row(
+                      //         children: [
+                      //           Expanded(
+                      //             child: Text(
+                      //               _subCategoryController.text.isEmpty
+                      //                   ? " "
+                      //                   : _subCategoryController.text,
+                      //               style: AppTextStyles.mulish(
+                      //                 fontWeight: FontWeight.w700,
+                      //                 fontSize: 18,
+                      //                 color:
+                      //                     _subCategoryController.text.isEmpty
+                      //                         ? Colors.grey
+                      //                         : Colors.black,
+                      //               ),
+                      //             ),
+                      //           ),
+                      //           Image.asset(
+                      //             AppImages.drapDownImage,
+                      //             height: 30,
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      // if (_subCategoryErrorText != null)
+                      //   Padding(
+                      //     padding: const EdgeInsets.only(top: 6.0, left: 4),
+                      //     child: Text(
+                      //       _subCategoryErrorText!,
+                      //       style: const TextStyle(
+                      //         color: Colors.red,
+                      //         fontSize: 12,
+                      //       ),
                       //     ),
                       //   ),
                       const SizedBox(height: 25),
@@ -1362,63 +1305,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     ? 'Please Enter Address '
                                     : null,
                       ),
-                      // SizedBox(height: 15),
-                      // CommonContainer.fillingContainer(
-                      //   onChanged: (value) async {
-                      //     setState(() => isAddressLoading = true);
-                      //     final result =
-                      //         await TanglishTamilHelper.transliterate(value);
-                      //
-                      //     setState(() {
-                      //       addressTamilSuggestion = result;
-                      //       isAddressLoading = false;
-                      //     });
-                      //   },
-                      //   controller: addressTamilNameController,
-                      //   maxLine: 4,
-                      //   text: 'Tamil',
-                      //   isTamil: true,
-                      //   validator: (value) => value == null || value.isEmpty
-                      //       ? 'Please Enter Address in Tamil'
-                      //       : null,
-                      // ),
-                      // if (isAddressLoading)
-                      //   const Padding(
-                      //     padding: EdgeInsets.all(8.0),
-                      //     child: CircularProgressIndicator(strokeWidth: 2),
-                      //   ),
-                      // if (addressTamilSuggestion.isNotEmpty)
-                      //   Container(
-                      //     margin: const EdgeInsets.only(top: 4),
-                      //     constraints: const BoxConstraints(maxHeight: 150),
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.white,
-                      //       borderRadius: BorderRadius.circular(15),
-                      //       border: Border.all(color: Colors.grey),
-                      //     ),
-                      //     child: ListView.builder(
-                      //       shrinkWrap: true,
-                      //       itemCount: addressTamilSuggestion.length,
-                      //       itemBuilder: (context, index) {
-                      //         final suggestion = addressTamilSuggestion[index];
-                      //         return ListTile(
-                      //           title: Text(suggestion),
-                      //           onTap: () {
-                      //             print("Selected suggestion: $suggestion");
-                      //             TanglishTamilHelper.applySuggestion(
-                      //               controller: addressTamilNameController,
-                      //               suggestion: suggestion,
-                      //               onSuggestionApplied: () {
-                      //                 setState(
-                      //                   () => addressTamilSuggestion = [],
-                      //                 );
-                      //               },
-                      //             );
-                      //           },
-                      //         );
-                      //       },
-                      //     ),
-                      //   ),
+
                       const SizedBox(height: 25),
                       Text(
                         'GPS Location',
@@ -1431,11 +1318,23 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         onMapTap: () async {
                           setState(() => _isFetchingGps = true);
 
+                          final gpsText = _gpsController.text.trim();
+                          double? initialLat;
+                          double? initialLng;
+                          final parts = gpsText.split(',');
+                          if (parts.length == 2) {
+                            initialLat = double.tryParse(parts[0].trim());
+                            initialLng = double.tryParse(parts[1].trim());
+                          }
+
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
-                                  (_) => const GoogleLocationPickerScreen(),
+                                  (_) => GoogleLocationPickerScreen(
+                                    initialLatitude: initialLat,
+                                    initialLongitude: initialLng,
+                                  ),
                             ),
                           );
 
@@ -1495,6 +1394,19 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     code: otp,
                                   );
 
+                              if (ok && context.mounted) {
+                                final resp = ref
+                                    .read(shopCategoryNotifierProvider)
+                                    .shopNumberOtpResponse;
+                                final hasWhatsapp =
+                                    resp?.data?.hasWhatsapp == true;
+
+                                if (hasWhatsapp &&
+                                    _whatsappController.text.trim().isEmpty) {
+                                  _whatsappController.text =
+                                      _normalizeIndianPhone10(mobile);
+                                }
+                              }
                               if (!ok ||
                                   !widget.fromOffline ||
                                   !context.mounted)
@@ -1505,7 +1417,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                               final db = ref.read(offlineSyncDbProvider);
 
-                              // ✅ existing offline shop payload
+                              // âœ… existing offline shop payload
                               final oldShop =
                                   await db.getPayload(
                                     sid.trim(),
@@ -1513,14 +1425,14 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                   ) ??
                                   {};
 
-                              // ✅ update phone fields in offline payload
+                              // âœ… update phone fields in offline payload
                               // IMPORTANT: store E164 (+91...) because your API expects it
                               final e164 = _toE164India(mobile);
 
                               final updatedShop = <String, dynamic>{
                                 ...oldShop,
 
-                                // ✅ update common keys
+                                // âœ… update common keys
                                 "primaryPhone": e164,
                                 "shopPrimaryPhone": e164,
                                 "phoneNumber": e164,
@@ -1528,7 +1440,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                 "mobile": e164,
                                 "mobileNumber": e164,
 
-                                // ✅ if you saved token for server sync (optional but useful)
+                                // âœ… if you saved token for server sync (optional but useful)
                                 // After OTP verify, your notifier usually saves verification token in prefs.
                                 // If not, you can store it here if you have it.
                                 // "primaryPhoneVerificationToken": (await AppPrefs.getVerificationToken()) ?? "",
@@ -1544,7 +1456,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                               Navigator.pop(
                                 context,
                                 true,
-                              ); // ✅ return verified to sync screen
+                              ); // âœ… return verified to sync screen
                               return ok;
                             },
 
@@ -1564,7 +1476,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         //   controller: _primaryMobileController,
                         //   verticalDivider:
                         //       false, // optional: hide divider if you want
-                        //   isMobile: false, // IMPORTANT → disables +91 logic
+                        //   isMobile: false, // IMPORTANT â†’ disables +91 logic
                         //   text: 'Mobile No',
                         //   keyboardType: TextInputType.phone,
                         //   validator: (_) => null, // no validation
@@ -1602,6 +1514,19 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                     code: otp,
                                   );
 
+                              if (ok && context.mounted) {
+                                final resp = ref
+                                    .read(shopCategoryNotifierProvider)
+                                    .shopNumberOtpResponse;
+                                final hasWhatsapp =
+                                    resp?.data?.hasWhatsapp == true;
+
+                                if (hasWhatsapp &&
+                                    _whatsappController.text.trim().isEmpty) {
+                                  _whatsappController.text =
+                                      _normalizeIndianPhone10(mobile);
+                                }
+                              }
                               if (!ok ||
                                   !widget.fromOffline ||
                                   !context.mounted)
@@ -1612,7 +1537,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                               final db = ref.read(offlineSyncDbProvider);
 
-                              // ✅ existing offline shop payload
+                              // âœ… existing offline shop payload
                               final oldShop =
                                   await db.getPayload(
                                     sid.trim(),
@@ -1620,14 +1545,14 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                   ) ??
                                   {};
 
-                              // ✅ update phone fields in offline payload
+                              // âœ… update phone fields in offline payload
                               // IMPORTANT: store E164 (+91...) because your API expects it
                               final e164 = _toE164India(mobile);
 
                               final updatedShop = <String, dynamic>{
                                 ...oldShop,
 
-                                // ✅ update common keys
+                                // âœ… update common keys
                                 "primaryPhone": e164,
                                 "shopPrimaryPhone": e164,
                                 "phoneNumber": e164,
@@ -1635,7 +1560,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                 "mobile": e164,
                                 "mobileNumber": e164,
 
-                                // ✅ if you saved token for server sync (optional but useful)
+                                // âœ… if you saved token for server sync (optional but useful)
                                 // After OTP verify, your notifier usually saves verification token in prefs.
                                 // If not, you can store it here if you have it.
                                 // "primaryPhoneVerificationToken": (await AppPrefs.getVerificationToken()) ?? "",
@@ -1651,7 +1576,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                               Navigator.pop(
                                 context,
                                 true,
-                              ); // ✅ return verified to sync screen
+                              ); // âœ… return verified to sync screen
                               return ok;
                             },
                             // onVerifyOtp: (mobile, otp) {
@@ -1780,7 +1705,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
 
                         validator: (v) {
                           if (isEditFromAboutMe)
-                            return null; // ✅ skip validation
+                            return null; // âœ… skip validation
                           return (v == null || v.isEmpty)
                               ? 'Please select Open Time'
                               : null;
@@ -1834,7 +1759,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         },
                         validator: (v) {
                           if (isEditFromAboutMe)
-                            return null; // ✅ skip validation
+                            return null; // âœ… skip validation
                           return (v == null || v.isEmpty)
                               ? 'Please select Close Time'
                               : null;
@@ -1865,7 +1790,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         text: 'Email Id',
                         validator: (v) {
                           if (isEditFromAboutMe)
-                            return null; // ✅ skip validation
+                            return null; // âœ… skip validation
                           if (v == null || v.isEmpty) return 'Email required';
                           if (!RegExp(
                             r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
@@ -1944,79 +1869,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                               ),
                               child: _buildOwnerPhotoWidget(),
 
-                              // _permanentImage == null
-                              //     ? Center(
-                              //         child: Row(
-                              //           mainAxisSize: MainAxisSize.min,
-                              //           children: [
-                              //             Image.asset(
-                              //               AppImages.uploadImage,
-                              //               height: 30,
-                              //             ),
-                              //             const SizedBox(width: 10),
-                              //             Text(
-                              //               'Upload',
-                              //               style: AppTextStyles.mulish(
-                              //                 fontSize: 14,
-                              //                 fontWeight: FontWeight.w500,
-                              //                 color: AppColor.mediumLightGray,
-                              //               ),
-                              //             ),
-                              //           ],
-                              //         ),
-                              //       )
-                              //     : Row(
-                              //         children: [
-                              //           Expanded(
-                              //             child: ClipRRect(
-                              //               borderRadius: BorderRadius.circular(
-                              //                 12,
-                              //               ),
-                              //               child: Image.file(
-                              //                 File(_permanentImage!.path),
-                              //                 height: 140,
-                              //                 fit: BoxFit.cover,
-                              //               ),
-                              //             ),
-                              //           ),
-                              //           const SizedBox(width: 8),
-                              //           InkWell(
-                              //             onTap: () {
-                              //               setState(() {
-                              //                 _permanentImage = null;
-                              //                 _imageErrorText =
-                              //                     'Please Add Your Photo';
-                              //                 _timetableInvalid = true;
-                              //               });
-                              //             },
-                              //             child: Padding(
-                              //               padding: const EdgeInsets.symmetric(
-                              //                 vertical: 35.0,
-                              //               ),
-                              //               child: Column(
-                              //                 mainAxisAlignment:
-                              //                     MainAxisAlignment.center,
-                              //                 children: [
-                              //                   Image.asset(
-                              //                     AppImages.closeImage,
-                              //                     height: 26,
-                              //                     color: AppColor.mediumGray,
-                              //                   ),
-                              //                   Text(
-                              //                     'Clear',
-                              //                     style: AppTextStyles.mulish(
-                              //                       fontSize: 14,
-                              //                       fontWeight: FontWeight.w400,
-                              //                       color: AppColor
-                              //                           .mediumLightGray,
-                              //                     ),
-                              //                   ),
-                              //                 ],
-                              //               ),
-                              //             ),
-                              //           ),
-                              //         ],
-                              //       ),
+
                             ),
                           ),
                         ),
@@ -2043,8 +1896,8 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           final bool isEditFromAboutMe =
                               widget.pages == "shopDetailsEdit";
                           final isOffline = widget.fromOffline == true;
-                          // ✅ Only register flow should validate
-                          // ✅ Only ONLINE register flow should validate
+                          // âœ… Only register flow should validate
+                          // âœ… Only ONLINE register flow should validate
                           if (!isEditFromAboutMe && !isOffline) {
                             if (!_validateAll()) return;
                           }
@@ -2095,31 +1948,31 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             _whatsappController.text,
                           );
 
-                          // ✅ VERIFIED CHECK FIX (OTP or Pref token)
-                          // ✅ OTP verified required ONLY in register flow
-                          if (!isEditFromAboutMe) {
-                            final shopState = ref.read(
-                              shopCategoryNotifierProvider,
-                            );
-                            final savedToken =
-                                await AppPrefs.getVerificationToken();
-
-                            final isVerified =
-                                (shopState
-                                        .shopNumberOtpResponse
-                                        ?.data
-                                        ?.verified ==
-                                    true) ||
-                                (savedToken != null && savedToken.isNotEmpty);
-
-                            // if (!isVerified) {
-                            //   AppSnackBar.error(
-                            //     context,
-                            //     "Please verify Primary Mobile Number",
-                            //   );
-                            //   return;
-                            // }
-                          }
+                          // âœ… VERIFIED CHECK FIX (OTP or Pref token)
+                          // âœ… OTP verified required ONLY in register flow
+                          // if (!isEditFromAboutMe) {
+                          //   final shopState = ref.read(
+                          //     shopCategoryNotifierProvider,
+                          //   );
+                          //   final savedToken =
+                          //       await AppPrefs.getVerificationToken();
+                          //
+                          //   final isVerified =
+                          //       (shopState
+                          //               .shopNumberOtpResponse
+                          //               ?.data
+                          //               ?.verified ==
+                          //           true) ||
+                          //       (savedToken != null && savedToken.isNotEmpty);
+                          //
+                          //   // if (!isVerified) {
+                          //   //   AppSnackBar.error(
+                          //   //     context,
+                          //   //     "Please verify Primary Mobile Number",
+                          //   //   );
+                          //   //   return;
+                          //   // }
+                          // }
 
                           // final shopState = ref.read(
                           //   shopCategoryNotifierProvider,
@@ -2145,7 +1998,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                           final bool ok = await ref
                               .read(shopCategoryNotifierProvider.notifier)
                               .shopInfoRegister(
-                                businessProfileId: widget.employeeId ?? '',
+                                businessProfileId:
+                                    (widget.businessProfileId ?? '').trim().isNotEmpty
+                                        ? widget.businessProfileId!.trim()
+                                        : (widget.employeeId ?? '').trim(),
                                 shopId: widget.shopId,
                                 ownerImageFile: ownerFile,
                                 type: type,
@@ -2181,11 +2037,14 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             } else {
                               context.pushNamed(
                                 AppRoutes.shopPhotoInfo,
-                                extra: 'shopCategory',
+                                extra: {
+                                  'from': 'shopCategory',
+                                  'categorySlug': categorySlug,
+                                },
                               );
                             }
                           } else {
-                            // ✅ show proper error
+                            // âœ… show proper error
                             final msg = (st.error ?? '').trim();
                             AppSnackBar.error(
                               context,
@@ -2195,57 +2054,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             );
                           }
 
-                          /*     final response = await ref
-                              .read(shopCategoryNotifierProvider.notifier)
-                              .shopInfoRegister(
-                                businessProfileId: widget.employeeId ?? '',
-                                shopId: widget.shopId,
-                                ownerImageFile: ownerFile,
-                                type: type,
-                                addressEn:
-                                    _addressEnglishController.text.trim(),
-                                addressTa:
-                                    addressTamilNameController.text.trim(),
-                                alternatePhone: alternatePhoneToSend,
-                                primaryPhone: primaryPhoneToSend,
-                                category: categorySlug,
-                                contactEmail: _emailController.text.trim(),
-                                descriptionEn:
-                                    _descriptionEnglishController.text.trim(),
-                                descriptionTa:
-                                    descriptionTamilController.text.trim(),
-                                doorDelivery: isDoorDeliveryEnabled,
-                                englishName:
-                                    _shopNameEnglishController.text.trim(),
-                                gpsLatitude: latitude,
-                                gpsLongitude: longitude,
-                                subCategory: subCategorySlug,
-                                tamilName: tamilNameController.text.trim(),
-                                weeklyHours: weeklyHoursText,
-                              );
 
-                          final newState = ref.read(
-                            shopCategoryNotifierProvider,
-                          );
-
-                          if (newState.error != null &&
-                              newState.error!.isNotEmpty) {
-                            AppSnackBar.error(context, newState.error!);
-                          } else if (response != null) {
-                            if (widget.pages == 'shopDetailsEdit') {
-                              Navigator.pop(context, true);
-                            } else {
-                              context.pushNamed(
-                                AppRoutes.shopPhotoInfo,
-                                extra: 'shopCategory',
-                              );
-                            }
-                          } else {
-                            AppSnackBar.error(
-                              context,
-                              "Unexpected error, please try again",
-                            );
-                          }*/
                         },
 
                         text:
@@ -2276,7 +2085,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   }
 
   Widget _buildOwnerPhotoWidget() {
-    // 1️⃣ Local selected image
+    // 1ï¸âƒ£ Local selected image
     if (_pickedImage != null) {
       return Row(
         children: [
@@ -2321,7 +2130,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       );
     }
 
-    // 2️⃣ Server image (edit mode)
+    // 2ï¸âƒ£ Server image (edit mode)
     if (_existingUrl != null && _existingUrl!.trim().isNotEmpty) {
       return Row(
         children: [
@@ -2370,7 +2179,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
       );
     }
 
-    // 3️⃣ Default upload UI
+    // 3ï¸âƒ£ Default upload UI
     return Center(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2417,9 +2226,11 @@ class GpsInputField extends StatelessWidget {
         children: [
           Expanded(
             child: TextFormField(
+              
               controller: controller,
               style: AppTextStyles.textWith700(fontSize: 16),
               readOnly: true, // IMPORTANT
+              onTap: isLoading ? null : onMapTap,
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintStyle: AppTextStyles.mulish(
@@ -2457,3 +2268,5 @@ class GpsInputField extends StatelessWidget {
     );
   }
 }
+
+

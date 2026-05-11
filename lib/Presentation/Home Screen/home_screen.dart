@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +7,9 @@ import 'package:intl/intl.dart';
 
 import 'package:tringo_vendor_new/Core/Const/app_color.dart';
 import 'package:tringo_vendor_new/Core/Const/app_images.dart';
+import 'package:tringo_vendor_new/Core/Utility/app_snackbar.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import 'package:tringo_vendor_new/Core/Widgets/app_go_routes.dart';
-import 'package:tringo_vendor_new/Presentation/Heater/Employees/Screen/heater_employees_list.dart';
 import 'package:tringo_vendor_new/Presentation/Home%20Screen/Contoller/employee_home_notifier.dart';
 
 import '../../Core/Utility/app_loader.dart';
@@ -62,9 +60,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //   await _refreshDashboardByDate();
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final current = ref.read(employeeHomeNotifier);
+      if (!current.isLoading && current.employeeHomeResponse == null) {
+        await _refreshDashboardByDate();
+      }
+    });
   }
 
   // ----------------------------
@@ -124,25 +125,438 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return u.isEmpty ? null : u;
   }
 
-  String _planLabel(BusinessProfile item) {
-    final p = (item.planType ?? '').trim();
-    if (p.isNotEmpty) return p;
+  int _totalItems(List<ActivityDayGroup> groups) {
+    return groups.fold<int>(0, (sum, g) => sum + g.items.length);
+  }
 
-    // fallback
-    if (item.planCategory.trim().isNotEmpty) return item.planCategory.trim();
+  int? _onboardingStepNumber(String step) {
+    final m = RegExp(r'(\d+)').firstMatch(step);
+    return m == null ? null : int.tryParse(m.group(1) ?? '');
+  }
 
-    switch (_currentTab) {
-      case ActivityTab.freemium:
-        return "FREEMIUM";
-      case ActivityTab.premium:
-        return "PREMIUM";
-      case ActivityTab.premiumPro:
-        return "PREMIUM PRO";
+  String _onboardingSubtitle(OwnerOnboarding onboarding) {
+    switch (onboarding.step.trim()) {
+      case 'step-1':
+        return 'Add owner information to continue.';
+      case 'step-2':
+        return 'Select your shop category and details.';
+      case 'step-3':
+        return 'Upload your shop photos.';
+      case 'step-4':
+        return 'Add search keywords for your shop.';
+      default:
+        return 'Continue your shop setup.';
     }
   }
 
-  int _totalItems(List<ActivityDayGroup> groups) {
-    return groups.fold<int>(0, (sum, g) => sum + g.items.length);
+  void _continueOnboarding(OwnerOnboarding onboarding, Employee employee) {
+    if (onboarding.isComplete) {
+      final shopId = onboarding.shopId;
+      context.push(
+        AppRoutes.shopsDetailsPath,
+        extra: shopId == null ? {} : {'shopId': shopId},
+      );
+      return;
+    }
+
+    switch (onboarding.step.trim()) {
+      case 'step-1':
+        context.push(
+          AppRoutes.ownerInfoPath,
+          extra: const {'isService': false, 'isIndividual': true},
+        );
+        return;
+      case 'step-2':
+        final shop = onboarding.shopDetails;
+        final initialImageUrls =
+            shop?.media.map((m) => m.url.trim()).where((u) => u.isNotEmpty).toList();
+        context.push(
+          AppRoutes.shopCategoryInfoPath,
+          extra: {
+            'isService': false,
+            'isIndividual': true,
+            'pages': 'onboarding',
+            'businessProfileId': onboarding.businessProfileId,
+            'shopId': onboarding.shopId,
+            'employeeId': employee.id,
+            'initialShopNameEnglish': shop?.englishName,
+            'initialShopNameTamil': shop?.tamilName,
+            'initialDescriptionEnglish': shop?.descriptionEn,
+            'initialDescriptionTamil': shop?.descriptionTa,
+            'initialAddressEnglish': shop?.addressEn,
+            'initialAddressTamil': shop?.addressTa,
+            'initialGps':
+                (shop == null || (shop.gpsLatitude.isEmpty && shop.gpsLongitude.isEmpty))
+                    ? null
+                    : '${shop.gpsLatitude}, ${shop.gpsLongitude}',
+            'initialPrimaryMobile': shop?.primaryPhone,
+            'initialWhatsapp': shop?.alternatePhone,
+            'initialEmail': shop?.contactEmail,
+            'initialCategorySlug': shop?.category,
+            'initialSubCategorySlug': shop?.subCategory,
+            'initialDoorDeliveryText':
+                shop == null ? null : (shop.doorDelivery ? 'Yes' : 'No'),
+            'initialOpenTimeText':
+                shop?.weeklyHours.isNotEmpty == true ? shop!.weeklyHours.first.opensAt : null,
+            'initialCloseTimeText':
+                shop?.weeklyHours.isNotEmpty == true ? shop!.weeklyHours.first.closesAt : null,
+            'initialImageUrls': initialImageUrls,
+          },
+        );
+        return;
+      case 'step-3':
+        final shop = onboarding.shopDetails;
+        final initialImageUrls =
+            shop?.media.map((m) => m.url.trim()).where((u) => u.isNotEmpty).toList();
+        context.push(
+          AppRoutes.shopPhotoInfoPath,
+          extra: {
+            'from': 'onboarding',
+            'initialImageUrls': initialImageUrls,
+            'categorySlug': onboarding.shopDetails?.category,
+          },
+        );
+        return;
+      case 'step-4':
+        context.push(
+          AppRoutes.searchKeywordPath,
+          extra: {'categorySlug': onboarding.shopDetails?.category},
+        );
+        return;
+      default:
+        context.push(
+          AppRoutes.ownerInfoPath,
+          extra: const {'isService': false, 'isIndividual': true},
+        );
+        return;
+    }
+  }
+
+  Future<void> _confirmDeletePendingOwner(OwnerOnboarding onboarding) async {
+    final ownerUserId = (onboarding.ownerUserId ?? '').trim();
+    if (ownerUserId.isEmpty) {
+      AppSnackBar.error(context, 'Owner ID not found');
+      return;
+    }
+
+    final ok = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        final ownerName =
+            (onboarding.ownerDetails?.fullName ?? '').trim().isNotEmpty
+                ? onboarding.ownerDetails!.fullName.trim()
+                : 'this owner';
+        final ownerPhone =
+            (onboarding.ownerDetails?.phoneNumber ?? '').trim().isNotEmpty
+                ? onboarding.ownerDetails!.phoneNumber.trim()
+                : ((onboarding.ownerPhoneNumber ?? '').trim().isNotEmpty
+                    ? onboarding.ownerPhoneNumber!.trim()
+                    : '');
+
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 22),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Align(
+                  alignment: Alignment.topRight,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => Navigator.pop(context, false),
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.close, size: 18, color: Colors.black54),
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 56,
+                  width: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.10),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Delete pending registration?',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.mulish(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColor.darkBlue,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'You are about to delete $ownerName${ownerPhone.isNotEmpty ? ' ($ownerPhone)' : ''}. You can start again anytime.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.mulish(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.darkGrey,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColor.darkBlue,
+                          side: BorderSide(
+                            color: AppColor.black.withOpacity(0.10),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Delete'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (ok != true) return;
+
+    final err = await ref
+        .read(employeeHomeNotifier.notifier)
+        .deletePendingOwnerOnboarding(ownerUserId: ownerUserId);
+
+    if (!context.mounted) return;
+
+    if (err == null) {
+      AppSnackBar.success(context, 'Pending owner deleted successfully');
+      await _refreshDashboardByDate();
+    } else if (err != 'DELETE_IN_PROGRESS') {
+      AppSnackBar.error(context, err);
+    }
+  }
+
+  Widget _onboardingPendingCard(
+    OwnerOnboarding onboarding,
+    Employee employee, {
+    required bool isDeletingOwner,
+  }) {
+    final stepNo = _onboardingStepNumber(onboarding.step) ?? 1;
+    const totalSteps = 4;
+    final owner = onboarding.ownerDetails;
+    final shop = onboarding.shopDetails;
+    final coverUrl = (shop?.media.isNotEmpty == true)
+        ? shop!.media.first.url.trim()
+        : '';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColor.iceGray,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColor.black.withOpacity(0.06)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Complete your registration',
+            style: AppTextStyles.mulish(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColor.darkBlue,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Step $stepNo of $totalSteps · ${_onboardingSubtitle(onboarding)}',
+            style: AppTextStyles.mulish(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColor.darkGrey,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (owner != null) ...[
+            Text(
+              'Owner',
+              style: AppTextStyles.mulish(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppColor.darkBlue,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${owner.fullName.isNotEmpty ? owner.fullName : '-'} · ${owner.phoneNumber.isNotEmpty ? owner.phoneNumber : (onboarding.ownerPhoneNumber ?? '-')}',
+              style: AppTextStyles.mulish(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColor.darkGrey,
+              ),
+            ),
+            if (owner.email.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                owner.email,
+                style: AppTextStyles.mulish(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.darkGrey,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+          ],
+          if (shop != null) ...[
+            Text(
+              'Shop',
+              style: AppTextStyles.mulish(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppColor.darkBlue,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (coverUrl.isNotEmpty) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: CachedNetworkImage(
+                  imageUrl: coverUrl,
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder:
+                      (context, url) => const Center(
+                        child: SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                  errorWidget:
+                      (context, url, error) => Container(
+                        height: 120,
+                        color: Colors.black.withOpacity(0.05),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            Text(
+              shop.englishName.isNotEmpty ? shop.englishName : '-',
+              style: AppTextStyles.mulish(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppColor.darkBlue,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${shop.city}, ${shop.state}',
+              style: AppTextStyles.mulish(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColor.darkGrey,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              shop.primaryPhone.isNotEmpty ? shop.primaryPhone : '-',
+              style: AppTextStyles.mulish(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColor.darkGrey,
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed:
+                      isDeletingOwner
+                          ? null
+                          : () => _confirmDeletePendingOwner(onboarding),
+                  icon:
+                      isDeletingOwner
+                          ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Delete'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.black,
+                    foregroundColor: AppColor.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed:
+                      isDeletingOwner
+                          ? null
+                          : () => _continueOnboarding(onboarding, employee),
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                  label: const Text('Continue'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   // ----------------------------
@@ -460,28 +874,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(employeeHomeNotifier);
+    ref.listen(employeeHomeNotifier, (prev, next) {
+      final msg = (next.error ?? '').trim();
+      if (msg.isEmpty) return;
+      if ((prev?.error ?? '').trim() == msg) return;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        AppSnackBar.error(context, msg);
+        ref.read(employeeHomeNotifier.notifier).clearError();
+      });
+    });
 
     if (state.isLoading) {
       return Scaffold(
         body: Center(child: ThreeDotsLoader(dotColor: AppColor.darkBlue)),
-      );
-    }
-
-    if (state.error != null) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(state.error!),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: _refreshDashboardByDate,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
       );
     }
 
@@ -493,6 +900,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final employee = dashboard.employee;
+    final onboarding = dashboard.ownerOnboarding;
+    final showOnboarding = onboarding != null && !onboarding.isComplete;
+    final isDeletingOwner = state.isDeletingOwner;
     final metrics = dashboard.metrics;
     final recentActivity = dashboard.recentActivity;
 
@@ -521,98 +931,105 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // HEADER
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 20,
-                ),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(AppImages.homeScreenTopBCImage),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      AppColor.richNavy.withOpacity(0.4),
-                      BlendMode.srcATop,
+        child: RefreshIndicator(
+          onRefresh: _refreshDashboardByDate,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            child: Column(
+              children: [
+                // HEADER
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 20,
+                  ),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(AppImages.homeScreenTopBCImage),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        AppColor.richNavy.withOpacity(0.4),
+                        BlendMode.srcATop,
+                      ),
+                    ),
+                    gradient: LinearGradient(
+                      colors: [AppColor.richNavy, AppColor.richBlack],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(25),
+                      bottomRight: Radius.circular(25),
                     ),
                   ),
-                  gradient: LinearGradient(
-                    colors: [AppColor.richNavy, AppColor.richBlack],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                employee.name.isNotEmpty ? employee.name : '-',
-                                style: AppTextStyles.mulish(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: AppColor.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  employee.name.isNotEmpty
+                                      ? employee.name
+                                      : '-',
+                                  style: AppTextStyles.mulish(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: AppColor.white,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                employee.employeeCode,
-                                style: AppTextStyles.mulish(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12,
-                                  color: AppColor.lightGray1,
+                                Text(
+                                  employee.employeeCode,
+                                  style: AppTextStyles.mulish(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                    color: AppColor.lightGray1,
+                                  ),
                                 ),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Reporting',
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 10,
-                                      color: AppColor.white4,
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Reporting',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    '-',
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 10,
-                                      color: AppColor.white4,
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '-',
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    employee.vendorName,
-                                    style: AppTextStyles.mulish(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 10,
-                                      color: AppColor.white4,
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      employee.vendorName,
+                                      style: AppTextStyles.mulish(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 10,
+                                        color: AppColor.white4,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          ClipOval(
-                            child:
-                                avatar.isNotEmpty
-                                    ? Image.network(
-                                      avatar,
-                                      height: 52,
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            ClipOval(
+                              child:
+                                  avatar.isNotEmpty
+                                      ? Image.network(
+                                        avatar,
+                                        height: 52,
                                       width: 52,
                                       fit: BoxFit.cover,
                                       errorBuilder:
@@ -686,7 +1103,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               const SizedBox(height: 40),
 
-              // TITLE
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Row(
@@ -790,23 +1206,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               const SizedBox(height: 10),
 
-              // Center(
-              //   child: Text(
-              //     _filterLabel,
-              //     style: AppTextStyles.mulish(
-              //       fontSize: 12,
-              //       fontWeight: FontWeight.w700,
-              //       color: AppColor.darkGrey,
-              //     ),
-              //   ),
-              // ),
-              //
-              // const SizedBox(height: 20),
-
               // LIST (Grouped by dateLabel)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
-                child:
+                child: Column(
+                  children: [
+                    if (showOnboarding) ...[
+                      _onboardingPendingCard(
+                        onboarding,
+                        employee,
+                        isDeletingOwner: isDeletingOwner,
+                      ),
+                      const SizedBox(height: 18),
+                    ],
                     (groups.isEmpty || totalItems == 0)
                         ? _emptyActivityView()
                         : ListView.separated(
@@ -836,7 +1248,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 const SizedBox(height: 10),
                                 ListView.separated(
                                   shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
+                                  physics:
+                                      const NeverScrollableScrollPhysics(),
                                   itemCount: group.items.length,
                                   separatorBuilder:
                                       (_, __) => const SizedBox(height: 15),
@@ -850,6 +1263,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             );
                           },
                         ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 40),
@@ -857,6 +1272,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       ),
+    )
     );
   }
 }

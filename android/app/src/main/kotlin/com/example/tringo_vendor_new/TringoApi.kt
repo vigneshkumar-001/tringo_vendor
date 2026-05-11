@@ -1,4 +1,4 @@
-package com.example.tringo_vendor_new
+package com.feni.tringo_vendor_new
 
 import retrofit2.http.GET
 import retrofit2.http.Query

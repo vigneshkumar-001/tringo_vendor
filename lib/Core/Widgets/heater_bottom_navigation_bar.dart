@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../Presentation/Heater/Add Vendor Employee/Screen/heater_add_employee.dart';
 import '../../Presentation/Heater/Employees/Screen/heater_employees_list.dart';
 import '../../Presentation/Heater/Heater Earnings/Screen/heater_earnings.dart';
 import '../../Presentation/Heater/Heater Home Screen/Screen/heater_home_screen.dart';
 import '../../Presentation/Heater/History/Screen/heater_history.dart';
+ 
 import '../../Presentation/Heater/Setting/Screen/heater_setting.dart';
-import '../../Presentation/Home Screen/home_screen.dart';
-import '../../Presentation/No Data Screen/Screen/no_data_screen.dart' hide NoDataScreen;
-import '../../Presentation/Register Screen/Screen/register_screen.dart';
 import '../Const/app_color.dart';
 import '../Const/app_images.dart';
 
@@ -59,8 +56,8 @@ class HeaterBottomNavigationBarState extends State<HeaterBottomNavigationBar>
       case 2:
         return HeaterHistory();
       case 3:
-        // return HeaterEarnings();
-        return NoDataScreens();
+        return const HeaterEarnings();
+   
       case 4:
         return HeaterSetting();
       default:

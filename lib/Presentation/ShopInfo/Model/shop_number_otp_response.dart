@@ -1,4 +1,4 @@
-class ShopNumberOtpResponse {
+﻿class ShopNumberOtpResponse {
   final bool status;
   final int code;
   final PhoneVerifyData? data;
@@ -20,10 +20,10 @@ class ShopNumberOtpResponse {
   }
 
   Map<String, dynamic> toJson() => {
-    'status': status,
-    'code': code,
-    'data': data?.toJson(),
-  };
+        'status': status,
+        'code': code,
+        'data': data?.toJson(),
+      };
 }
 
 class PhoneVerifyData {
@@ -31,12 +31,14 @@ class PhoneVerifyData {
   final String phoneNumber;
   final String verificationToken;
   final DateTime? expiresAt;
+  final bool hasWhatsapp;
 
   PhoneVerifyData({
     required this.verified,
     required this.phoneNumber,
     required this.verificationToken,
     required this.expiresAt,
+    required this.hasWhatsapp,
   });
 
   factory PhoneVerifyData.fromJson(Map<String, dynamic> json) {
@@ -45,16 +47,19 @@ class PhoneVerifyData {
       phoneNumber: (json['phoneNumber'] ?? '').toString(),
       verificationToken: (json['verificationToken'] ?? '').toString(),
       expiresAt: _tryParseDate(json['expiresAt']),
+      hasWhatsapp: json['hasWhatsapp'] == true,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'verified': verified,
-    'phoneNumber': phoneNumber,
-    'verificationToken': verificationToken,
-    'expiresAt': expiresAt?.toUtc().toIso8601String(),
-  };
+        'verified': verified,
+        'phoneNumber': phoneNumber,
+        'verificationToken': verificationToken,
+        'expiresAt': expiresAt?.toUtc().toIso8601String(),
+        'hasWhatsapp': hasWhatsapp,
+      };
 }
+
 int _asInt(dynamic v) {
   if (v == null) return 0;
   if (v is int) return v;

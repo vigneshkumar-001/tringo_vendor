@@ -226,38 +226,46 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 0,
-                  vertical: 20,
-                ),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(AppImages.homeScreenTopBCImage),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      AppColor.richNavy.withOpacity(0.4),
-                      BlendMode.srcATop,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await _refreshDashboardByDate();
+            await ref.read(profileNotifierProvider.notifier).getProfile(
+              silent: true,
+            );
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 0,
+                    vertical: 20,
+                  ),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(AppImages.homeScreenTopBCImage),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        AppColor.richNavy.withOpacity(0.4),
+                        BlendMode.srcATop,
+                      ),
+                    ),
+                    gradient: LinearGradient(
+                      colors: [AppColor.richNavy, AppColor.richBlack],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(25),
+                      bottomRight: Radius.circular(25),
                     ),
                   ),
-                  gradient: LinearGradient(
-                    colors: [AppColor.richNavy, AppColor.richBlack],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Column(
-                    children: [
-                      Padding(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      children: [
+                        Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
                           children: [
@@ -383,7 +391,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                       // final bool isBlocked = !(data.isActiveSafe);
                       final bool isBlocked = !(data.isActive ?? true);
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Column(
                           children: [
                             Opacity(
@@ -397,7 +405,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(20),
+                                  padding: const EdgeInsets.all(15),
                                   child: Row(
                                     children: [
                                       ClipRRect(
@@ -419,7 +427,7 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(width: 20),
+                                      SizedBox(width: 10),
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -629,7 +637,8 @@ class _HeaterHomeScreenState extends ConsumerState<HeaterHomeScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }
 

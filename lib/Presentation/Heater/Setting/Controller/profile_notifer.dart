@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
-import 'package:tringo_vendor_new/Presentation/Heater/History/Model/vendor_history_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
 import '../../../../Api/DataSource/api_data_source.dart';
 import '../../../Login Screen/Controller/login_notifier.dart';
@@ -45,7 +44,7 @@ class ProfileNotifer extends Notifier<ProfileState> {
 
   Future<void> getProfile({bool silent = false}) async {
     if (!silent) {
-      state = state.copyWith(isLoading: silent, clearError: true);
+      state = state.copyWith(isLoading: true, clearError: true);
     }
 
     try {
@@ -53,16 +52,14 @@ class ProfileNotifer extends Notifier<ProfileState> {
 
       result.fold(
         (failure) {
-          if (!silent) {
-            state = state.copyWith(
-              isLoading: silent,
-              error: failure.message ?? 'Something went wrong',
-            );
-          }
+          state = state.copyWith(
+            isLoading: false,
+            error: failure.message,
+          );
         },
         (response) {
           state = state.copyWith(
-            isLoading: silent,
+            isLoading: false,
             getProfileResponse: response,
             clearError: true,
           );
@@ -70,9 +67,7 @@ class ProfileNotifer extends Notifier<ProfileState> {
       );
     } catch (e) {
       AppLogger.log.e(e);
-      if (!silent) {
-        state = state.copyWith(isLoading: silent, error: e.toString());
-      }
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 }

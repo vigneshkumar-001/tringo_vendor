@@ -11,11 +11,14 @@ class AppPrefs {
   static const String _serviceId = 'service_id';
   static const String _businessProfileId = 'businessProfile_Id';
   static const String _kOfflineSessionId = "offline_session_id";
-
+  static const _kOwnerPhone = 'owner_phone';
   static const String _token = 'token';
   static const String _refreshToken = 'refreshToken';
   static const String _sessionToken = 'sessionToken';
   static const String _role = 'role';
+  static const String _kOnboardingStep = 'onboardingStep';
+  static const String _kVendorApproved = 'vendorApproved';
+  static const String _kVendorId = 'vendorId';
 
   static Future<void> setToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
@@ -35,6 +38,50 @@ class AppPrefs {
   static Future<void> setRole(String role) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_role, role);
+  }
+
+  static Future<void> setOnboardingStep(String? step) async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = (step ?? '').trim();
+    if (v.isEmpty) {
+      await prefs.remove(_kOnboardingStep);
+      return;
+    }
+    await prefs.setString(_kOnboardingStep, v);
+  }
+
+  static Future<String?> getOnboardingStep() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_kOnboardingStep);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
+  }
+
+  static Future<void> setVendorApproved(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kVendorApproved, value);
+  }
+
+  static Future<bool?> getVendorApproved() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kVendorApproved);
+  }
+
+  static Future<void> setVendorId(String vendorId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = vendorId.trim();
+    if (v.isEmpty) {
+      await prefs.remove(_kVendorId);
+      return;
+    }
+    await prefs.setString(_kVendorId, v);
+  }
+
+  static Future<String?> getVendorId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_kVendorId);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
   }
 
   // ---------- Offline session ----------
@@ -57,6 +104,16 @@ class AppPrefs {
   static Future<void> setVerificationToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kVerificationToken, token.trim());
+  }
+
+  static Future<void> setOwnerPhone(String phone) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kOwnerPhone, phone);
+  }
+
+  static Future<String?> getOwnerPhone() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kOwnerPhone);
   }
 
   static Future<String?> getVerificationToken() async {
@@ -143,14 +200,17 @@ class AppPrefs {
     await prefs.remove(_productId);
     await prefs.remove(_shopId);
     await prefs.remove(_serviceId);
+    await prefs.remove(_kOwnerPhone);
+  }
 
-  }  static Future<void> clearIdsForOffline() async {
+  static Future<void> clearIdsForOffline() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_productId);
     await prefs.remove(_shopId);
     await prefs.remove(_serviceId);
     await prefs.remove(_kVerificationToken);
     await prefs.remove(_businessProfileId);
+    await prefs.remove(_kOwnerPhone);
   }
 }
 

@@ -1,4 +1,4 @@
-package com.example.tringo_vendor_new
+package com.feni.tringo_vendor_new
 
 
 import android.Manifest
@@ -384,7 +384,7 @@ class MainActivity : FlutterActivity() {
 
 
 
-//package com.example.tringo_vendor_new
+//package com.feni.tringo_vendor_new
 //
 //import android.content.Intent
 //import android.net.Uri
@@ -485,7 +485,7 @@ class MainActivity : FlutterActivity() {
 //    }
 //}
 //
-////package com.example.tringo_vendor_new
+////package com.feni.tringo_vendor_new
 ////
 ////import io.flutter.embedding.android.FlutterActivity
 ////

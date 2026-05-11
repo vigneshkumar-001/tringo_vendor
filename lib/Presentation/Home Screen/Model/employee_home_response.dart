@@ -14,6 +14,7 @@ class EmployeeHomeResponse {
 
 class EmployeeData {
   final Employee employee;
+  final OwnerOnboarding? ownerOnboarding;
   final Metrics metrics;
   final Pagination pagination;
   final AppliedFilters appliedFilters;
@@ -21,6 +22,7 @@ class EmployeeData {
 
   EmployeeData({
     required this.employee,
+    this.ownerOnboarding,
     required this.metrics,
     required this.pagination,
     required this.appliedFilters,
@@ -30,10 +32,238 @@ class EmployeeData {
   factory EmployeeData.fromJson(Map<String, dynamic> json) {
     return EmployeeData(
       employee: Employee.fromJson((json['employee'] as Map?)?.cast<String, dynamic>() ?? {}),
+      ownerOnboarding: (json['ownerOnboarding'] is Map)
+          ? OwnerOnboarding.fromJson(
+              (json['ownerOnboarding'] as Map).cast<String, dynamic>(),
+            )
+          : null,
       metrics: Metrics.fromJson((json['metrics'] as Map?)?.cast<String, dynamic>() ?? {}),
       pagination: Pagination.fromJson((json['pagination'] as Map?)?.cast<String, dynamic>() ?? {}),
       appliedFilters: AppliedFilters.fromJson((json['appliedFilters'] as Map?)?.cast<String, dynamic>() ?? {}),
       recentActivity: RecentActivity.fromJson((json['recentActivity'] as Map?)?.cast<String, dynamic>() ?? {}),
+    );
+  }
+}
+
+class OwnerOnboarding {
+  final String step; // "step-1"
+  final bool isComplete;
+  final String? shopId;
+  final String? businessProfileId;
+  final String? ownerUserId;
+  final String? ownerPhoneNumber;
+  final OwnerDetails? ownerDetails;
+  final ShopDetails? shopDetails;
+
+  OwnerOnboarding({
+    required this.step,
+    required this.isComplete,
+    this.shopId,
+    this.businessProfileId,
+    this.ownerUserId,
+    this.ownerPhoneNumber,
+    this.ownerDetails,
+    this.shopDetails,
+  });
+
+  factory OwnerOnboarding.fromJson(Map<String, dynamic> json) {
+    bool toBool(dynamic v) {
+      if (v is bool) return v;
+      final s = v?.toString().toLowerCase();
+      return s == 'true' || s == '1';
+    }
+
+    String? toNullableString(dynamic v) {
+      if (v == null) return null;
+      final s = v.toString().trim();
+      return s.isEmpty ? null : s;
+    }
+
+    return OwnerOnboarding(
+      step: (json['step'] ?? '').toString(),
+      isComplete: toBool(json['isComplete']),
+      shopId: toNullableString(json['shopId']),
+      businessProfileId: toNullableString(json['businessProfileId']),
+      ownerUserId: toNullableString(json['ownerUserId']),
+      ownerPhoneNumber: toNullableString(json['ownerPhoneNumber']),
+      ownerDetails: (json['ownerDetails'] is Map)
+          ? OwnerDetails.fromJson(
+              (json['ownerDetails'] as Map).cast<String, dynamic>(),
+            )
+          : null,
+      shopDetails: (json['shopDetails'] is Map)
+          ? ShopDetails.fromJson(
+              (json['shopDetails'] as Map).cast<String, dynamic>(),
+            )
+          : null,
+    );
+  }
+}
+
+class OwnerDetails {
+  final String id;
+  final String fullName;
+  final String phoneNumber;
+  final String activePhoneNumber;
+  final String email;
+  final String businessType;
+  final String ownershipType;
+
+  OwnerDetails({
+    required this.id,
+    required this.fullName,
+    required this.phoneNumber,
+    required this.activePhoneNumber,
+    required this.email,
+    required this.businessType,
+    required this.ownershipType,
+  });
+
+  factory OwnerDetails.fromJson(Map<String, dynamic> json) {
+    return OwnerDetails(
+      id: (json['id'] ?? '').toString(),
+      fullName: (json['fullName'] ?? '').toString(),
+      phoneNumber: (json['phoneNumber'] ?? '').toString(),
+      activePhoneNumber: (json['activePhoneNumber'] ?? '').toString(),
+      email: (json['email'] ?? '').toString(),
+      businessType: (json['businessType'] ?? '').toString(),
+      ownershipType: (json['ownershipType'] ?? '').toString(),
+    );
+  }
+}
+
+class ShopDetailsMedia {
+  final String id;
+  final String type;
+  final String url;
+  final int displayOrder;
+
+  ShopDetailsMedia({
+    required this.id,
+    required this.type,
+    required this.url,
+    required this.displayOrder,
+  });
+
+  factory ShopDetailsMedia.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic v) => (v is num) ? v.toInt() : int.tryParse('$v') ?? 0;
+    return ShopDetailsMedia(
+      id: (json['id'] ?? '').toString(),
+      type: (json['type'] ?? '').toString(),
+      url: (json['url'] ?? '').toString(),
+      displayOrder: toInt(json['displayOrder']),
+    );
+  }
+}
+
+class ShopWeeklyHour {
+  final String day;
+  final String opensAt;
+  final String closesAt;
+  final bool closed;
+
+  ShopWeeklyHour({
+    required this.day,
+    required this.opensAt,
+    required this.closesAt,
+    required this.closed,
+  });
+
+  factory ShopWeeklyHour.fromJson(Map<String, dynamic> json) {
+    return ShopWeeklyHour(
+      day: (json['day'] ?? '').toString(),
+      opensAt: (json['opensAt'] ?? '').toString(),
+      closesAt: (json['closesAt'] ?? '').toString(),
+      closed: json['closed'] == true,
+    );
+  }
+}
+
+class ShopDetails {
+  final String id;
+  final String category;
+  final String? subCategory;
+  final String shopKind;
+  final String englishName;
+  final String tamilName;
+  final String descriptionEn;
+  final String descriptionTa;
+  final String addressEn;
+  final String addressTa;
+  final String gpsLatitude;
+  final String gpsLongitude;
+  final String primaryPhone;
+  final String alternatePhone;
+  final String contactEmail;
+  final bool doorDelivery;
+  final String city;
+  final String state;
+  final String country;
+  final String postalCode;
+  final List<ShopWeeklyHour> weeklyHours;
+  final List<String> keywords;
+  final List<ShopDetailsMedia> media;
+
+  ShopDetails({
+    required this.id,
+    required this.category,
+    required this.subCategory,
+    required this.shopKind,
+    required this.englishName,
+    required this.tamilName,
+    required this.descriptionEn,
+    required this.descriptionTa,
+    required this.addressEn,
+    required this.addressTa,
+    required this.gpsLatitude,
+    required this.gpsLongitude,
+    required this.primaryPhone,
+    required this.alternatePhone,
+    required this.contactEmail,
+    required this.doorDelivery,
+    required this.city,
+    required this.state,
+    required this.country,
+    required this.postalCode,
+    required this.weeklyHours,
+    required this.keywords,
+    required this.media,
+  });
+
+  factory ShopDetails.fromJson(Map<String, dynamic> json) {
+    final weeklyHoursJson = (json['weeklyHours'] as List?) ?? [];
+    final keywordsJson = (json['keywords'] as List?) ?? [];
+    final mediaJson = (json['media'] as List?) ?? [];
+    return ShopDetails(
+      id: (json['id'] ?? '').toString(),
+      category: (json['category'] ?? '').toString(),
+      subCategory: json['subCategory']?.toString(),
+      shopKind: (json['shopKind'] ?? '').toString(),
+      englishName: (json['englishName'] ?? '').toString(),
+      tamilName: (json['tamilName'] ?? '').toString(),
+      descriptionEn: (json['descriptionEn'] ?? '').toString(),
+      descriptionTa: (json['descriptionTa'] ?? '').toString(),
+      addressEn: (json['addressEn'] ?? '').toString(),
+      addressTa: (json['addressTa'] ?? '').toString(),
+      gpsLatitude: (json['gpsLatitude'] ?? '').toString(),
+      gpsLongitude: (json['gpsLongitude'] ?? '').toString(),
+      primaryPhone: (json['primaryPhone'] ?? '').toString(),
+      alternatePhone: (json['alternatePhone'] ?? '').toString(),
+      contactEmail: (json['contactEmail'] ?? '').toString(),
+      doorDelivery: json['doorDelivery'] == true,
+      city: (json['city'] ?? '').toString(),
+      state: (json['state'] ?? '').toString(),
+      country: (json['country'] ?? '').toString(),
+      postalCode: (json['postalCode'] ?? '').toString(),
+      weeklyHours: weeklyHoursJson
+          .whereType<Map>()
+          .map((e) => ShopWeeklyHour.fromJson(e.cast<String, dynamic>()))
+          .toList(),
+      keywords: keywordsJson.map((e) => e.toString()).toList(),
+      media: mediaJson
+          .whereType<Map>()
+          .map((e) => ShopDetailsMedia.fromJson(e.cast<String, dynamic>()))
+          .toList(),
     );
   }
 }

@@ -9,6 +9,7 @@ class ApiUrl {
   static const String resendOtp = "${base}api/v1/auth/resend-otp";
   static const String version = "${base}api/v1/app/version";
   static const String contactInfo = "${base}api/v1/contacts/sync";
+  static const String fcmToken = "${base}api/v1/auth/device-token";
   static const String privacyPolicy =
       "${base}api/v1/public/pages/privacy-policy";
   static const String employeeAddNumber =
@@ -36,14 +37,15 @@ class ApiUrl {
   static const String accountDelete = "${base}api/v1/auth/me";
   static const String supportTicketsList = "${base}api/v1/support/tickets";
 
-
   static const String shopNumberVerify =
       "${base}api/v1/auth/phone-verification/request";
   static const String shopNumberOtpVerify =
       "${base}api/v1/auth/phone-verification/verify";
 
-  static const String categoriesShop =
-      "${base}api/v1/public/categories?type=shop";
+  static String categoriesShop({required String type}) {
+    return "${base}api/v1/public/categories?type=$type";
+  }
+
   static const String employeeOverview =
       "${base}api/v1/vendor/dashboard/overview";
   static const String imageUrl = "${base}api/media/image-save";
@@ -58,10 +60,24 @@ class ApiUrl {
   static String getChatMessages({required String id}) {
     return "${base}api/v1/support/tickets/$id";
   }
-  static String getKeyWords({required String type, required String  query}) {
-    return "${base}api/v1/public/keywords?type=$type&q=$query";
-  }
 
+  static String getKeyWords({
+    required String type,
+    required String query,
+    String? categorySlug,
+  }) {
+    final slug = (categorySlug ?? '').trim();
+    final q = query;
+
+    // Prefer categorySlug-based filtering when available.
+    // Example: /api/v1/public/keywords?categorySlug=aadhaar-centers&q=
+    if (slug.isNotEmpty) {
+      return "${base}api/v1/public/keywords?categorySlug=$slug&q=$q";
+    }
+
+    // Fallback to existing type+q behavior
+    return "${base}api/v1/public/keywords?type=$type&q=$q";
+  }
 
   static String heaterEmployeeEdit({required String employeeId}) {
     return "${base}api/v1/vendor/employees/$employeeId";
@@ -84,7 +100,12 @@ class ApiUrl {
   }
 
   static String productCategoryList({required String shopId}) {
-    return "${base}api/v1/public/shops/$shopId/product-categories";
+    return '${base}api/v1/public/categories?kind=subcategory';
+  }
+
+  // return "${base}api/v1/public/shops/$shopId/product-categories";
+  static String employeeOnboardDeleteOwner({required String ownerUserId}) {
+    return "${base}api/v1/employee/onboard/owner/$ownerUserId";
   }
 
   static String addProducts({required String shopId}) {
@@ -152,5 +173,16 @@ class ApiUrl {
     String? dateTo,
   }) {
     return "${base}api/v1/vendor/dashboard/history?page=$page&limit=$limit&q=$search&categories=$categories&dateFrom=$dateFrom&dateTo=$dateTo";
+  }
+
+  static String vendorEarnings({
+    required String limit,
+    required String page,
+    String? q,
+    String? dateFrom,
+    String? dateTo,
+    String? sort,
+  }) {
+    return "${base}api/v1/vendor/dashboard/earnings?page=$page&limit=$limit&q=$q&dateFrom=$dateFrom&dateTo=$dateTo&sort=$sort";
   }
 }

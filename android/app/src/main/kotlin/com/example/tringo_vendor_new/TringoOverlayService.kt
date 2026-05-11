@@ -1,4 +1,4 @@
-package com.example.tringo_vendor_new
+package com.feni.tringo_vendor_new
 
 import android.Manifest
 import android.app.NotificationChannel

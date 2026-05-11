@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
 import 'package:tringo_vendor_new/Presentation/About%20Me/Model/delete_response.dart';
 import 'package:tringo_vendor_new/Presentation/AddProduct/Model/product_response.dart';
@@ -14,6 +13,7 @@ import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Mo
 import 'package:tringo_vendor_new/Presentation/Heater/Employee%20details-edit/Model/heater_employee_edit_res.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/History/Model/vendor_history_response.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Setting/Model/get_profile_response.dart';
+import 'package:tringo_vendor_new/Presentation/Login%20Screen/Model/device_token_response.dart';
 import 'package:tringo_vendor_new/Presentation/Privacy%20Policy/Model/terms_and_condition_model.dart';
 import 'package:tringo_vendor_new/Presentation/ShopInfo/Model/category_keywords_response.dart';
 import 'package:tringo_vendor_new/Presentation/Shops%20Details/Model/shop_details_response.dart';
@@ -39,6 +39,7 @@ import '../../Presentation/Heater/Employee details-edit/Model/employee_unblock_r
 import '../../Presentation/Heater/Employee details-edit/Model/phone_verification_response.dart';
 import '../../Presentation/Heater/Employees/Model/heater_employee_response.dart';
 import '../../Presentation/Heater/Heater Home Screen/Model/heater_home_response.dart';
+import '../../Presentation/Heater/Heater Earnings/Model/heater_earnings_response.dart';
 import '../../Presentation/Heater/Heater Register/Model/vendorResponse.dart';
 import '../../Presentation/Home Screen/Model/employee_home_response.dart';
 import '../../Presentation/Login Screen/Model/app_version_response.dart';
@@ -660,7 +661,7 @@ class ApiDataSource {
             "companyContactVerificationToken",
             companyContactVerificationToken,
           );
-          addIfNotEmpty(payload, "alternatePhone", alternatePhone);
+          // addIfNotEmpty(payload, "alternatePhone", alternatePhone);
 
           addIfNotEmpty(payload, "companyEmail", companyEmail);
           addIfNotEmpty(payload, "gstNumber", gstNumber);
@@ -1194,15 +1195,12 @@ class ApiDataSource {
     String? primaryPhoneVerificationToken,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedShopId = prefs.getString('shop_id');
-
-      String? finalShopId;
-      if (savedShopId != null && savedShopId.trim().isNotEmpty) {
-        finalShopId = savedShopId.trim();
-      } else if (apiShopId.trim().isNotEmpty) {
-        finalShopId = apiShopId.trim();
-      }
+      // IMPORTANT:
+      // Only update a shop when the caller explicitly provides `apiShopId`.
+      // Falling back to a previously-saved `shop_id` can accidentally edit an
+      // older shop when the user is creating a new one (e.g. onboarding step-2).
+      final String? finalShopId =
+          apiShopId.trim().isNotEmpty ? apiShopId.trim() : null;
 
       final bool isUpdate = finalShopId != null;
       final url =
@@ -1213,7 +1211,7 @@ class ApiDataSource {
       final body = <String, dynamic>{
         "businessProfileId": businessProfileId,
         "category": category,
-        "subCategory": subCategory,
+        // "subCategory": subCategory,
         "englishName": englishName,
         "tamilName": tamilName,
         "descriptionEn": descriptionEn,
@@ -1515,9 +1513,11 @@ class ApiDataSource {
     }
   }
 
-  Future<Either<Failure, CategoryListResponse>> getShopCategories() async {
+  Future<Either<Failure, CategoryListResponse>> getShopCategories({
+    required String type,
+  }) async {
     try {
-      String url = ApiUrl.categoriesShop;
+      String url = ApiUrl.categoriesShop(type: type);
 
       dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
 
@@ -1789,6 +1789,7 @@ class ApiDataSource {
         ServerFailure(response.data['message'] ?? "Something went wrong"),
       );
     } catch (e) {
+      AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -2739,6 +2740,64 @@ class ApiDataSource {
     }
   }
 
+  Future<Either<Failure, HeaterEarningsResponse>> vendorEarnings({
+    required String limit,
+    required String page,
+    String? q,
+    String? dateFrom,
+    String? dateTo,
+    String? sort,
+  }) async {
+    try {
+      final url = ApiUrl.vendorEarnings(
+        page: page,
+        limit: limit,
+        q: q,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        sort: sort,
+      );
+
+      dynamic response = await Request.sendGetRequest(url, {}, 'GET', true);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(HeaterEarningsResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(
+                response.data is Map
+                    ? (response.data['message'] ?? "Something went wrong")
+                    : (response.data?.toString() ?? "Something went wrong"),
+              ),
+            );
+          }
+        } else {
+          final String message =
+              response.data is Map
+                  ? (response.data['message'] ?? "Something went wrong").toString()
+                  : (response.data?.toString() ?? "Something went wrong");
+          return Left(
+            ServerFailure(message),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message'].toString()));
+        }
+        if (errorData is String && errorData.trim().isNotEmpty) {
+          return Left(ServerFailure(errorData));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      AppLogger.log.e(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   Future<Either<Failure, PlanListResponse>> getPlanList() async {
     try {
       final url = ApiUrl.plans;
@@ -3170,6 +3229,7 @@ class ApiDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
   //
   // Future<Either<Failure, VendorResponse>> onlyProfileChange({
   //   String? avatarUrl,
@@ -3220,7 +3280,9 @@ class ApiDataSource {
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
 
-      AppLogger.log.w("✅ RESPONSE status=${response.statusCode} data=${response.data}");
+      AppLogger.log.w(
+        "✅ RESPONSE status=${response.statusCode} data=${response.data}",
+      );
 
       final data = response.data;
 
@@ -3280,9 +3342,17 @@ class ApiDataSource {
     }
   }
 
-  Future<Either<Failure, CategoryKeywordsResponse>> getKeyWords({required String type, required String query}) async {
+  Future<Either<Failure, CategoryKeywordsResponse>> getKeyWords({
+    required String type,
+    required String query,
+    String? categorySlug,
+  }) async {
     try {
-      String url = ApiUrl.getKeyWords(type: type, query: query);
+      String url = ApiUrl.getKeyWords(
+        type: type,
+        query: query,
+        categorySlug: categorySlug,
+      );
 
       dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
 
@@ -3314,6 +3384,93 @@ class ApiDataSource {
       }
     } catch (e) {
       print(e);
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, DeviceTokenResponse>> fcmTokenSend({
+    required String fcmToken,
+    required String platform,
+    required String deviceId,
+  }) async {
+    try {
+      final url = ApiUrl.fcmToken;
+
+      dynamic response = await Request.sendRequest(
+        url,
+        {
+          "fcmToken": fcmToken,
+          "platform": "android",
+          if (deviceId.trim().isNotEmpty) "deviceId": deviceId,
+        },
+        'POST',
+        true,
+      );
+
+      AppLogger.log.i(response);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (response.data['status'] == true) {
+            return Right(DeviceTokenResponse.fromJson(response.data));
+          } else {
+            return Left(
+              ServerFailure(response.data['message'] ?? "Login failed"),
+            );
+          }
+        } else {
+          return Left(
+            ServerFailure(response.data['message'] ?? "Something went wrong"),
+          );
+        }
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e, st) {
+      AppLogger.log.e(e);
+      print('$e,$st');
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, String>> deletePendingOwnerOnboarding({
+    required String ownerUserId,
+  }) async {
+    try {
+      final id = ownerUserId.trim();
+      if (id.isEmpty) {
+        return Left(ServerFailure('Owner not found.'));
+      }
+
+      final url = ApiUrl.employeeOnboardDeleteOwner(ownerUserId: id);
+      final response = await Request.sendRequest(url, {}, 'DELETE', true);
+
+      if (response is DioException) {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData['message'] != null) {
+          return Left(ServerFailure(errorData['message'].toString()));
+        }
+        return Left(ServerFailure(response.message ?? 'Delete failed'));
+      }
+
+      final data = response.data;
+      if (data is Map) {
+        final success = data['success'] == true || data['status'] == true;
+        final message = (data['message'] ?? '').toString().trim();
+        if (success) {
+          return Right(message.isNotEmpty ? message : 'Deleted successfully');
+        }
+        return Left(
+          ServerFailure(message.isNotEmpty ? message : 'Delete failed'),
+        );
+      }
+
+      return const Right('Deleted successfully');
+    } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }

@@ -583,6 +583,7 @@ class CommonContainer {
     bool styledRangeText = false,
   }) {
     return FormField<String>(
+      initialValue: controller?.text ?? '',
       validator: validator,
       key: fieldKey,
       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -758,7 +759,7 @@ class CommonContainer {
         //         ]
         //         : (inputFormatters ?? const []);
 
-        return Column(
+        final inner = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
@@ -1045,6 +1046,26 @@ class CommonContainer {
                 ),
               ),
           ],
+        );
+
+        // ✅ Sync programmatic controller updates (e.g. controller.text = "...")
+        // into FormField state so validation reads the latest value.
+        if (controller == null) return inner;
+        return ValueListenableBuilder<TextEditingValue>(
+          valueListenable: controller!,
+          builder: (context, value, _) {
+            final current = value.text;
+            final known = state.value ?? '';
+            if (known != current) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final latest = controller!.text;
+                if ((state.value ?? '') != latest) {
+                  state.didChange(latest);
+                }
+              });
+            }
+            return inner;
+          },
         );
       },
     );
