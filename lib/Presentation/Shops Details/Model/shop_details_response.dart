@@ -55,6 +55,7 @@ class ShopData {
   final int? shopReviewCount;
 
   final List<ShopImage> shopImages;
+  final List<String> shopKeywords;
   final List<Product> products;
   final List<ServiceItem> services;
   final List<dynamic> reviews;
@@ -88,6 +89,7 @@ class ShopData {
     this.closesAt,
     this.opensAt,
     required this.shopImages,
+    required this.shopKeywords,
     required this.products,
     required this.services,
     required this.reviews,
@@ -130,6 +132,12 @@ class ShopData {
       shopImages:
           (json['shopImages'] as List<dynamic>? ?? [])
               .map((e) => ShopImage.fromJson(e))
+              .toList(),
+
+      shopKeywords:
+          (json['shopKeywords'] as List<dynamic>? ?? [])
+              .map((e) => (e ?? '').toString())
+              .where((e) => e.trim().isNotEmpty)
               .toList(),
 
       products:
@@ -188,6 +196,8 @@ class Product {
   final bool? doorDelivery;
   final int? rating;
   final int? ratingCount;
+  final List<String> keywords;
+  final List<ProductFeature> features;
   final List<ProductMedia> media;
 
   Product({
@@ -207,6 +217,8 @@ class Product {
     this.doorDelivery,
     this.rating,
     this.ratingCount,
+    required this.keywords,
+    required this.features,
     required this.media,
   });
 
@@ -229,10 +241,43 @@ class Product {
       rating: (json['rating'] as num?)?.toInt(),
       ratingCount: (json['ratingCount'] as num?)?.toInt(),
 
+      keywords:
+          (json['keywords'] as List<dynamic>? ?? [])
+              .map((e) => (e ?? '').toString())
+              .where((e) => e.trim().isNotEmpty)
+              .toList(),
+
+      features:
+          (json['features'] as List<dynamic>? ?? [])
+              .map((e) => ProductFeature.fromJson(e))
+              .toList(),
+
       media:
           (json['media'] as List<dynamic>? ?? [])
               .map((e) => ProductMedia.fromJson(e))
               .toList(),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// PRODUCT FEATURE
+// -----------------------------------------------------------------------------
+class ProductFeature {
+  final String? id;
+  final String? label;
+  final String? value;
+  final String? language;
+
+  ProductFeature({this.id, this.label, this.value, this.language});
+
+  factory ProductFeature.fromJson(dynamic json) {
+    if (json is! Map) return ProductFeature();
+    return ProductFeature(
+      id: json['id']?.toString(),
+      label: json['label']?.toString(),
+      value: json['value']?.toString(),
+      language: json['language']?.toString(),
     );
   }
 }

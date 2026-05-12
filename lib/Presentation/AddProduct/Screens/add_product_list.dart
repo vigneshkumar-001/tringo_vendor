@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -19,7 +20,21 @@ import '../../../Core/Widgets/common_container.dart';
 class AddProductList extends ConsumerStatefulWidget {
   final bool? isService;
   final String? categorySlug;
-  const AddProductList({super.key, this.isService, this.categorySlug});
+
+  final bool isEditFlow;
+  final List<String> initialImageUrls;
+  final List<Map<String, String>> initialFeatures;
+  final List<String> initialKeywords;
+
+  const AddProductList({
+    super.key,
+    this.isService,
+    this.categorySlug,
+    this.isEditFlow = false,
+    this.initialImageUrls = const [],
+    this.initialFeatures = const [],
+    this.initialKeywords = const [],
+  });
 
   @override
   ConsumerState<AddProductList> createState() => _AddProductListState();
@@ -31,6 +46,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
 
   List<File?> _pickedImages = List<File?>.filled(4, null);
   List<bool> _hasError = List<bool>.filled(4, false);
+  late final List<String?> _existingImageUrls;
 
   List<Map<String, TextEditingController>> _featureControllers = [
     {'heading': TextEditingController(), 'answer': TextEditingController()},
@@ -96,6 +112,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
     setState(() {
       _pickedImages[index] = File(pickedFile.path);
       _hasError[index] = false;
+      _existingImageUrls[index] = null; // replacing existing image
     });
   }
 
@@ -115,6 +132,26 @@ class _AddProductListState extends ConsumerState<AddProductList> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    _existingImageUrls = List<String?>.filled(4, null);
+    for (int i = 0; i < widget.initialImageUrls.length && i < 4; i++) {
+      final url = widget.initialImageUrls[i].trim();
+      if (url.isNotEmpty) _existingImageUrls[i] = url;
+    }
+
+    if (widget.initialFeatures.isNotEmpty) {
+      _featureControllers = widget.initialFeatures.map((e) {
+        return {
+          'heading': TextEditingController(text: (e['label'] ?? '').trim()),
+          'answer': TextEditingController(text: (e['value'] ?? '').trim()),
+        };
+      }).toList();
+    }
+  }
+
+  @override
   void dispose() {
     for (var map in _featureControllers) {
       map['heading']?.dispose();
@@ -126,6 +163,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
   Widget _addImageContainer({required int index}) {
     final file = _pickedImages[index];
     final hasError = _hasError[index];
+    final existingUrl = _existingImageUrls[index];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +187,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
               ),
             ),
             child:
-                file == null
+                (file == null && (existingUrl == null || existingUrl.isEmpty))
                     ? Padding(
                       padding: const EdgeInsets.symmetric(vertical: 22.5),
                       child: Row(
@@ -168,12 +206,39 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                     )
                     : ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: Image.file(
-                        file,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: 150,
-                      ),
+                      child:
+                          file != null
+                              ? Image.file(
+                                file,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 150,
+                              )
+                              : CachedNetworkImage(
+                                imageUrl: existingUrl ?? '',
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 150,
+                                placeholder:
+                                    (context, url) => const Center(
+                                      child: SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    ),
+                                errorWidget:
+                                    (context, url, error) => Container(
+                                      color: AppColor.lowGery1,
+                                      alignment: Alignment.center,
+                                      height: 150,
+                                      child: const Icon(
+                                        Icons.broken_image_outlined,
+                                      ),
+                                    ),
+                              ),
                     ),
           ),
         ),
@@ -416,7 +481,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                         backgroundColor: AppColor.black,
 
                         context: context,
-                        text: 'Save & Continue',
+                        text: widget.isEditFlow ? 'Update' : 'Save & Continue',
                         width: double.infinity,
                         height: 60,
 
@@ -425,7 +490,14 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                             isLoading
                                 ? null
                                 : () async {
-                                  if (_pickedImages[0] == null) {
+                                  final hasNew = _pickedImages.any(
+                                    (e) => e != null,
+                                  );
+                                  final hasExisting = _existingImageUrls.any(
+                                    (e) => (e ?? '').trim().isNotEmpty,
+                                  );
+
+                                  if (!hasNew && !hasExisting) {
                                     setState(() => _hasError[0] = true);
                                     return;
                                   }
@@ -444,6 +516,13 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                                         };
                                       }).toList();
 
+                                  final existingUrls =
+                                      _existingImageUrls
+                                          .whereType<String>()
+                                          .map((e) => e.trim())
+                                          .where((e) => e.isNotEmpty)
+                                          .toList();
+
                                   bool success;
                                   String? apiError;
 
@@ -456,6 +535,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                                         .uploadServiceImages(
                                           images: _pickedImages,
                                           features: features,
+                                          existingImageUrls: existingUrls,
                                           context: context,
                                         );
 
@@ -473,6 +553,7 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                                         .uploadProductImages(
                                           images: _pickedImages,
                                           features: features,
+                                          existingImageUrls: existingUrls,
                                           context: context,
                                         );
 
@@ -495,7 +576,9 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                                           .businessType ==
                                       BusinessType.company;
 
-                                  Navigator.push(
+                                  final keywordsUpdated = await Navigator.push<
+                                    bool
+                                  >(
                                     context,
                                     MaterialPageRoute(
                                       builder:
@@ -503,9 +586,17 @@ class _AddProductListState extends ConsumerState<AddProductList> {
                                             isService: isService,
                                             isCompany: isCompany,
                                             categorySlug: widget.categorySlug,
+                                            isEditFlow: widget.isEditFlow,
+                                            initialKeywords: widget.initialKeywords,
                                           ),
                                     ),
                                   );
+
+                                  if (widget.isEditFlow &&
+                                      keywordsUpdated == true &&
+                                      mounted) {
+                                    Navigator.pop(context, true);
+                                  }
                                 },
                       ),
 

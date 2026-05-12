@@ -20,6 +20,7 @@ import '../../../Core/Widgets/app_go_routes.dart';
 import '../../../Core/Widgets/common_container.dart';
 import '../../AddProduct/Controller/product_notifier.dart';
 import '../../AddProduct/Screens/product_category_screens.dart';
+import '../../AddProduct/Screens/edit_product_service_flow.dart';
 import '../../No Data Screen/Screen/no_data_screen.dart';
 import '../../ShopInfo/Model/search_keywords_response.dart';
 import '../../ShopInfo/Screens/shop_category_info.dart';
@@ -572,10 +573,9 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                                           Expanded(
                                             child: GestureDetector(
                                               onTap: () async {
-                                                final id =
-                                                    await AppPrefs.setBusinessProfileId(
-                                                      widget.businessProfileId,
-                                                    );
+                                                await AppPrefs.setBusinessProfileId(
+                                                  widget.businessProfileId,
+                                                );
                                                 final updated = await Navigator.push<
                                                   bool
                                                 >(
@@ -584,20 +584,20 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                                                     builder:
                                                         (
                                                           context,
-                                                        ) => ProductCategoryScreens(
-                                                          page:
-                                                              'AboutMeScreens',
-                                                          isService:
-                                                              false, // Product
-                                                          shopId: shop.shopId,
-                                                          productId:
-                                                              data.productId,
-                                                          allowOfferEdit: true,
+                                                        ) => EditProductServiceFlow(
+                                                          isService: false,
+                                                          shopId: shop.shopId ?? '',
+                                                          businessProfileId:
+                                                              widget
+                                                                  .businessProfileId,
+                                                          itemId:
+                                                              data.productId ??
+                                                              '',
                                                           initialCategoryName:
                                                               data.category,
                                                           initialSubCategoryName:
                                                               data.subCategory,
-                                                          initialProductName:
+                                                          initialName:
                                                               data.englishName,
                                                           initialPrice:
                                                               data.price,
@@ -607,6 +607,28 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                                                               data.offerLabel,
                                                           initialOfferValue:
                                                               data.offerValue,
+                                                          initialDoorDelivery:
+                                                              data.doorDelivery,
+                                                          initialImageUrls:
+                                                              (data.media)
+                                                                  .map((e) => e.url ?? '')
+                                                                  .where((e) => e.trim().isNotEmpty)
+                                                                  .toList(),
+                                                          initialFeatures:
+                                                              (data.features)
+                                                                  .map((e) => {
+                                                                        "label": e.label ?? '',
+                                                                        "value": e.value ?? '',
+                                                                      })
+                                                                  .where((m) =>
+                                                                      (m["label"] ?? '').trim().isNotEmpty ||
+                                                                      (m["value"] ?? '').trim().isNotEmpty)
+                                                                  .toList(),
+                                                          initialKeywords:
+                                                              (data.keywords)
+                                                                  .map((e) => e.trim())
+                                                                  .where((e) => e.isNotEmpty)
+                                                                  .toList(),
                                                         ),
                                                   ),
                                                 );
@@ -1001,19 +1023,20 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                                                     builder:
                                                         (
                                                           context,
-                                                        ) => ProductCategoryScreens(
-                                                          page:
-                                                              'AboutMeScreens',
+                                                        ) => EditProductServiceFlow(
                                                           isService: true,
-                                                          shopId: shop.shopId,
-                                                          productId:
-                                                              data.serviceId,
-                                                          allowOfferEdit: true,
+                                                          shopId: shop.shopId ?? '',
+                                                          businessProfileId:
+                                                              widget
+                                                                  .businessProfileId,
+                                                          itemId:
+                                                              data.serviceId ??
+                                                              '',
                                                           initialCategoryName:
                                                               data.category,
                                                           initialSubCategoryName:
                                                               data.subCategory,
-                                                          initialProductName:
+                                                          initialName:
                                                               data.englishName,
                                                           initialPrice:
                                                               data.startsAt
@@ -1024,6 +1047,23 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                                                               data.offerLabel,
                                                           initialOfferValue:
                                                               data.offerValue,
+                                                          initialDoorDelivery:
+                                                              false,
+                                                          initialImageUrls:
+                                                              (data.media)
+                                                                  .map((e) => e.url ?? '')
+                                                                  .where((e) => e.trim().isNotEmpty)
+                                                                  .toList(),
+                                                          initialFeatures:
+                                                              (data.features)
+                                                                  .map((e) => {
+                                                                        "label": e.label ?? '',
+                                                                        "value": e.value ?? '',
+                                                                      })
+                                                                  .where((m) =>
+                                                                      (m["label"] ?? '').trim().isNotEmpty ||
+                                                                      (m["value"] ?? '').trim().isNotEmpty)
+                                                                  .toList(),
                                                         ),
                                                   ),
                                                 );
@@ -1475,6 +1515,7 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                               employeeId: shop?.businessProfileId ?? '',
                               shopId: shop?.shopId,
                               initialImageUrls: initialImageUrls,
+                              initialShopKeywords: shop?.shopKeywords ?? const [],
                               pages: 'shopDetailsEdit',
                               isService: isServiceFlow,
                               isIndividual: isIndividual,

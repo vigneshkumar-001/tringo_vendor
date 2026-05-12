@@ -56,6 +56,7 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
   final String? initialOwnerImageUrl;
   final String? employeeId;
   final List<String?>? initialImageUrls;
+  final List<String> initialShopKeywords;
   final bool fromOffline;
   final String? offlineSessionId;
   final bool focusWhatsapp;
@@ -88,6 +89,7 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
     this.initialOwnerImageUrl,
     this.employeeId,
     this.initialImageUrls,
+    this.initialShopKeywords = const [],
     this.fromOffline = false,
     this.offlineSessionId,
     this.focusWhatsapp = false,
@@ -2042,6 +2044,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                         shopId: widget.shopId,
                                         categorySlug: categorySlug,
                                         initialImageUrls: widget.initialImageUrls,
+                                        initialKeywords: widget.initialShopKeywords,
                                       ),
                                 ),
                               );

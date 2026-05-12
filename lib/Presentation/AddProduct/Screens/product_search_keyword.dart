@@ -27,12 +27,16 @@ class ProductSearchKeyword extends ConsumerStatefulWidget {
   final bool? isCompany;
   final bool? isService;
   final String? categorySlug;
+  final bool isEditFlow;
+  final List<String> initialKeywords;
 
   const ProductSearchKeyword({
     super.key,
     this.isCompany,
     this.isService,
     this.categorySlug,
+    this.isEditFlow = false,
+    this.initialKeywords = const [],
   });
 
   bool get isCompanyResolved =>
@@ -65,6 +69,18 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.initialKeywords.isNotEmpty) {
+      final initial =
+          widget.initialKeywords
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList();
+      for (final k in initial) {
+        if (_keywords.length >= 5) break;
+        if (!_keywords.contains(k)) _keywords.add(k);
+      }
+    }
 
     // ✅ Fetch initial recommended keywords on screen open based on product/service
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -164,12 +180,7 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                     children: [
                       CommonContainer.topLeftArrow(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AddProductList(),
-                            ),
-                          );
+                          Navigator.pop(context);
                         },
                       ),
                       const SizedBox(width: 50),
@@ -643,6 +654,11 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                                       ?.data
                                       .shopId;
 
+                          if (widget.isEditFlow) {
+                            Navigator.pop(context, true);
+                            return;
+                          }
+
                           context.goNamed(
                             AppRoutes.shopsDetails,
                             extra: <String, dynamic>{
@@ -656,7 +672,7 @@ class _ProductSearchKeywordState extends ConsumerState<ProductSearchKeyword> {
                             isLoading
                                 ? const ThreeDotsLoader()
                                 : Text(
-                                  'Preview Shop',
+                                  widget.isEditFlow ? 'Update' : 'Preview Shop',
                                   style: AppTextStyles.mulish(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,

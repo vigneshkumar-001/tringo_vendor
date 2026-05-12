@@ -1,0 +1,17 @@
+# Copy this file to `android/key.properties` (this file is gitignored)
+# and fill in your real values for Play Console release builds.
+#
+# Notes:
+# - `storeFile` can be an absolute path, or a path relative to the `android/` folder.
+# - Do NOT commit the real `key.properties` or the keystore file.
+#
+# Example (Windows):
+# storeFile=C:\\keys\\upload-keystore.jks
+#
+# Example (relative to android/):
+# storeFile=..\\keystores\\upload-keystore.jks
+
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=YOUR_KEY_ALIAS
+storeFile=PATH_TO_YOUR_KEYSTORE_FILE.jks

@@ -144,11 +144,15 @@ class ProductNotifier extends Notifier<ProductState> {
   Future<bool> uploadProductImages({
     required List<File?> images,
     required List<Map<String, String>> features,
+    List<String> existingImageUrls = const [],
     required BuildContext context,
   }) async
   {
     // ✅ validate at least 1 image selected
-    if (images.isEmpty || images.every((f) => f == null)) {
+    final hasNew = images.isNotEmpty && images.any((f) => f != null);
+    final hasExisting = existingImageUrls.any((e) => e.trim().isNotEmpty);
+
+    if (!hasNew && !hasExisting) {
       state = const ProductState(
         isLoading: false,
         error: "Please select at least 1 image",
@@ -193,7 +197,9 @@ class ProductNotifier extends Notifier<ProductState> {
     }
 
     try {
-      final List<String> uploadedUrls = [];
+      final List<String> uploadedUrls = [
+        ...existingImageUrls.where((e) => e.trim().isNotEmpty),
+      ];
 
       // ✅ Upload each selected image
       for (final file in images) {

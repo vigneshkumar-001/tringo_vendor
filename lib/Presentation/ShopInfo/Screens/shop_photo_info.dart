@@ -23,6 +23,7 @@ class ShopPhotoInfo extends ConsumerStatefulWidget {
 
   /// existing images
   final List<String?>? initialImageUrls;
+  final List<String> initialKeywords;
 
   const ShopPhotoInfo({
     super.key,
@@ -30,6 +31,7 @@ class ShopPhotoInfo extends ConsumerStatefulWidget {
     this.shopId,
     this.categorySlug,
     this.initialImageUrls,
+    this.initialKeywords = const [],
   });
 
   @override
@@ -427,6 +429,7 @@ class _ShopPhotoInfoState extends ConsumerState<ShopPhotoInfo> {
                                       SearchKeyword(
                                         page: widget.pages,
                                         categorySlug: widget.categorySlug,
+                                        initialKeywords: widget.initialKeywords,
                                       ),
                             ),
                           );

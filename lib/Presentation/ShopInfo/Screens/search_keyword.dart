@@ -21,7 +21,15 @@ class SearchKeyword extends ConsumerStatefulWidget {
   final String? page;
   final bool? isIndividual;
   final String? categorySlug;
-  const SearchKeyword({super.key, this.isIndividual, this.page, this.categorySlug});
+  final List<String> initialKeywords;
+
+  const SearchKeyword({
+    super.key,
+    this.isIndividual,
+    this.page,
+    this.categorySlug,
+    this.initialKeywords = const [],
+  });
 
   @override
   ConsumerState<SearchKeyword> createState() => _SearchKeywordState();
@@ -46,6 +54,18 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.initialKeywords.isNotEmpty) {
+      final initial =
+          widget.initialKeywords
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList();
+      for (final k in initial) {
+        if (_keywords.length >= 5) break;
+        if (!_keywords.contains(k)) _keywords.add(k);
+      }
+    }
 
     // ✅ Fetch initial recommended keywords on screen open
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -520,7 +540,9 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                             state.isLoading
                                 ? const ThreeDotsLoader()
                                 : Text(
-                                  'Save & Continue',
+                                  widget.page == 'shopDetailsEdit'
+                                      ? 'Update'
+                                      : 'Save & Continue',
                                   style: AppTextStyles.mulish(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
