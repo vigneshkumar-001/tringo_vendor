@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +25,17 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Map<String, dynamic>? _pendingPushData;
+
+void _queuePushData(Map<String, dynamic> data) {
+  _pendingPushData = data;
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final queuedData = _pendingPushData;
+    if (queuedData == null) return;
+    _pendingPushData = null;
+    _handlePushData(queuedData);
+  });
+}
 
 Future<void> _handlePushData(Map<String, dynamic> data) async {
   final eventTypeRaw = (data['eventType'] ?? '').toString().trim();
@@ -58,48 +71,58 @@ Future<void> main() async {
     FlutterError.dumpErrorToConsole(details);
   };
 
-  // ✅ Init Firebase
-  await Firebase.initializeApp();
-
-  // ✅ Register background handler early
+  // Register the background handler early, then let the UI draw immediately.
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  // ✅ Ensure FCM auto-init
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
+  runApp(const ProviderScope(child: MyApp()));
 
+  unawaited(_initializeFirebaseServices());
+}
+
+Future<void> _initializeFirebaseServices() async {
   final firebaseService = FirebaseService();
 
-  // ✅ This initializes local notifications + channel + permission
-  await firebaseService.initializeFirebase(onNotificationTap: _handlePushData);
+  try {
+    await Firebase.initializeApp().timeout(const Duration(seconds: 10));
 
-  // ✅ Small delay helps some devices (Play Services not ready immediately)
-  await Future.delayed(const Duration(seconds: 3));
+    await FirebaseMessaging.instance
+        .setAutoInitEnabled(true)
+        .timeout(const Duration(seconds: 5));
 
-  // ✅ Fetch token with your backoff
-  await firebaseService.fetchFCMTokenIfNeeded();
+    await firebaseService
+        .initializeFirebase(onNotificationTap: _queuePushData)
+        .timeout(const Duration(seconds: 10));
 
-  // ✅ Foreground + opened listeners
-  firebaseService.listenToMessages(
-    onMessage: (msg) async {
-      AppLogger.log.i('📩 [FG] ${msg.messageId}');
-      await firebaseService.showNotification(msg);
-    },
-    onMessageOpenedApp: (msg) {
-      AppLogger.log.i('📬 [OPENED] ${msg.messageId}');
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _handlePushData(msg.data);
-      });
-    },
-  );
+    await firebaseService.fetchFCMTokenIfNeeded().timeout(
+      const Duration(seconds: 20),
+      onTimeout: () {
+        AppLogger.log.w('FCM token fetch timed out during startup.');
+      },
+    );
 
-  // ✅ Terminated -> opened by tap
-  final initialMsg = await firebaseService.getInitialMessage();
-  if (initialMsg != null) {
-    AppLogger.log.i('🚀 [TERMINATED OPEN] ${initialMsg.messageId}');
-    _pendingPushData = initialMsg.data;
+    firebaseService.listenToMessages(
+      onMessage: (msg) async {
+        AppLogger.log.i('📩 [FG] ${msg.messageId}');
+        await firebaseService.showNotification(msg);
+      },
+      onMessageOpenedApp: (msg) {
+        AppLogger.log.i('📬 [OPENED] ${msg.messageId}');
+        _queuePushData(msg.data);
+      },
+    );
+
+    final initialMsg = await firebaseService.getInitialMessage().timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => null,
+    );
+    if (initialMsg != null) {
+      AppLogger.log.i('🚀 [TERMINATED OPEN] ${initialMsg.messageId}');
+      _queuePushData(initialMsg.data);
+    }
+  } catch (e, st) {
+    AppLogger.log.e('Firebase startup skipped: $e');
+    AppLogger.log.e('$st');
   }
-
-  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerStatefulWidget {
