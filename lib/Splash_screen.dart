@@ -29,7 +29,7 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with WidgetsBindingObserver {
-  String appVersion = '1.0.1';
+  String appVersion = '1.0.2';
 
   bool _navigated = false;
   bool _tokenSent = false;

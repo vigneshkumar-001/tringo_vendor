@@ -28,19 +28,24 @@
         android:name="android.permission.ACCESS_BACKGROUND_LOCATION"
         tools:node="remove" />
 
-    <!-- Storage (legacy) -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
-
     <!-- Media -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-
+    
+    <!-- Play policy: remove broad media/storage permissions (we use user-selected picker only) -->
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
+        tools:node="remove" />
     <uses-permission
         android:name="android.permission.READ_MEDIA_VIDEO"
         tools:node="remove" />
     <uses-permission
         android:name="android.permission.READ_MEDIA_AUDIO"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:node="remove" />
 
     <!-- MUST NEVER exist -->
