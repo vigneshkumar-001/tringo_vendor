@@ -35,7 +35,7 @@ android {
 
     defaultConfig {
         applicationId = "com.feni.tringo_vendor_new"
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

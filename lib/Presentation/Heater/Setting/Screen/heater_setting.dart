@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Auth/logout_controller.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_1.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_2.dart';
@@ -487,20 +488,8 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
             ),
             TextButton(
               onPressed: () async {
-                // Navigator.pop(context);
-                // Navigator.pushAndRemoveUntil(
-                //   context,
-                //   MaterialPageRoute(builder: (_) => LoginMobileNumber()),
-                //   (route) => false,
-                // );
-                final prefs = await SharedPreferences.getInstance();
-                prefs.remove('token');
-                prefs.remove('isProfileCompleted');
-                prefs.remove('isNewOwner');
-                await prefs.clear();
-
-                // Then navigate
-                context.goNamed(AppRoutes.login);
+                Navigator.pop(context);
+                await ref.read(logoutControllerProvider.notifier).logout();
               },
               child: Text(
                 "Logout",
@@ -895,8 +884,7 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                           builder:
                               (context) => HeaterRegister1(
                                 profile: profile,
-                                userName:
-                                    header?.displayName.toString() ?? '',
+                                userName: header?.displayName.toString() ?? '',
                                 isService: true,
                                 isIndividual: true,
                                 edit: true,
@@ -927,10 +915,8 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
                         context,
                         MaterialPageRoute(
                           builder:
-                              (context) => HeaterRegister2(
-                                edit: true,
-                                profile: profile,
-                              ),
+                              (context) =>
+                                  HeaterRegister2(edit: true, profile: profile),
                         ),
                       );
                     }();

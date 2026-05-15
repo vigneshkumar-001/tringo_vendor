@@ -19,15 +19,19 @@ class AppPrefs {
   static const String _kOnboardingStep = 'onboardingStep';
   static const String _kVendorApproved = 'vendorApproved';
   static const String _kVendorId = 'vendorId';
+  static const String _kVendorStatus = 'vendorStatus';
+  static const String _kIsProfileCompleted = 'isProfileCompleted';
+  static const String _kIsNewOwner = 'isNewOwner';
+  static const String _kContactsSynced = 'contacts_synced';
 
   static Future<void> setToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_token, token);
   }
 
-  static Future<void> setRefreshToken(String businessProfileId) async {
+  static Future<void> setRefreshToken(String refreshToken) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_refreshToken, businessProfileId);
+    await prefs.setString(_refreshToken, refreshToken);
   }
 
   static Future<void> setSessionToken(String sessionToken) async {
@@ -38,6 +42,60 @@ class AppPrefs {
   static Future<void> setRole(String role) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_role, role);
+  }
+
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_token);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
+  }
+
+  static Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_refreshToken);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
+  }
+
+  static Future<String?> getSessionToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_sessionToken);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
+  }
+
+  static Future<String?> getRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_role);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
+  }
+
+  static Future<void> clearAuthSessionForLogout() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Auth/session tokens
+    await prefs.remove(_token);
+    await prefs.remove(_refreshToken);
+    await prefs.remove(_sessionToken);
+    await prefs.remove(_role);
+
+    // Common "session-scoped" cache/state
+    await prefs.remove(_kVendorStatus);
+    await prefs.remove(_kVendorApproved);
+    await prefs.remove(_kVendorId);
+    await prefs.remove(_kOnboardingStep);
+    await prefs.remove(_kIsProfileCompleted);
+    await prefs.remove(_kIsNewOwner);
+
+    // IDs & verification/offline artifacts
+    await clearIdsForOffline();
+    await clearOfflineSessionId();
+    await clearCompanyPhoneVerification();
+
+    // Optional: session-scoped sync flag (safe to resync after login)
+    await prefs.remove(_kContactsSynced);
   }
 
   static Future<void> setOnboardingStep(String? step) async {

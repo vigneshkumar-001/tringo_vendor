@@ -60,6 +60,7 @@ import '../../Presentation/Support/Model/create_support_response.dart';
 import '../../Presentation/Support/Model/send_message_response.dart';
 import '../../Presentation/Support/Model/support_list_response.dart';
 import '../../Presentation/subscription/Model/purchase_response.dart';
+import '../Models/logout_models.dart';
 import '../Repository/api_url.dart';
 import '../Repository/failure.dart';
 import '../Repository/request.dart';
@@ -325,6 +326,51 @@ class ApiDataSource {
     } catch (e) {
       AppLogger.log.e(e);
       return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, LogoutResponse>> logout({
+    required String refreshToken,
+    String? sessionToken,
+  }) async {
+    try {
+      final url = ApiUrl.logout;
+
+      final request = LogoutRequest(
+        refreshToken: refreshToken.trim(),
+        sessionToken: sessionToken?.trim(),
+      );
+
+      final response = await Request.sendRequest(
+        url,
+        request.toJson(),
+        'POST',
+        false, // ✅ No bearer needed for logout
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data is Map && response.data['status'] == true) {
+          return Right(LogoutResponse.fromJson(response.data));
+        }
+
+        final message =
+            (response.data is Map ? response.data['message'] : null) ??
+            "Logout failed";
+        return Left(ServerFailure(message.toString()));
+      }
+
+      final message =
+          (response.data is Map ? response.data['message'] : null) ??
+          "Something went wrong";
+      return Left(ServerFailure(message.toString()));
+    } on DioException catch (e) {
+      final errorData = e.response?.data;
+      if (errorData is Map && errorData['message'] != null) {
+        return Left(ServerFailure(errorData['message'].toString()));
+      }
+      return Left(ServerFailure("Request failed"));
+    } catch (_) {
+      return Left(ServerFailure("Unexpected error occurred"));
     }
   }
 
@@ -2775,11 +2821,10 @@ class ApiDataSource {
         } else {
           final String message =
               response.data is Map
-                  ? (response.data['message'] ?? "Something went wrong").toString()
+                  ? (response.data['message'] ?? "Something went wrong")
+                      .toString()
                   : (response.data?.toString() ?? "Something went wrong");
-          return Left(
-            ServerFailure(message),
-          );
+          return Left(ServerFailure(message));
         }
       } else {
         final errorData = response.response?.data;

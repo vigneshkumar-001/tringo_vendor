@@ -34,8 +34,6 @@ class AadhaarInputFormatter extends TextInputFormatter {
   }
 }
 
-
-
 enum DatePickMode { none, single, range }
 
 class CommonContainer {
@@ -101,6 +99,7 @@ class CommonContainer {
       ),
     );
   }
+
   static Widget sellingProduct({
     required String image,
     required VoidCallback onTap,
@@ -560,6 +559,7 @@ class CommonContainer {
     double imageHight = 30,
     double imageWidth = 11,
     int? maxLine,
+    int? maxLength,
     int flex = 4,
     bool isTamil = false,
     bool isAadhaar = false,
@@ -942,11 +942,12 @@ class CommonContainer {
                                     readOnly: readOnly,
                                     maxLines: maxLine,
                                     maxLength:
-                                        isMobile
+                                        maxLength ??
+                                        (isMobile
                                             ? 10
                                             : (isAadhaar
                                                 ? 14
-                                                : (isPincode ? 6 : null)),
+                                                : (isPincode ? 6 : null))),
                                     keyboardType:
                                         (isMobile || isAadhaar || isPincode)
                                             ? TextInputType.number

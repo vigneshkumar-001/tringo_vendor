@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -81,6 +82,7 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
     }
     return false;
   }
+
   @override
   void initState() {
     super.initState();
@@ -170,317 +172,324 @@ class _HeaterRegister2State extends ConsumerState<HeaterRegister2> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                /// HEADER BAR
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 16,
-                  ),
-                  child: Row(
-                    children: [
-                      CommonContainer.topLeftArrow(
-                        onTap: () => _handleBack(),
-                      ),
-                      SizedBox(width: 50),
-                      Text(
-                        'Register Vendor',
-                        style: AppTextStyles.mulish(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: AppColor.mildBlack,
-                        ),
-                      ),
-                      SizedBox(width: 5),
-                      // Text(
-                      //   '-',
-                      //   style: AppTextStyles.mulish(
-                      //     fontSize: 16,
-                      //     fontWeight: FontWeight.w400,
-                      //     color: AppColor.mildBlack,
-                      //   ),
-                      // ),
-                      // SizedBox(width: 5),
-                      Text(
-                        'Company',
-                        // isIndividualFlow ? 'Individual' : 'Company',
-                        style: AppTextStyles.mulish(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColor.mildBlack,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: 35),
-
-                /// HEADER BLOCK
-                Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(AppImages.registerBCImage),
-                      fit: BoxFit.cover,
+                  /// HEADER BAR
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 16,
                     ),
-                    gradient: LinearGradient(
-                      colors: [AppColor.white, AppColor.iceGreen],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      bottomRight: Radius.circular(30),
-                      bottomLeft: Radius.circular(30),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
+                    child: Row(
                       children: [
-                        Image.asset(AppImages.person, height: 85),
-                        const SizedBox(height: 15),
+                        CommonContainer.topLeftArrow(
+                          onTap: () => _handleBack(),
+                        ),
+                        SizedBox(width: 50),
                         Text(
-                          'Owner’s Info',
+                          'Register Vendor',
                           style: AppTextStyles.mulish(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                             color: AppColor.mildBlack,
                           ),
                         ),
-                        const SizedBox(height: 30),
-                        LinearProgressIndicator(
-                          minHeight: 12,
-                          value: 0.3,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColor.green,
+                        SizedBox(width: 5),
+                        // Text(
+                        //   '-',
+                        //   style: AppTextStyles.mulish(
+                        //     fontSize: 16,
+                        //     fontWeight: FontWeight.w400,
+                        //     color: AppColor.mildBlack,
+                        //   ),
+                        // ),
+                        // SizedBox(width: 5),
+                        Text(
+                          'Company',
+                          // isIndividualFlow ? 'Individual' : 'Company',
+                          style: AppTextStyles.mulish(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColor.mildBlack,
                           ),
-                          backgroundColor: AppColor.white,
-                          borderRadius: BorderRadius.circular(16),
                         ),
-                        const SizedBox(height: 25),
                       ],
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 30),
+                  SizedBox(height: 35),
 
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Bank Account Number',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                  /// HEADER BLOCK
+                  Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(AppImages.registerBCImage),
+                        fit: BoxFit.cover,
                       ),
-                      SizedBox(height: 10),
-
-                      CommonContainer.fillingContainer(
-                        keyboardType: TextInputType.number,
-                        text: '',
-                        verticalDivider: false,
-                        controller: accountNumberController,
-                        context: context,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Bank Account Number is required';
-                          }
-                          if (v.length < 8) {
-                            return 'Enter a valid account number';
-                          }
-                          return null;
-                        },
+                      gradient: LinearGradient(
+                        colors: [AppColor.white, AppColor.iceGreen],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
-
-                      SizedBox(height: 30),
-
-                      Text(
-                        'Bank Name',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                      borderRadius: const BorderRadius.only(
+                        bottomRight: Radius.circular(30),
+                        bottomLeft: Radius.circular(30),
                       ),
-                      SizedBox(height: 10),
-
-                      CommonContainer.fillingContainer(
-                        keyboardType: TextInputType.name,
-                        text: '',
-                        verticalDivider: false,
-                        controller: bankNameController,
-                        context: context,
-                        validator:
-                            (v) =>
-                                v == null || v.isEmpty
-                                    ? 'Bank Name is required'
-                                    : null,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          Image.asset(AppImages.person, height: 85),
+                          const SizedBox(height: 15),
+                          Text(
+                            'Owner’s Info',
+                            style: AppTextStyles.mulish(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.mildBlack,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          LinearProgressIndicator(
+                            minHeight: 12,
+                            value: 0.3,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColor.green,
+                            ),
+                            backgroundColor: AppColor.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          const SizedBox(height: 25),
+                        ],
                       ),
+                    ),
+                  ),
 
-                      SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-                      Text(
-                        'Account Holder Name',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bank Account Number',
+                          style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                        ),
+                        SizedBox(height: 10),
 
-                      CommonContainer.fillingContainer(
-                        keyboardType: TextInputType.name,
-                        text: '',
-                        verticalDivider: false,
-                        controller: accountHolderNameController,
-                        context: context,
-                        validator:
-                            (v) =>
-                                v == null || v.isEmpty
-                                    ? 'Account Holder Name is required'
-                                    : null,
-                      ),
+                        CommonContainer.fillingContainer(
+                          keyboardType: TextInputType.number,
+                          text: '',
+                          verticalDivider: false,
+                          controller: accountNumberController,
+                          context: context,
+                          maxLength: 18,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(18),
+                          ],
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Bank Account Number is required';
+                            }
+                            if (v.length < 8) {
+                              return 'Enter a valid account number';
+                            }
+                            return null;
+                          },
+                        ),
 
-                      SizedBox(height: 30),
+                        SizedBox(height: 30),
 
-                      Text(
-                        'Account Branch',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
+                        Text(
+                          'Bank Name',
+                          style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                        ),
+                        SizedBox(height: 10),
 
-                      CommonContainer.fillingContainer(
-                        keyboardType: TextInputType.name,
-                        text: '',
-                        verticalDivider: false,
-                        controller: accountBranchController,
-                        context: context,
-                        validator:
-                            (v) =>
-                                v == null || v.isEmpty
-                                    ? 'Account Branch is required'
-                                    : null,
-                      ),
+                        CommonContainer.fillingContainer(
+                          keyboardType: TextInputType.name,
+                          text: '',
+                          verticalDivider: false,
+                          controller: bankNameController,
+                          context: context,
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Bank Name is required'
+                                      : null,
+                        ),
 
-                      SizedBox(height: 30),
+                        SizedBox(height: 30),
 
-                      Text(
-                        'Account IFSC Code',
-                        style: GoogleFonts.mulish(color: AppColor.mildBlack),
-                      ),
-                      SizedBox(height: 10),
+                        Text(
+                          'Account Holder Name',
+                          style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                        ),
+                        SizedBox(height: 10),
 
-                      CommonContainer.fillingContainer(
-                        keyboardType: TextInputType.name,
-                        text: '',
-                        verticalDivider: false,
-                        controller: accountIFSCCodeController,
-                        context: context,
-                        validator:
-                            (v) =>
-                                v == null || v.isEmpty
-                                    ? 'Account IFSC Code is required'
-                                    : null,
-                      ),
+                        CommonContainer.fillingContainer(
+                          keyboardType: TextInputType.name,
+                          text: '',
+                          verticalDivider: false,
+                          controller: accountHolderNameController,
+                          context: context,
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Account Holder Name is required'
+                                      : null,
+                        ),
 
-                      SizedBox(height: 30),
+                        SizedBox(height: 30),
 
-                      CommonContainer.button(
-                        buttonColor: AppColor.darkBlue,
-                        imagePath:
-                            state.isLoading ? null : AppImages.rightStickArrow,
-                        text:
-                            state.isLoading
-                                ? ThreeDotsLoader()
-                                : Text('Save & Continue'),
-                        onTap: () async {
-                          // setState(() => _isSubmitted = true);
-                          //
-                          // if (!_formKey.currentState!.validate()) {
-                          //   return;
-                          // }
+                        Text(
+                          'Account Branch',
+                          style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                        ),
+                        SizedBox(height: 10),
 
-                          final accountNumber =
-                              accountNumberController.text.trim();
-                          final bankName = bankNameController.text.trim();
-                          final accountHolderName =
-                              accountHolderNameController.text.trim();
-                          final accountBranch =
-                              accountBranchController.text.trim();
-                          final accountIFSCCode =
-                              accountIFSCCodeController.text.trim();
+                        CommonContainer.fillingContainer(
+                          keyboardType: TextInputType.name,
+                          text: '',
+                          verticalDivider: false,
+                          controller: accountBranchController,
+                          context: context,
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Account Branch is required'
+                                      : null,
+                        ),
 
-                          await ref
-                              .read(heaterRegisterNotifier.notifier)
-                              .registerVendor(
-                                aadhaarFile: _pickedImages[0],
-                                screen: VendorRegisterScreen.screen2,
-                                vendorName: '',
-                                vendorNameTamil: '',
-                                phoneNumber: '',
-                                aadharNumber: '',
-                                aadharDocumentUrl: '',
-                                bankAccountNumber: accountNumber,
-                                bankName: bankName,
-                                bankAccountName: accountHolderName,
-                                bankBranch: accountBranch,
-                                bankIfsc: accountIFSCCode,
-                                companyName: '',
-                                companyAddress: '',
-                                gpsLatitude: '',
-                                gpsLongitude: '',
-                                primaryCity: '',
-                                primaryState: '',
-                                companyContactNumber: '',
-                                alternatePhone: '',
-                                companyEmail: '',
-                                gstNumber: '',
-                                avatarUrl: '',
-                                email: '',
-                                dateOfBirth: '',
-                                gender: '',
+                        SizedBox(height: 30),
+
+                        Text(
+                          'Account IFSC Code',
+                          style: GoogleFonts.mulish(color: AppColor.mildBlack),
+                        ),
+                        SizedBox(height: 10),
+
+                        CommonContainer.fillingContainer(
+                          keyboardType: TextInputType.name,
+                          text: '',
+                          verticalDivider: false,
+                          controller: accountIFSCCodeController,
+                          context: context,
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Account IFSC Code is required'
+                                      : null,
+                        ),
+
+                        SizedBox(height: 30),
+
+                        CommonContainer.button(
+                          buttonColor: AppColor.darkBlue,
+                          imagePath:
+                              state.isLoading
+                                  ? null
+                                  : AppImages.rightStickArrow,
+                          text:
+                              state.isLoading
+                                  ? ThreeDotsLoader()
+                                  : Text('Save & Continue'),
+                          onTap: () async {
+                            // setState(() => _isSubmitted = true);
+                            //
+                            // if (!_formKey.currentState!.validate()) {
+                            //   return;
+                            // }
+
+                            final accountNumber =
+                                accountNumberController.text.trim();
+                            final bankName = bankNameController.text.trim();
+                            final accountHolderName =
+                                accountHolderNameController.text.trim();
+                            final accountBranch =
+                                accountBranchController.text.trim();
+                            final accountIFSCCode =
+                                accountIFSCCodeController.text.trim();
+
+                            await ref
+                                .read(heaterRegisterNotifier.notifier)
+                                .registerVendor(
+                                  aadhaarFile: _pickedImages[0],
+                                  screen: VendorRegisterScreen.screen2,
+                                  vendorName: '',
+                                  vendorNameTamil: '',
+                                  phoneNumber: '',
+                                  aadharNumber: '',
+                                  aadharDocumentUrl: '',
+                                  bankAccountNumber: accountNumber,
+                                  bankName: bankName,
+                                  bankAccountName: accountHolderName,
+                                  bankBranch: accountBranch,
+                                  bankIfsc: accountIFSCCode,
+                                  companyName: '',
+                                  companyAddress: '',
+                                  gpsLatitude: '',
+                                  gpsLongitude: '',
+                                  primaryCity: '',
+                                  primaryState: '',
+                                  companyContactNumber: '',
+                                  alternatePhone: '',
+                                  companyEmail: '',
+                                  gstNumber: '',
+                                  avatarUrl: '',
+                                  email: '',
+                                  dateOfBirth: '',
+                                  gender: '',
+                                );
+
+                            final newState = ref.read(heaterRegisterNotifier);
+
+                            if (newState.error != null) {
+                              AppSnackBar.error(context, newState.error!);
+                            } else if (newState.vendorResponse != null) {
+                              AppSnackBar.success(
+                                context,
+                                "Owner information saved successfully",
                               );
+                              if (widget.edit == false) {
+                                await AppPrefs.setOnboardingStep('step-3');
+                                context.push(AppRoutes.vendorCompanyInfoPath);
+                              } else {
+                                Navigator.pop(context);
+                                final notifier = ref.read(
+                                  heaterHomeNotifier.notifier,
+                                );
 
-                          final newState = ref.read(heaterRegisterNotifier);
+                                final today = DateFormat(
+                                  'yyyy-MM-dd',
+                                ).format(DateTime.now());
 
-                          if (newState.error != null) {
-                            AppSnackBar.error(context, newState.error!);
-                          } else if (newState.vendorResponse != null) {
-                            AppSnackBar.success(
-                              context,
-                              "Owner information saved successfully",
-                            );
-                            if (widget.edit == false) {
-                              await AppPrefs.setOnboardingStep('step-3');
-                              context.push(AppRoutes.vendorCompanyInfoPath);
-                            } else {
-                              Navigator.pop(context);
-                              final notifier = ref.read(
-                                heaterHomeNotifier.notifier,
-                              );
+                                notifier.heaterHome(
+                                  dateFrom: today,
+                                  dateTo: today,
+                                );
+                              }
 
-                              final today = DateFormat(
-                                'yyyy-MM-dd',
-                              ).format(DateTime.now());
-
-                              notifier.heaterHome(
-                                dateFrom: today,
-                                dateTo: today,
+                              AppLogger.log.i(
+                                "Owner Info Saved  ${newState.vendorResponse?.toJson()}",
                               );
                             }
-
-                            AppLogger.log.i(
-                              "Owner Info Saved  ${newState.vendorResponse?.toJson()}",
-                            );
-                          }
-                        },
-                      ),
-                      // CommonContainer.button(
-                      //   buttonColor: AppColor.darkBlue,
-                      //   imagePath: AppImages.rightStickArrow,
-                      //   text: Text('Save & Continue'),
-                      //   onTap: () {
-                      //     context.push(AppRoutes.vendorCompanyInfoPath);
-                      //   },
-                      // ),
-                    ],
+                          },
+                        ),
+                        // CommonContainer.button(
+                        //   buttonColor: AppColor.darkBlue,
+                        //   imagePath: AppImages.rightStickArrow,
+                        //   text: Text('Save & Continue'),
+                        //   onTap: () {
+                        //     context.push(AppRoutes.vendorCompanyInfoPath);
+                        //   },
+                        // ),
+                      ],
+                    ),
                   ),
-                ),
 
-                SizedBox(height: 30),
+                  SizedBox(height: 30),
                 ],
               ),
             ),

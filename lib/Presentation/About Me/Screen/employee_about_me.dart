@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tringo_vendor_new/Core/Auth/logout_controller.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_snackbar.dart';
 import 'package:tringo_vendor_new/Presentation/Support/Screen/support_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -91,11 +92,9 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                         setState(() => _logoutLoading = true);
 
                         try {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.remove('token');
-                          await prefs.remove('isProfileCompleted');
-                          await prefs.remove('isNewOwner');
-                          await prefs.clear();
+                          await ref
+                              .read(logoutControllerProvider.notifier)
+                              .logout();
                         } finally {
                           if (mounted) setState(() => _logoutLoading = false);
                         }
@@ -103,7 +102,7 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                         if (!mounted) return;
 
                         // ✅ navigate using page context (NOT dialog context)
-                        context.goNamed(AppRoutes.login);
+                        // Navigation handled by logout flow (repo uses `go` to login).
                       },
               child: Text(
                 _logoutLoading ? "..." : "Logout",

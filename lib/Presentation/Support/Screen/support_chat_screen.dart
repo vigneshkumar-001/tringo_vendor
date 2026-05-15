@@ -299,20 +299,20 @@ class _SupportChatScreenState extends ConsumerState<SupportChatScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 40),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                    decoration: BoxDecoration(color: AppColor.black, borderRadius: BorderRadius.circular(15)),
-                    child: Column(
-                      children: [
-                        Text("Close", style: AppTextStyles.mulish(fontSize: 12, color: Colors.white)),
-                        Text("Ticket", style: AppTextStyles.mulish(fontSize: 12, color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                ),
+                // const SizedBox(width: 40),
+                // GestureDetector(
+                //   onTap: () => Navigator.pop(context),
+                //   child: Container(
+                //     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                //     decoration: BoxDecoration(color: AppColor.black, borderRadius: BorderRadius.circular(15)),
+                //     child: Column(
+                //       children: [
+                //         Text("Close", style: AppTextStyles.mulish(fontSize: 12, color: Colors.white)),
+                //         Text("Ticket", style: AppTextStyles.mulish(fontSize: 12, color: Colors.white)),
+                //       ],
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),

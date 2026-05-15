@@ -1,10 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_textstyles.dart';
 import 'package:tringo_vendor_new/Presentation/Support/Screen/support_chat_screen.dart';
-
-
 
 import '../../../../../Core/Utility/app_loader.dart';
 
@@ -104,7 +101,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                     );
 
                     // 2️⃣ Refresh support list AFTER returning
-                    await ref.read(supportNotifier.notifier).supportList(context: context);
+                    await ref
+                        .read(supportNotifier.notifier)
+                        .supportList(context: context);
                   },
                   text: const Text('Create Ticket'),
                 ),
@@ -121,10 +120,13 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            await ref.read(supportNotifier.notifier).supportList(context: context);
+            await ref
+                .read(supportNotifier.notifier)
+                .supportList(context: context);
           },
           child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(), // ✅ pull even if small list
+            physics:
+                const AlwaysScrollableScrollPhysics(), // ✅ pull even if small list
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
             children: [
               // Header
@@ -152,7 +154,8 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
               // Support List
               ListView.builder(
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(), // ✅ inside list disable scroll
+                physics:
+                    const NeverScrollableScrollPhysics(), // ✅ inside list disable scroll
                 itemCount: supportListResponse!.data.length,
                 itemBuilder: (context, index) {
                   final ticket = supportListResponse.data[index];
@@ -203,10 +206,14 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                     child: CommonContainer.supportBox(
                       imageTextColor: imageTextColor,
                       onTap: () {
+                        if (ticket.status == SupportStatus.closed) {
+                          return;
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => SupportChatScreen(id: ticket.id),
+                            builder:
+                                (context) => SupportChatScreen(id: ticket.id),
                           ),
                         );
                       },
@@ -365,6 +372,4 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
       ),
     );*/
   }
-
-
 }
