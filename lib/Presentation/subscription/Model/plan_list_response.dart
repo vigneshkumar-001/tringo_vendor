@@ -52,6 +52,7 @@ class PlanModel {
   final String price;
   final int durationDays;
   final bool isBestValue;
+  final String color;
   final List<PlanFeature> features;
 
   PlanModel({
@@ -63,6 +64,7 @@ class PlanModel {
     required this.price,
     required this.durationDays,
     required this.isBestValue,
+    required this.color,
     required this.features,
   });
 
@@ -78,6 +80,7 @@ class PlanModel {
       price: json['price'] ?? '0',
       durationDays: json['durationDays'] ?? 0,
       isBestValue: json['isBestValue'] == true,
+      color: (json['color'] ?? '').toString(),
       features: (json['features'] is List)
           ? (json['features'] as List)
               .whereType<Map<String, dynamic>>()
