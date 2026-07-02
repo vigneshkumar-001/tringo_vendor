@@ -12,12 +12,28 @@ val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+
+fun readSigningValue(key: String, envKey: String): String {
+    val fromFile = keystoreProperties.getProperty(key)?.trim().orEmpty()
+    if (fromFile.isNotBlank()) return fromFile
+
+    val fromEnv = System.getenv(envKey)?.trim().orEmpty()
+    if (fromEnv.isNotBlank()) return fromEnv
+
+    return ""
+}
+
+val signingKeyAlias = readSigningValue("keyAlias", "ANDROID_KEY_ALIAS")
+val signingKeyPassword = readSigningValue("keyPassword", "ANDROID_KEY_PASSWORD")
+val signingStorePassword = readSigningValue("storePassword", "ANDROID_STORE_PASSWORD")
+val signingStoreFilePath = readSigningValue("storeFile", "ANDROID_STORE_FILE")
+
 val hasReleaseSigningConfig = listOf(
-    "keyAlias",
-    "keyPassword",
-    "storeFile",
-    "storePassword",
-).all { keystoreProperties.getProperty(it) != null }
+    signingKeyAlias,
+    signingKeyPassword,
+    signingStoreFilePath,
+    signingStorePassword,
+).all { it.isNotBlank() }
 android {
     namespace = "com.feni.tringo_vendor_new"
     compileSdk = flutter.compileSdkVersion
@@ -43,10 +59,12 @@ android {
     signingConfigs {
         create("release") {
             if (hasReleaseSigningConfig) {
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
-                storeFile = file(keystoreProperties.getProperty("storeFile"))
-                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword
+                storeFile = rootProject.file(signingStoreFilePath).let {
+                    if (it.exists()) it else file(signingStoreFilePath)
+                }
+                storePassword = signingStorePassword
             }
         }
     }

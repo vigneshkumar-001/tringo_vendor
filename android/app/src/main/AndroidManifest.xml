@@ -90,9 +90,11 @@
         android:icon="@mipmap/ic_launcher">
 
         <!-- ✅ FCM: Default notification channel + icon -->
+        <!-- Must match the channel created in firebase_service.dart (flutter_notification),
+             otherwise background/terminated notifications land on a channel without sound. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="high_importance_channel" />
+            android:value="flutter_notification" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"

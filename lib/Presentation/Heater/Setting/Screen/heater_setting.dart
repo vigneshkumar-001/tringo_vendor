@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Session/session_manager.dart';
 import 'package:tringo_vendor_new/Core/Auth/logout_controller.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Controller/heater_register_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Heater%20Register/Screen/heater_register_1.dart';
@@ -230,10 +231,11 @@ class _HeaterSettingState extends ConsumerState<HeaterSetting> {
     if (!mounted) return;
 
     if (success) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
       AppSnackBar.success(context, "Account deleted successfully");
-      context.goNamed(AppRoutes.login);
+      // Full reset: prefs + in-memory singletons + Riverpod ProviderScope
+      // (router restarts at splash -> login) so no old data leaks into the
+      // freshly created account on re-login.
+      await SessionManager.forceLogout();
     } else {
       AppSnackBar.error(context, st.error ?? "Delete failed");
     }

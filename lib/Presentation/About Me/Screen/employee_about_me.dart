@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Auth/logout_controller.dart';
+import 'package:tringo_vendor_new/Core/Session/session_manager.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_snackbar.dart';
 import 'package:tringo_vendor_new/Presentation/Support/Screen/support_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,7 +9,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
-import '../../../../Core/Widgets/app_go_routes.dart';
 import '../../../../Core/Widgets/common_container.dart';
 import '../../Home Screen/Contoller/employee_home_notifier.dart';
 import '../../Home Screen/Model/employee_home_response.dart';
@@ -253,11 +251,8 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                                         if (!mounted) return;
 
                                         if (success) {
-                                          final prefs =
-                                              await SharedPreferences.getInstance();
-                                          await prefs.clear();
-
-                                          // ✅ show snackbar BEFORE navigation (page context)
+                                          // Show confirmation before the reset
+                                          // tears down this page.
                                           ScaffoldMessenger.of(
                                             pageContext,
                                           ).showSnackBar(
@@ -268,12 +263,12 @@ class _EmployeeAboutMeState extends ConsumerState<EmployeeAboutMe> {
                                             ),
                                           );
 
-                                          // ✅ then navigate (page context)
-                                          await Future.delayed(
-                                            const Duration(milliseconds: 150),
-                                          );
-                                          if (!mounted) return;
-                                          pageContext.go(AppRoutes.loginPath);
+                                          // Full reset: prefs + in-memory
+                                          // singletons + Riverpod ProviderScope
+                                          // (router restarts at splash -> login).
+                                          // Prevents the deleted user's cached
+                                          // data leaking into a new account.
+                                          await SessionManager.forceLogout();
                                         } else {
                                           final error =
                                               ref
