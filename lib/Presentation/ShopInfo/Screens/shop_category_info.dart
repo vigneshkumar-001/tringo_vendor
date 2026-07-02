@@ -598,6 +598,11 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   }
 
   @override
+  // The owning owner's OWN already-verified phone (passed from the owner-info
+  // step via route extra). When the shop primary number equals this, the verify
+  // field auto-shows "Verified" (no OTP) — the owner's number is already trusted.
+  String _ownerVerifiedPhone10 = '';
+
   void initState() {
     super.initState();
 
@@ -607,6 +612,18 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     final bool isServiceFlow = widget.isService ?? false;
     final String typeText = isServiceFlow ? 'service' : 'product';
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Owner's own phone from route extra → auto-verify a matching shop number.
+      try {
+        final extra = GoRouterState.of(context).extra;
+        if (extra is Map) {
+          final op = _normalizeIndianPhone10((extra['ownerPhone'] ?? '').toString());
+          if (op.isNotEmpty && mounted) {
+            setState(() => _ownerVerifiedPhone10 = op);
+          }
+        }
+      } catch (_) {
+        // extra not a map / not available — leave empty (OTP required as before).
+      }
       // âœ… fetch category
       ref
           .read(shopCategoryNotifierProvider.notifier)
@@ -1376,6 +1393,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             // focusNode: mobileFocusNode,
                             isLoading: state.isSendingOtp,
                             isOtpVerifying: state.isVerifyingOtp,
+                            ownerVerifiedPhone10: _ownerVerifiedPhone10,
                             onSendOtp: (mobile) {
                               final phone10 = _normalizeIndianPhone10(mobile);
                               return ref
@@ -1496,6 +1514,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                             controller: _primaryMobileController,
                             isLoading: state.isSendingOtp,
                             isOtpVerifying: state.isVerifyingOtp,
+                            ownerVerifiedPhone10: _ownerVerifiedPhone10,
                             onSendOtp: (mobile) {
                               final phone10 = _normalizeIndianPhone10(mobile);
                               return ref

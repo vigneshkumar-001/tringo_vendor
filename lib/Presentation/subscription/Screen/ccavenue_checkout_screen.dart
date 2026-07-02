@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -31,12 +34,33 @@ class CcAvenueCheckoutScreen extends StatefulWidget {
 }
 
 class _CcAvenueCheckoutScreenState extends State<CcAvenueCheckoutScreen> {
+  static const MethodChannel _paymentLauncherChannel = MethodChannel(
+    'tringo_vendor/payment_launcher',
+  );
+
   late final WebViewController _controller;
   int _progress = 0;
   bool _finished = false;
+  String? _lastExternalLaunchUrl;
+  DateTime? _lastExternalLaunchAt;
 
   Future<bool> _tryLaunchExternal(String url) async {
-    final uri = Uri.tryParse(url);
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return false;
+
+    if (Platform.isAndroid) {
+      try {
+        final launched = await _paymentLauncherChannel.invokeMethod<bool>(
+          'launchExternalPaymentUrl',
+          {'url': trimmed},
+        );
+        if (launched == true) return true;
+      } catch (_) {
+        // Fall through to url_launcher below.
+      }
+    }
+
+    final uri = Uri.tryParse(trimmed);
     if (uri == null) return false;
     try {
       final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -51,6 +75,151 @@ class _CcAvenueCheckoutScreenState extends State<CcAvenueCheckoutScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  bool _isExternalScheme(Uri uri) {
+    final scheme = uri.scheme.toLowerCase();
+    if (scheme.isEmpty) return false;
+    return !const {
+      'http',
+      'https',
+      'about',
+      'data',
+      'javascript',
+      'blob',
+      'file',
+    }.contains(scheme);
+  }
+
+  bool _isDuplicateExternalLaunch(String url) {
+    final now = DateTime.now();
+    final lastAt = _lastExternalLaunchAt;
+    if (_lastExternalLaunchUrl == url &&
+        lastAt != null &&
+        now.difference(lastAt).inMilliseconds < 1500) {
+      return true;
+    }
+    _lastExternalLaunchUrl = url;
+    _lastExternalLaunchAt = now;
+    return false;
+  }
+
+  Future<void> _recoverFromUnknownSchemePage() async {
+    try {
+      if (await _controller.canGoBack()) {
+        await _controller.goBack();
+      }
+    } catch (_) {
+      // Ignore recovery errors; user can still retry manually.
+    }
+  }
+
+  Future<void> _handleExternalPaymentLaunch(
+    String url, {
+    bool recoverWebView = false,
+  }) async {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty || _isDuplicateExternalLaunch(trimmed)) return;
+
+    final ok = await _tryLaunchExternal(trimmed);
+
+    if (recoverWebView) {
+      unawaited(_recoverFromUnknownSchemePage());
+    }
+
+    if (!ok && mounted) {
+      _showInfo(
+        "Unable to open payment app. Please install a supported UPI app and try again.",
+      );
+    }
+  }
+
+  Future<void> _injectExternalSchemeBridge() async {
+    try {
+      await _controller.runJavaScript('''
+(() => {
+  if (window.__tringoPaymentBridgeInstalled) return;
+  window.__tringoPaymentBridgeInstalled = true;
+
+  const safeSchemes = /^(https?:|about:|data:|javascript:|blob:|file:)/i;
+
+  function forwardIfExternal(rawUrl) {
+    if (typeof rawUrl !== 'string') return false;
+    const url = rawUrl.trim();
+    if (!url || safeSchemes.test(url)) return false;
+
+    try {
+      if (window.TringoPaymentBridge && window.TringoPaymentBridge.postMessage) {
+        window.TringoPaymentBridge.postMessage(url);
+        return true;
+      }
+    } catch (_) {}
+
+    return false;
+  }
+
+  document.addEventListener('click', (event) => {
+    let node = event.target;
+    while (node && node.tagName !== 'A') node = node.parentElement;
+    if (!node) return;
+
+    const href = node.getAttribute('href') || node.href || '';
+    if (forwardIfExternal(href)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+
+  document.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!form) return;
+    const action = form.getAttribute('action') || form.action || '';
+    if (forwardIfExternal(action)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+
+  if (window.HTMLAnchorElement && HTMLAnchorElement.prototype) {
+    const originalAnchorClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function() {
+      const href = this.getAttribute('href') || this.href || '';
+      if (forwardIfExternal(href)) return;
+      return originalAnchorClick.call(this);
+    };
+  }
+
+  if (window.HTMLFormElement && HTMLFormElement.prototype) {
+    const originalFormSubmit = HTMLFormElement.prototype.submit;
+    HTMLFormElement.prototype.submit = function() {
+      const action = this.getAttribute('action') || this.action || '';
+      if (forwardIfExternal(action)) return;
+      return originalFormSubmit.call(this);
+    };
+  }
+
+  const originalOpen = window.open ? window.open.bind(window) : null;
+  window.open = function(url, ...rest) {
+    if (typeof url === 'string' && forwardIfExternal(url)) return null;
+    return originalOpen ? originalOpen(url, ...rest) : null;
+  };
+
+  const originalAssign = window.location.assign.bind(window.location);
+  window.location.assign = function(url) {
+    if (typeof url === 'string' && forwardIfExternal(url)) return;
+    return originalAssign(url);
+  };
+
+  const originalReplace = window.location.replace.bind(window.location);
+  window.location.replace = function(url) {
+    if (typeof url === 'string' && forwardIfExternal(url)) return;
+    return originalReplace(url);
+  };
+})();
+''');
+    } catch (_) {
+      // Ignore injection failures; navigation delegate still handles many cases.
+    }
   }
 
   bool _isCallbackUrl(Uri uri) {
@@ -73,26 +242,58 @@ class _CcAvenueCheckoutScreenState extends State<CcAvenueCheckoutScreen> {
     _controller =
         WebViewController()
           ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..addJavaScriptChannel(
+            'TringoPaymentBridge',
+            onMessageReceived: (message) {
+              unawaited(
+                _handleExternalPaymentLaunch(
+                  message.message,
+                  recoverWebView: true,
+                ),
+              );
+            },
+          )
           ..setNavigationDelegate(
             NavigationDelegate(
               onProgress: (p) => setState(() => _progress = p),
-              onPageFinished: (_) => setState(() => _finished = true),
+              onPageStarted: (_) => setState(() => _finished = false),
+              onPageFinished: (_) {
+                setState(() => _finished = true);
+                unawaited(_injectExternalSchemeBridge());
+              },
+              onWebResourceError: (error) {
+                // A UPI / intent redirect (upi:, phonepe:, tez:, intent:, ...)
+                // that slipped past onNavigationRequest fails here as
+                // ERR_UNKNOWN_URL_SCHEME. Launch the offending URL in the
+                // external app instead of just recovering, so UPI payments
+                // actually proceed.
+                if (error.description.contains('ERR_UNKNOWN_URL_SCHEME')) {
+                  final failedUrl = error.url?.trim() ?? '';
+                  if (failedUrl.isNotEmpty) {
+                    unawaited(
+                      _handleExternalPaymentLaunch(
+                        failedUrl,
+                        recoverWebView: true,
+                      ),
+                    );
+                  } else {
+                    unawaited(_recoverFromUnknownSchemePage());
+                  }
+                }
+              },
               onNavigationRequest: (req) {
                 final uri = Uri.tryParse(req.url);
                 if (uri == null) return NavigationDecision.navigate;
 
                 // UPI and other payment app handoffs typically use non-http schemes.
                 // We open them in an external application for best compatibility.
-                final scheme = uri.scheme.toLowerCase();
-                if (scheme.isNotEmpty && scheme != 'http' && scheme != 'https') {
-                  () async {
-                    final ok = await _tryLaunchExternal(req.url);
-                    if (!ok && mounted) {
-                      _showInfo(
-                        "Unable to open payment app. Please install a UPI app and try again.",
-                      );
-                    }
-                  }();
+                if (_isExternalScheme(uri)) {
+                  unawaited(
+                    _handleExternalPaymentLaunch(
+                      req.url,
+                      recoverWebView: true,
+                    ),
+                  );
                   return NavigationDecision.prevent;
                 }
 

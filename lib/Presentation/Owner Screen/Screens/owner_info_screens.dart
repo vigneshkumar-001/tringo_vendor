@@ -708,6 +708,11 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
                               'pages': 'OwnerInfoScreens',
                               'employeeId':
                                   employeeId, // can be null in offline case
+                              // The just-created owner's own (already-verified)
+                              // phone. The shop screen uses it so that a shop
+                              // number equal to the owner's number is auto-shown
+                              // as Verified (no OTP) — matching the owner app.
+                              'ownerPhone': mobile,
                               // Optional: pass this too if your ShopCategory needs it
                               'offlineSessionId':
                                   await AppPrefs.getOfflineSessionId(),

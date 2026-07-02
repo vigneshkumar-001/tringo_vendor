@@ -78,6 +78,18 @@
 
         <intent>
             <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="upi" />
+        </intent>
+
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="market" />
+        </intent>
+
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
             <data android:scheme="geo" />
         </intent>
 

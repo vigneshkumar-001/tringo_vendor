@@ -76,6 +76,12 @@ class OwnerVerifyField extends StatefulWidget {
   final bool readOnly;
   final ValueChanged<bool>? onVerifiedChanged;
 
+  /// Owner's own already-verified phone (any format). When the entered number
+  /// equals this, the field is shown as Verified and OTP is skipped — the owner
+  /// need not re-verify their own number as the shop number. The backend also
+  /// trusts this number without a verification token.
+  final String? ownerVerifiedPhone10;
+
   final Future<String?> Function(String mobile)? onSendOtp;
   final Future<bool> Function(String mobile, String otp)? onVerifyOtp;
 
@@ -88,6 +94,7 @@ class OwnerVerifyField extends StatefulWidget {
     this.isOtpVerifying = false,
     this.readOnly = false,
     this.onVerifiedChanged,
+    this.ownerVerifiedPhone10,
     this.onSendOtp,
     this.onVerifyOtp,
   });
@@ -186,8 +193,23 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
             ? textValue.substring(textValue.length - 4)
             : '';
 
+    // ✅ Auto-verify when the entered number is the owner's OWN already-verified
+    // phone — no OTP needed (backend also trusts it without a token). Derived in
+    // build so it reacts to prefill/typing without needing setState.
+    String norm10(String v) {
+      var p = v.trim().replaceAll(RegExp(r'[^0-9]'), '');
+      if (p.startsWith('91') && p.length == 12) p = p.substring(2);
+      if (p.length > 10) p = p.substring(p.length - 10);
+      return p;
+    }
+
+    final current10 = norm10(textValue);
+    final ownerPhone10 = norm10(widget.ownerVerifiedPhone10 ?? '');
+    final matchesOwnerPhone = ownerPhone10.isNotEmpty && current10 == ownerPhone10;
+    final bool effectiveVerified = isVerified || matchesOwnerPhone;
+
     // ✅ LOCK: OTP typing time phone number should not be editable
-    final bool lockMobileField = showOtp && !isVerified;
+    final bool lockMobileField = showOtp && !effectiveVerified;
 
     return FormField<String>(
       validator: widget.validator,
@@ -285,7 +307,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                           ),
                         ),
 
-                        if (hasMobile && !isVerified && !lockMobileField)
+                        if (hasMobile && !effectiveVerified && !lockMobileField)
                           GestureDetector(
                             onTap: () {
                               widget.controller?.clear();
@@ -335,7 +357,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                             ),
                           ),
 
-                        if (isTenDigits && !isVerified && !showOtp)
+                        if (isTenDigits && !effectiveVerified && !showOtp)
                           GestureDetector(
                             onTap:
                                 widget.isLoading
@@ -390,7 +412,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                             ),
                           ),
 
-                        if (isVerified)
+                        if (effectiveVerified)
                           Container(
                             decoration: BoxDecoration(
                               color: AppColor.green,
@@ -422,7 +444,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                     ),
 
                     /// ================= OTP BOX =================
-                    if (showOtp && !isVerified && hasMobile) ...[
+                    if (showOtp && !effectiveVerified && hasMobile) ...[
                       const SizedBox(height: 16),
                       Container(
                         decoration: BoxDecoration(
@@ -843,8 +865,23 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
             ? textValue.substring(textValue.length - 4)
             : '';
 
+    // ✅ Auto-verify when the entered number is the owner's OWN already-verified
+    // phone — no OTP needed (backend also trusts it without a token). Derived in
+    // build so it reacts to prefill/typing without needing setState.
+    String norm10(String v) {
+      var p = v.trim().replaceAll(RegExp(r'[^0-9]'), '');
+      if (p.startsWith('91') && p.length == 12) p = p.substring(2);
+      if (p.length > 10) p = p.substring(p.length - 10);
+      return p;
+    }
+
+    final current10 = norm10(textValue);
+    final ownerPhone10 = norm10(widget.ownerVerifiedPhone10 ?? '');
+    final matchesOwnerPhone = ownerPhone10.isNotEmpty && current10 == ownerPhone10;
+    final bool effectiveVerified = isVerified || matchesOwnerPhone;
+
     // ✅ LOCK: OTP typing time phone number should not be editable
-    final bool lockMobileField = showOtp && !isVerified;
+    final bool lockMobileField = showOtp && !effectiveVerified;
 
     return FormField<String>(
       validator: widget.validator,
@@ -918,7 +955,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                           ),
                         ),
 
-                        if (hasMobile && !isVerified && !lockMobileField)
+                        if (hasMobile && !effectiveVerified && !lockMobileField)
                           GestureDetector(
                             onTap: () {
                               widget.controller?.clear();
@@ -965,7 +1002,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                             ),
                           ),
 
-                        if (isTenDigits && !isVerified && !showOtp)
+                        if (isTenDigits && !effectiveVerified && !showOtp)
                           GestureDetector(
                             onTap:
                                 widget.isLoading
@@ -1020,7 +1057,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                             ),
                           ),
 
-                        if (isVerified)
+                        if (effectiveVerified)
                           Container(
                             decoration: BoxDecoration(
                               color: AppColor.green,
@@ -1051,7 +1088,7 @@ class _OwnerVerifyFieldState extends State<OwnerVerifyField> {
                       ],
                     ),
 
-                    if (showOtp && !isVerified && hasMobile) ...[
+                    if (showOtp && !effectiveVerified && hasMobile) ...[
                       const SizedBox(height: 16),
                       Container(
                         decoration: BoxDecoration(
