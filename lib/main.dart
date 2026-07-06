@@ -12,8 +12,8 @@ import 'package:tringo_vendor_new/Core/Firebase/firebase_service.dart';
 
 import 'Core/Const/app_color.dart';
 import 'Core/Const/app_images.dart';
-import 'Core/Utility/app_prefs.dart';
 import 'Core/Utility/app_textstyles.dart';
+import 'Core/Utility/vendor_approval_sync.dart';
 import 'Core/Widgets/app_go_routes.dart';
 import 'Core/Session/session_manager.dart';
 import 'dummy_screen.dart';
@@ -39,8 +39,7 @@ void _queuePushData(Map<String, dynamic> data) {
 }
 
 Future<void> _handlePushData(Map<String, dynamic> data) async {
-  final eventTypeRaw = (data['eventType'] ?? '').toString().trim();
-  final eventType = eventTypeRaw.toUpperCase();
+  final event = await VendorApprovalSync.syncFromPushData(data);
 
   final ctx = rootNavKey.currentContext;
   if (ctx == null) {
@@ -49,14 +48,13 @@ Future<void> _handlePushData(Map<String, dynamic> data) async {
   }
   final router = GoRouter.of(ctx);
 
-  switch (eventType) {
-    case 'VENDOR_APPROVED':
-      final vendorId = (data['vendorId'] ?? '').toString().trim();
-      if (vendorId.isNotEmpty) {
-        await AppPrefs.setVendorId(vendorId);
-      }
-      await AppPrefs.setVendorApproved(true);
+  switch (event?.type) {
+    case VendorPushEventType.approved:
       router.goNamed(AppRoutes.heaterHomeScreen);
+      return;
+    case VendorPushEventType.rejected:
+    case VendorPushEventType.suspended:
+      router.goNamed(AppRoutes.vendorAccessBlocked);
       return;
     default:
       router.goNamed(AppRoutes.notifications);
@@ -139,11 +137,14 @@ Future<void> _initializeFirebaseServices() async {
 
     firebaseService.listenToMessages(
       onMessage: (msg) async {
-        AppLogger.log.i('📩 [FG] ${msg.messageId}');
+        AppLogger.log.i('Foreground push messageId=${msg.messageId}');
+        if (msg.data.isNotEmpty) {
+          await VendorApprovalSync.syncFromPushData(msg.data);
+        }
         await firebaseService.showNotification(msg);
       },
       onMessageOpenedApp: (msg) {
-        AppLogger.log.i('📬 [OPENED] ${msg.messageId}');
+        AppLogger.log.i('Opened push messageId=${msg.messageId}');
         _queuePushData(msg.data);
       },
     );
@@ -153,7 +154,7 @@ Future<void> _initializeFirebaseServices() async {
       onTimeout: () => null,
     );
     if (initialMsg != null) {
-      AppLogger.log.i('🚀 [TERMINATED OPEN] ${initialMsg.messageId}');
+      AppLogger.log.i('Terminated-open push messageId=${initialMsg.messageId}');
       _queuePushData(initialMsg.data);
     }
   } catch (e, st) {

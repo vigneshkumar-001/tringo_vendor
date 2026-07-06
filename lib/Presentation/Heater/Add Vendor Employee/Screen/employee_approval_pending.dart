@@ -4,12 +4,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Utility/app_prefs.dart';
+import 'package:tringo_vendor_new/Core/Utility/vendor_approval_sync.dart';
 import 'package:tringo_vendor_new/Core/Widgets/app_go_routes.dart';
 import 'package:tringo_vendor_new/Core/Widgets/common_container.dart';
 import 'package:tringo_vendor_new/Presentation/Heater/Add%20Vendor%20Employee/Controller/add_employee_notifier.dart';
 import 'package:tringo_vendor_new/Presentation/No%20Data%20Screen/Screen/no_data_screen.dart';
+import 'package:tringo_vendor_new/Presentation/Support/Screen/support_screen.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
@@ -26,15 +27,24 @@ class EmployeeApprovalPending extends ConsumerStatefulWidget {
 
 class _EmployeeApprovalPendingState
     extends ConsumerState<EmployeeApprovalPending>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  static const Duration _pendingPollInterval = Duration(seconds: 30);
+
   Timer? _pollTimer;
+  StreamSubscription<VendorPushEvent>? _approvalEventSub;
   bool _navigated = false;
+  bool _pollInFlight = false;
+  AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
 
   late final AnimationController _sandCtrl;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _approvalEventSub = VendorApprovalSync.events.listen((event) {
+      _handleApprovalEvent(event);
+    });
 
     _sandCtrl = AnimationController(
       vsync: this,
@@ -42,20 +52,101 @@ class _EmployeeApprovalPendingState
     )..repeat(); // ✅ loop
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(addEmployeeNotifier.notifier).getEmployeeList();
-
-      // poll every 5 seconds until approved
-      _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-        ref.read(addEmployeeNotifier.notifier).getEmployeeList(silent: true);
-      });
+      _refreshApproval();
     });
   }
 
   @override
   void dispose() {
-    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _approvalEventSub?.cancel();
+    _approvalEventSub = null;
+    _cancelPollTimer();
     _sandCtrl.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appLifecycleState = state;
+
+    if (state == AppLifecycleState.resumed) {
+      _refreshApproval(silent: true);
+      return;
+    }
+
+    _cancelPollTimer();
+  }
+
+  bool get _canPoll =>
+      mounted &&
+      !_navigated &&
+      _appLifecycleState == AppLifecycleState.resumed;
+
+  void _cancelPollTimer() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+  }
+
+  void _scheduleNextPoll({bool immediate = false}) {
+    _cancelPollTimer();
+    if (!_canPoll) return;
+
+    _pollTimer = Timer(
+      immediate ? Duration.zero : _pendingPollInterval,
+      () => _refreshApproval(silent: !immediate),
+    );
+  }
+
+  Future<void> _activateVendorAccess() async {
+    if (_navigated || !mounted) return;
+
+    _navigated = true;
+    _cancelPollTimer();
+
+    await AppPrefs.setVendorStatus('ACTIVE');
+    await AppPrefs.setOnboardingStep('step-7');
+    await AppPrefs.setVendorApproved(true);
+
+    if (!mounted) return;
+    context.go(AppRoutes.heaterHomeScreenPath);
+  }
+
+  void _handleApprovalEvent(VendorPushEvent event) {
+    if (!mounted || _navigated) return;
+    if (event.type == VendorPushEventType.approved) {
+      unawaited(_activateVendorAccess());
+    }
+  }
+
+  Future<void> _refreshApproval({bool silent = false}) async {
+    if (_pollInFlight || !_canPoll) return;
+
+    _pollInFlight = true;
+    try {
+      await ref.read(addEmployeeNotifier.notifier).getEmployeeList(silent: silent);
+      if (!mounted) return;
+
+      final status =
+          ref
+              .read(addEmployeeNotifier)
+              .employeeListResponse
+              ?.data
+              .approvalStatus
+              .trim()
+              .toUpperCase() ??
+          '';
+
+      if (status == 'ACTIVE') {
+        await _activateVendorAccess();
+      } else if (status == 'PENDING') {
+        _scheduleNextPoll();
+      } else {
+        _cancelPollTimer();
+      }
+    } finally {
+      _pollInFlight = false;
+    }
   }
 
   @override
@@ -80,18 +171,8 @@ class _EmployeeApprovalPendingState
     final status = employeeData.approvalStatus.trim().toUpperCase();
 
     if (status == 'ACTIVE' && !_navigated) {
-      _navigated = true;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('vendorStatus', 'ACTIVE');
-        await AppPrefs.setOnboardingStep('step-7');
-        await AppPrefs.setVendorApproved(true);
-
-        _pollTimer?.cancel(); // stop polling
-        if (!mounted) return;
-
-        context.go(AppRoutes.heaterHomeScreenPath);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_activateVendorAccess());
       });
 
       return Scaffold(
@@ -106,7 +187,7 @@ class _EmployeeApprovalPendingState
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            await ref.read(addEmployeeNotifier.notifier).getEmployeeList();
+            await _refreshApproval();
           },
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -305,8 +386,8 @@ class _EmployeeApprovalPendingState
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 28),
                 child: Text(
-                  'Once admin approved you can move forward,now you can add employees',
-                  maxLines: 2,
+                  'Your vendor account is under review. You can continue adding employees while approval is pending.',
+                  maxLines: 3,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.visible,
                   style: AppTextStyles.mulish(
@@ -358,8 +439,8 @@ class _EmployeeApprovalPendingState
               ),
               const SizedBox(height: 15),
               Text(
-                'Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.',
-                maxLines: 2,
+                'Your vendor account was not approved. Please review your business details and contact support for the next steps.',
+                maxLines: 3,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.visible,
                 style: AppTextStyles.mulish(
@@ -372,11 +453,15 @@ class _EmployeeApprovalPendingState
                 padding: const EdgeInsets.symmetric(horizontal: 60),
                 child: CommonContainer.button(
                   onTap: () {
-                    // context.push(AppRoutes.employeeApprovalRejectedPath);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const SupportScreen(),
+                      ),
+                    );
                   },
                   buttonColor: AppColor.darkBlue,
                   imagePath: AppImages.rightStickArrow,
-                  text: const Text('Fix the Issue'),
+                  text: const Text('Contact Support'),
                 ),
               ),
               const SizedBox(height: 40),

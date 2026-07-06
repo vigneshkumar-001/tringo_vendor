@@ -116,6 +116,7 @@ class OwnerInfoNotifier extends Notifier<OwnerInfoState> {
         final data = response.data;
 
         await AppPrefs.setVerificationToken(data?.verificationToken ?? '');
+        await AppPrefs.setOwnerPhone(phoneNumber);
         final verification = await AppPrefs.getVerificationToken();
         AppLogger.log.i('verification Token → $verification');
 

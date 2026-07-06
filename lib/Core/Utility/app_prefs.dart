@@ -20,6 +20,8 @@ class AppPrefs {
   static const String _kVendorApproved = 'vendorApproved';
   static const String _kVendorId = 'vendorId';
   static const String _kVendorStatus = 'vendorStatus';
+  static const String _kVendorAccessBlockType = 'vendorAccessBlockType';
+  static const String _kVendorAccessBlockMessage = 'vendorAccessBlockMessage';
   static const String _kIsProfileCompleted = 'isProfileCompleted';
   static const String _kIsNewOwner = 'isNewOwner';
   static const String _kContactsSynced = 'contacts_synced';
@@ -140,6 +142,64 @@ class AppPrefs {
     final v = prefs.getString(_kVendorId);
     if (v == null || v.trim().isEmpty) return null;
     return v.trim();
+  }
+
+  static Future<void> setVendorStatus(String? status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = (status ?? '').trim().toUpperCase();
+    if (value.isEmpty) {
+      await prefs.remove(_kVendorStatus);
+      return;
+    }
+    await prefs.setString(_kVendorStatus, value);
+  }
+
+  static Future<String?> getVendorStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_kVendorStatus);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim().toUpperCase();
+  }
+
+  static Future<void> setVendorAccessBlock({
+    required String type,
+    String? message,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final normalizedType = type.trim().toUpperCase();
+    final normalizedMessage = (message ?? '').trim();
+
+    if (normalizedType.isEmpty) {
+      await prefs.remove(_kVendorAccessBlockType);
+    } else {
+      await prefs.setString(_kVendorAccessBlockType, normalizedType);
+    }
+
+    if (normalizedMessage.isEmpty) {
+      await prefs.remove(_kVendorAccessBlockMessage);
+    } else {
+      await prefs.setString(_kVendorAccessBlockMessage, normalizedMessage);
+    }
+  }
+
+  static Future<String?> getVendorAccessBlockType() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_kVendorAccessBlockType);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim().toUpperCase();
+  }
+
+  static Future<String?> getVendorAccessBlockMessage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getString(_kVendorAccessBlockMessage);
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
+  }
+
+  static Future<void> clearVendorAccessBlock() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kVendorAccessBlockType);
+    await prefs.remove(_kVendorAccessBlockMessage);
   }
 
   // ---------- Offline session ----------

@@ -609,21 +609,32 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     AppLogger.log.i("shopId=${widget.shopId}");
     AppLogger.log.i("isService=${widget.isService}");
     AppLogger.log.i("offlineSid=${widget.offlineSessionId}");
-    final bool isServiceFlow = widget.isService ?? false;
-    final String typeText = isServiceFlow ? 'service' : 'product';
+    final String typeText = 'category';
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      String resolvedOwnerPhone10 = '';
+
       // Owner's own phone from route extra → auto-verify a matching shop number.
       try {
         final extra = GoRouterState.of(context).extra;
         if (extra is Map) {
-          final op = _normalizeIndianPhone10((extra['ownerPhone'] ?? '').toString());
-          if (op.isNotEmpty && mounted) {
-            setState(() => _ownerVerifiedPhone10 = op);
-          }
+          resolvedOwnerPhone10 = _normalizeIndianPhone10(
+            (extra['ownerPhone'] ?? '').toString(),
+          );
         }
       } catch (_) {
         // extra not a map / not available — leave empty (OTP required as before).
       }
+
+      if (resolvedOwnerPhone10.isEmpty) {
+        resolvedOwnerPhone10 = _normalizeIndianPhone10(
+          await AppPrefs.getOwnerPhone() ?? '',
+        );
+      }
+
+      if (resolvedOwnerPhone10.isNotEmpty && mounted) {
+        setState(() => _ownerVerifiedPhone10 = resolvedOwnerPhone10);
+      }
+
       // âœ… fetch category
       ref
           .read(shopCategoryNotifierProvider.notifier)
@@ -993,9 +1004,7 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(shopCategoryNotifierProvider);
-    final bool isServiceFlow = widget.isService ?? false;
-
-    final String typeText = isServiceFlow ? 'service' : 'product';
+    const String typeText = 'category';
     final bool isIndividualFlow = widget.isIndividual ?? true;
     final bool isEditFromAboutMe = widget.pages == "shopDetailsEdit";
     return Scaffold(

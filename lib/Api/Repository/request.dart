@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tringo_vendor_new/Core/Const/app_logger.dart';
+import 'package:tringo_vendor_new/Core/Session/session_manager.dart';
 
 // ✅ import your navigatorKey
 import 'package:tringo_vendor_new/main.dart';
@@ -16,19 +17,24 @@ class Request {
   //  AUTO LOGOUT (NO CONTEXT)
   // =============================
   static Future<void> _forceLogout({String? reason}) async {
+    AppLogger.log.e("Force logout: ${reason ?? "Invalid Session"}");
+    await SessionManager.forceLogout();
+  }
+
+  static Future<void> _forceVendorBlocked({String? reason}) async {
     final prefs = await SharedPreferences.getInstance();
+    final role = (prefs.getString('role') ?? '').trim().toUpperCase();
+    if (role != 'VENDOR') return;
 
-    await prefs.remove('token');
-    await prefs.remove('refreshToken');
-    await prefs.remove('sessionToken');
-    await prefs.remove('userId');
-    await prefs.remove('role');
-
-    AppLogger.log.e("🔒 FORCE LOGOUT: ${reason ?? "Invalid Session"}");
+    AppLogger.log.e("Vendor access blocked: ${reason ?? "ACCOUNT_SUSPENDED"}");
+    await SessionManager.forceVendorAccessBlocked(
+      blockType: 'SUSPENDED',
+      message: reason,
+    );
 
     final ctx = rootNavKey.currentContext;
     if (ctx != null) {
-      GoRouter.of(ctx).go(AppRoutes.loginPath);
+      GoRouter.of(ctx).go(AppRoutes.vendorAccessBlockedPath);
     }
   }
 
@@ -44,6 +50,7 @@ class Request {
   static bool _isInvalidSessionResponse(dynamic data) {
     if (data is Map) {
       final msg = (data['message'] ?? '').toString().toLowerCase();
+      if (msg.contains('account_suspended')) return false;
       if (msg.contains('invalid session token')) return true;
       if (msg.contains('session token') && msg.contains('invalid')) return true;
       if (msg.contains('session expired')) return true;
@@ -53,11 +60,42 @@ class Request {
     // sometimes api returns string body
     if (data is String) {
       final s = data.toLowerCase();
+      if (s.contains('account_suspended')) return false;
       if (s.contains('invalid session token')) return true;
       if (s.contains('session token') && s.contains('invalid')) return true;
       if (s.contains('session expired')) return true;
     }
     return false;
+  }
+
+  static bool _isAccountSuspendedResponse(dynamic data) {
+    if (data is Map) {
+      final msg = (data['message'] ?? '').toString().toLowerCase().trim();
+      return msg.contains('account_suspended') ||
+          msg.contains('account suspended');
+    }
+
+    if (data is String) {
+      final msg = data.toLowerCase().trim();
+      return msg.contains('account_suspended') ||
+          msg.contains('account suspended');
+    }
+
+    return false;
+  }
+
+  static String? _extractServerMessage(dynamic data) {
+    if (data is Map) {
+      final msg = (data['message'] ?? '').toString().trim();
+      if (msg.isNotEmpty) return msg;
+    }
+
+    if (data is String) {
+      final msg = data.trim();
+      if (msg.isNotEmpty) return msg;
+    }
+
+    return null;
   }
 
   static Map<String, dynamic> _headers({
@@ -86,8 +124,7 @@ class Request {
     Map<String, dynamic> body,
     String? method,
     bool isTokenRequired,
-  ) async
-  {
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
     final String? sessionToken = prefs.getString('sessionToken');
@@ -111,6 +148,22 @@ class Request {
             "RESPONSE\nAPI: $url\nSTATUS: ${response.statusCode}\nDATA: ${response.data}",
           );
 
+          if (_isAccountSuspendedResponse(response.data)) {
+            await _forceVendorBlocked(
+              reason:
+                  _extractServerMessage(response.data) ??
+                  "Your vendor account is suspended.",
+            );
+            return handler.reject(
+              DioException(
+                requestOptions: response.requestOptions,
+                response: response,
+                type: DioExceptionType.badResponse,
+                message: "ACCOUNT_SUSPENDED",
+              ),
+            );
+          }
+
           // ✅ DETECT invalid session token even if status is 200
           if (_isInvalidSessionResponse(response.data)) {
             await _forceLogout(reason: "Invalid session token (body)");
@@ -129,9 +182,16 @@ class Request {
         onError: (DioException error, handler) async {
           final status = error.response?.statusCode;
 
-          // ✅ If backend uses 401/403 for invalid session
+          // ✅ If backend uses 401/403 for invalid session / blocked access
           if (status == 401 || status == 403) {
             final data = error.response?.data;
+            if (_isAccountSuspendedResponse(data)) {
+              await _forceVendorBlocked(
+                reason:
+                    _extractServerMessage(data) ??
+                    "Your vendor account is suspended.",
+              );
+            }
             if (_isInvalidSessionResponse(data)) {
               await _forceLogout(
                 reason: "Invalid session token (status $status)",
@@ -217,6 +277,20 @@ class Request {
           break;
       }
 
+      if (_isAccountSuspendedResponse(response.data)) {
+        await _forceVendorBlocked(
+          reason:
+              _extractServerMessage(response.data) ??
+              "Your vendor account is suspended.",
+        );
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          message: "ACCOUNT_SUSPENDED",
+        );
+      }
+
       // ✅ also check here (extra safety if interceptor not triggered)
       if (_isInvalidSessionResponse(response.data)) {
         await _forceLogout(reason: "Invalid session token (post-check)");
@@ -266,6 +340,22 @@ class Request {
           AppLogger.log.i(
             "GET RESPONSE\nAPI: $url\nToken: $token\nSessionToken: $sessionToken\nDATA: ${response.data}",
           );
+
+          if (_isAccountSuspendedResponse(response.data)) {
+            await _forceVendorBlocked(
+              reason:
+                  _extractServerMessage(response.data) ??
+                  "Your vendor account is suspended.",
+            );
+            return handler.reject(
+              DioException(
+                requestOptions: response.requestOptions,
+                response: response,
+                type: DioExceptionType.badResponse,
+                message: "ACCOUNT_SUSPENDED",
+              ),
+            );
+          }
 
           // 1) your existing invalid session check
           if (_isInvalidSessionResponse(response.data)) {
@@ -319,6 +409,13 @@ class Request {
           final status = error.response?.statusCode;
           if (status == 401 || status == 403) {
             final data = error.response?.data;
+            if (_isAccountSuspendedResponse(data)) {
+              await _forceVendorBlocked(
+                reason:
+                    _extractServerMessage(data) ??
+                    "Your vendor account is suspended.",
+              );
+            }
             if (_isInvalidSessionResponse(data)) {
               await _forceLogout(
                 reason: "Invalid session token (GET status $status)",
@@ -347,6 +444,15 @@ class Request {
         queryParameters: queryParams.isEmpty ? null : queryParams,
         options: Options(headers: headers),
       );
+
+      if (_isAccountSuspendedResponse(response.data)) {
+        await _forceVendorBlocked(
+          reason:
+              _extractServerMessage(response.data) ??
+              "Your vendor account is suspended.",
+        );
+        return null;
+      }
 
       // extra safety
       if (_isInvalidSessionResponse(response.data)) {
@@ -397,7 +503,7 @@ class Request {
           AppLogger.log.i("FORMDATA RESPONSE\nAPI: $url\nRESPONSE: $response");
           return handler.next(response);
         },
-        onError: (DioException error, handler) {
+        onError: (DioException error, handler) async {
           final status = error.response?.statusCode;
           AppLogger.log.e(
             "FORMDATA ERROR\n"
@@ -406,6 +512,15 @@ class Request {
             "MESSAGE: ${error.message}\n"
             "DATA: ${error.response?.data}\n",
           );
+
+          if ((status == 401 || status == 403) &&
+              _isAccountSuspendedResponse(error.response?.data)) {
+            await _forceVendorBlocked(
+              reason:
+                  _extractServerMessage(error.response?.data) ??
+                  "Your vendor account is suspended.",
+            );
+          }
           return handler.next(error);
         },
       ),

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:tringo_vendor_new/Core/Widgets/common_container.dart';
 
 import '../../../../Core/Const/app_color.dart';
 import '../../../../Core/Const/app_images.dart';
 import '../../../../Core/Utility/app_textstyles.dart';
-import '../../../../Core/Widgets/app_go_routes.dart';
+import '../../../Support/Screen/support_screen.dart';
 
 class EmployeeApprovalRejected extends StatefulWidget {
   const EmployeeApprovalRejected({super.key});
@@ -57,8 +56,8 @@ class _EmployeeApprovalRejectedState extends State<EmployeeApprovalRejected> {
                         ),
                         SizedBox(height: 15),
                         Text(
-                          'Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.',
-                          maxLines: 2,
+                          'Your vendor account was not approved. Please review your business details and contact support for the next steps.',
+                          maxLines: 3,
                           textAlign: TextAlign.center,
                           overflow: TextOverflow.visible,
                           style: AppTextStyles.mulish(
@@ -71,11 +70,15 @@ class _EmployeeApprovalRejectedState extends State<EmployeeApprovalRejected> {
                           padding: const EdgeInsets.symmetric(horizontal: 60),
                           child: CommonContainer.button(
                             onTap: () {
-                              // context.push(AppRoutes.employeeApprovalRejectedPath);
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SupportScreen(),
+                                ),
+                              );
                             },
                             buttonColor: AppColor.darkBlue,
                             imagePath: AppImages.rightStickArrow,
-                            text: Text('Fix the Issue'),
+                            text: Text('Contact Support'),
                           ),
                         ),
 

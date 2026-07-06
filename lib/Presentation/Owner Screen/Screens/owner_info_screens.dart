@@ -700,6 +700,8 @@ class _OwnerInfoScreensState extends ConsumerState<OwnerInfoScreens> {
 
                           if (!mounted) return;
 
+                          await AppPrefs.setOwnerPhone(mobile);
+
                           context.push(
                             AppRoutes.shopCategoryInfoPath,
                             extra: {

@@ -10,10 +10,11 @@ import 'package:tringo_vendor_new/Core/Utility/device_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:tringo_vendor_new/Core/Firebase/fcm_token_helper.dart';
 
-import '../../Core/Const/app_color.dart';
-import '../../Core/Const/app_images.dart';
-import '../../Core/Const/app_logger.dart';
-import '../../Core/Utility/app_textstyles.dart';
+import 'Core/Const/app_color.dart';
+import 'Core/Const/app_images.dart';
+import 'Core/Const/app_logger.dart';
+import 'Core/Utility/app_prefs.dart';
+import 'Core/Utility/app_textstyles.dart';
 
 import 'Core/Widgets/app_go_routes.dart';
 import 'Core/Widgets/common_container.dart';
@@ -93,10 +94,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       await ref
           .read(appVersionNotifierProvider.notifier)
           .fcmTokenSend(
-        fcmToken: fcmToken,
-        platform: platform,
-        deviceId: deviceId,
-      );
+            fcmToken: fcmToken,
+            platform: platform,
+            deviceId: deviceId,
+          );
       final st = ref.read(appVersionNotifierProvider);
       AppLogger.log.i(
         "✅ device-token api response: ${st.deviceTokenResponse?.status}",
@@ -116,14 +117,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     try {
       /// 🔥 CACHE NOTIFIERS FIRST (CRITICAL FIX)
-      final appVersionCtrl =
-      ref.read(appVersionNotifierProvider.notifier);
+      final appVersionCtrl = ref.read(appVersionNotifierProvider.notifier);
 
-      final employeeHomeCtrl =
-      ref.read(employeeHomeNotifier.notifier);
+      final employeeHomeCtrl = ref.read(employeeHomeNotifier.notifier);
 
-      final subscriptionCtrl =
-      ref.read(subscriptionNotifier.notifier);
+      final subscriptionCtrl = ref.read(subscriptionNotifier.notifier);
 
       final prefs = await SharedPreferences.getInstance();
       if (!mounted || _navigated) return;
@@ -131,21 +129,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       final token = prefs.getString('token') ?? '';
       final role = (prefs.getString('role') ?? '').toUpperCase();
       final vendorStatus =
-      (prefs.getString('vendorStatus') ?? 'PENDING').toUpperCase();
+          (prefs.getString('vendorStatus') ?? 'PENDING').toUpperCase();
+      final vendorBlockType =
+          (await AppPrefs.getVendorAccessBlockType() ?? '').toUpperCase();
 
       /// 🔹 Version check — read the real installed version first.
       await _loadAppVersion();
       await appVersionCtrl
           .getAppVersion(
-        appPlatForm: Platform.isAndroid ? 'android' : 'ios',
-        appVersion: appVersion,
-        appName: 'vendor',
-      )
+            appPlatForm: Platform.isAndroid ? 'android' : 'ios',
+            appVersion: appVersion,
+            appName: 'vendor',
+          )
           .timeout(
-        const Duration(seconds: 10),
-        onTimeout: () =>
-            AppLogger.log.e("⏳ getAppVersion timeout"),
-      );
+            const Duration(seconds: 10),
+            onTimeout: () => AppLogger.log.e("⏳ getAppVersion timeout"),
+          );
 
       if (!mounted || _navigated) return;
 
@@ -166,6 +165,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         return;
       }
 
+      if (role == 'VENDOR' && vendorBlockType.isNotEmpty) {
+        _navigated = true;
+        context.go(AppRoutes.vendorAccessBlockedPath);
+        return;
+      }
+
       /// 🔹 Send FCM token safely
       await _sendDeviceTokenIfNeeded();
       if (!mounted || _navigated) return;
@@ -182,9 +187,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (!mounted || _navigated) return;
 
       try {
-        await subscriptionCtrl
-            .getPlanList()
-            .timeout(const Duration(seconds: 12));
+        await subscriptionCtrl.getPlanList().timeout(
+          const Duration(seconds: 12),
+        );
       } catch (e) {
         AppLogger.log.e("getPlanList error: $e");
       }
@@ -263,8 +268,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       isDismissible: false,
       enableDrag: false,
       shape: const RoundedRectangleBorder(
-        borderRadius:
-        BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
         return Padding(
@@ -343,7 +347,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 }
-
 
 // import 'dart:io';
 //

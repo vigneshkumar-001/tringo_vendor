@@ -14,6 +14,7 @@ import 'package:tringo_vendor_new/Presentation/Shop%20Details%20Edit/Screen/shop
 
 import '../../Presentation/AddProduct/Screens/add_product_list.dart';
 import '../../Presentation/AddProduct/Screens/product_category_screens.dart';
+import '../../Presentation/Heater/Access/Screen/vendor_access_blocked_screen.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Screen/employee_approval_pending.dart';
 import '../../Presentation/Heater/Add Vendor Employee/Screen/heater_add_employee.dart';
 import '../../Presentation/Heater/Employee Details/Screen/heater_employee_details.dart';
@@ -36,6 +37,7 @@ import '../../Splash_screen.dart';
 import '../../dummy_screen.dart';
 import '../../main.dart';
 import '../Const/app_color.dart';
+import '../Utility/app_prefs.dart';
 import '../Utility/app_textstyles.dart';
 import 'heater_bottom_navigation_bar.dart';
 
@@ -58,6 +60,7 @@ class AppRoutes {
   static const String vendorCompanyInfo = 'VendorCompanyInfo';
   static const String vendorCompanyPhoto = 'VendorCompanyPhoto';
   static const String heaterHomeScreen = 'HeaterHomeScreen';
+  static const String vendorAccessBlocked = 'VendorAccessBlocked';
   static const String employeeApprovalPending = 'EmployeeApprovalPending';
   static const String heaterAddEmployee = 'heaterAddEmployee';
   static const String mobileNumberVerify = 'MobileNumberVerify';
@@ -87,6 +90,7 @@ class AppRoutes {
   static const String vendorCompanyInfoPath = '/VendorCompanyInfo';
   static const String vendorCompanyPhotoPath = '/VendorCompanyPhoto';
   static const String heaterHomeScreenPath = '/HeaterHomeScreen';
+  static const String vendorAccessBlockedPath = '/vendor-access-blocked';
   static const String employeeApprovalPendingPath = '/EmployeeApprovalPending';
   static const String heaterAddEmployeePath = '/heaterAddEmployeePath';
   static const String mobileNumberVerifyPath = '/MobileNumberVerify';
@@ -135,10 +139,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isOnline = ref.read(internetStatusProvider).value ?? true;
       final prefs = await SharedPreferences.getInstance();
       final role = (prefs.getString('role') ?? '').toUpperCase();
+      final vendorBlockType = await AppPrefs.getVendorAccessBlockType();
 
       final location = state.matchedLocation;
 
       final isOnNoInternet = location == AppRoutes.noInternetPath;
+      final isOnBlockedScreen = location == AppRoutes.vendorAccessBlockedPath;
 
       // ✅ Pages EMPLOYEE is allowed to use even when offline (registration flow)
       const employeeOfflineAllowed = <String>{
@@ -166,6 +172,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
         // ✅ NON-EMPLOYEE: only no-internet page
         return isOnNoInternet ? null : AppRoutes.noInternetPath;
+      }
+
+      if (role == 'VENDOR' &&
+          vendorBlockType != null &&
+          vendorBlockType.isNotEmpty) {
+        const blockedAllowedPaths = <String>{
+          AppRoutes.vendorAccessBlockedPath,
+          AppRoutes.splashScreenPath,
+        };
+        if (!blockedAllowedPaths.contains(location)) {
+          return AppRoutes.vendorAccessBlockedPath;
+        }
+        return null;
+      }
+
+      if (isOnBlockedScreen) {
+        return AppRoutes.splashScreenPath;
       }
 
       return null;
@@ -443,6 +466,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => HeaterBottomNavigationBar(initialIndex: 0),
       ),
       GoRoute(
+        path: AppRoutes.vendorAccessBlockedPath,
+        name: AppRoutes.vendorAccessBlocked,
+        builder: (context, state) => const VendorAccessBlockedScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.employeeApprovalPendingPath,
         name: AppRoutes.employeeApprovalPending,
         builder: (context, state) => EmployeeApprovalPending(),
@@ -529,5 +557,3 @@ class NoInternetScreen extends StatelessWidget {
     );
   }
 }
-
- 

@@ -51,8 +51,10 @@ class ApiUrl {
   static const String shopNumberOtpVerify =
       "${base}api/v1/auth/phone-verification/verify";
 
-  static String categoriesShop({required String type}) {
-    return "${base}api/v1/public/categories?type=$type";
+  static String categoriesShop({required String kind}) {
+    return Uri.parse("${base}api/v1/public/categories")
+        .replace(queryParameters: {"kind": kind})
+        .toString();
   }
 
   static const String employeeOverview =
@@ -109,7 +111,7 @@ class ApiUrl {
   }
 
   static String productCategoryList({required String shopId}) {
-    return '${base}api/v1/public/categories?kind=subcategory';
+    return categoriesShop(kind: 'subcategory');
   }
 
   // return "${base}api/v1/public/shops/$shopId/product-categories";

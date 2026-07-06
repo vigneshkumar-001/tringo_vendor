@@ -1562,7 +1562,7 @@ class ApiDataSource {
     required String type,
   }) async {
     try {
-      String url = ApiUrl.categoriesShop(type: type);
+      String url = ApiUrl.categoriesShop(kind: type);
 
       dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
 
@@ -1732,7 +1732,7 @@ class ApiDataSource {
               ? apiShopId
               : (savedShopId ?? '');
 
-      final url = ApiUrl.productCategoryList(shopId: shopId ?? '');
+      final url = ApiUrl.productCategoryList(shopId: shopId);
       dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
 
       AppLogger.log.i(response);

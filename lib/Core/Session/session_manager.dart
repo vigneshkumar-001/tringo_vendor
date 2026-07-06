@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../Utility/app_prefs.dart';
 import 'registration_product_seivice.dart';
 import 'registration_session.dart';
 
@@ -38,6 +39,11 @@ class SessionManager {
     RegistrationProductSeivice.instance.reset();
   }
 
+  static void _resetInMemorySessionStateOnly() {
+    RegistrationSession.instance.reset();
+    RegistrationProductSeivice.instance.reset();
+  }
+
   /// Full local reset: clears prefs + in-memory singletons and recreates all
   /// Riverpod providers. Safe after logout OR account deletion (no backend call).
   static Future<void> forceLogout() async {
@@ -45,6 +51,25 @@ class SessionManager {
     _isResetting = true;
     try {
       await _clearLocalUserData();
+      _resetProviderScope();
+    } finally {
+      _isResetting = false;
+    }
+  }
+
+  /// Keeps auth tokens intact but hard-blocks vendor access in-app and rebuilds
+  /// providers/router so no previously loaded vendor data remains interactive.
+  static Future<void> forceVendorAccessBlocked({
+    required String blockType,
+    String? message,
+  }) async {
+    if (_isResetting) return;
+    _isResetting = true;
+    try {
+      await AppPrefs.setVendorApproved(false);
+      await AppPrefs.setVendorStatus('SUSPENDED');
+      await AppPrefs.setVendorAccessBlock(type: blockType, message: message);
+      _resetInMemorySessionStateOnly();
       _resetProviderScope();
     } finally {
       _isResetting = false;

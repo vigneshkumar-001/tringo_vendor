@@ -154,6 +154,7 @@ class LoginNotifier extends Notifier<LoginState> {
         );
 
         final prefs = await SharedPreferences.getInstance();
+        await AppPrefs.clearVendorAccessBlock();
         await AppPrefs.setToken(response.data?.accessToken ?? '');
         await AppPrefs.setRefreshToken(response.data?.refreshToken ?? '');
         await AppPrefs.setSessionToken(response.data?.sessionToken ?? '');
@@ -235,6 +236,7 @@ class LoginNotifier extends Notifier<LoginState> {
           if (!ref.mounted) return;
 
           final data = response.data;
+          await AppPrefs.clearVendorAccessBlock();
           await prefs.setString('token', data?.accessToken ?? '');
           await prefs.setString('refreshToken', data?.refreshToken ?? '');
           await prefs.setString('sessionToken', data?.sessionToken ?? '');
