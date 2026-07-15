@@ -30,6 +30,12 @@ class ProductState {
 
   // final ServiceEditResponse? serviceEditResponse;
 
+  // Category of the shop's FIRST-created product/service, suggested when
+  // adding the NEXT one (most shops repeat the same category). Null when
+  // the shop has no prior item yet, or the suggestion hasn't loaded.
+  final String? suggestedCategorySlug;
+  final String? suggestedSubCategorySlug;
+
   const ProductState({
     this.isLoading = false,
     this.isGetLoading = false,
@@ -39,6 +45,8 @@ class ProductState {
     this.deleteResponses,
     this.serviceRemoveResponse,
     // this.serviceEditResponse,
+    this.suggestedCategorySlug,
+    this.suggestedSubCategorySlug,
   });
 
   factory ProductState.initial() => const ProductState();
@@ -64,6 +72,7 @@ class ProductNotifier extends Notifier<ProductState> {
     String? shopId,
     String? productId, // from widget / route
     required bool doorDelivery,
+    String? priceType,
   }) async {
     state = const ProductState(isLoading: true);
 
@@ -83,6 +92,7 @@ class ProductNotifier extends Notifier<ProductState> {
       offerValue: offerValue,
       price: price,
       doorDelivery: doorDelivery,
+      priceType: priceType,
     );
 
     final isSuccess = await result.fold<Future<bool>>(
@@ -103,6 +113,7 @@ class ProductNotifier extends Notifier<ProductState> {
               "offerValue": offerValue,
               "description": description,
               "doorDelivery": doorDelivery,
+              "priceType": priceType,
               "createdAt": DateTime.now().millisecondsSinceEpoch,
             },
           );
@@ -126,19 +137,65 @@ class ProductNotifier extends Notifier<ProductState> {
   }
 
   Future<void> fetchProductCategories({String? apiShopId}) async {
-    state = const ProductState(isGetLoading: true);
+    // Preserve any already-fetched suggestion — this method is re-called
+    // every time the category picker opens, and shouldn't wipe it.
+    state = ProductState(
+      isGetLoading: true,
+      suggestedCategorySlug: state.suggestedCategorySlug,
+      suggestedSubCategorySlug: state.suggestedSubCategorySlug,
+    );
 
     final result = await api.getProductCategories(apiShopId: apiShopId);
 
     result.fold(
-      (failure) =>
-          state = ProductState(isGetLoading: false, error: failure.message),
-      (response) =>
-          state = ProductState(
-            isGetLoading: false,
-            shopCategoryListResponse: response,
-          ),
+      (failure) => state = ProductState(
+        isGetLoading: false,
+        error: failure.message,
+        suggestedCategorySlug: state.suggestedCategorySlug,
+        suggestedSubCategorySlug: state.suggestedSubCategorySlug,
+      ),
+      (response) => state = ProductState(
+        isGetLoading: false,
+        shopCategoryListResponse: response,
+        suggestedCategorySlug: state.suggestedCategorySlug,
+        suggestedSubCategorySlug: state.suggestedSubCategorySlug,
+      ),
     );
+  }
+
+  // Fetches the shop's first-created product/service category to suggest it
+  // when adding the next one. Best-effort: failures are swallowed since this
+  // is a UX nicety, not required for the add-product/service flow to work.
+  Future<void> fetchSuggestedCategory({
+    required String shopId,
+    required bool isService,
+  }) async {
+    if (shopId.trim().isEmpty) return;
+
+    final result = isService
+        ? await api.getFirstServiceCategory(apiShopId: shopId)
+        : await api.getFirstProductCategory(apiShopId: shopId);
+
+    result.fold((failure) {}, (data) {
+      final category = (data['category'] as String?)?.trim();
+      final subCategory = (data['subCategory'] as String?)?.trim();
+      if ((category == null || category.isEmpty) &&
+          (subCategory == null || subCategory.isEmpty)) {
+        return;
+      }
+
+      state = ProductState(
+        isLoading: state.isLoading,
+        isGetLoading: state.isGetLoading,
+        error: state.error,
+        productResponse: state.productResponse,
+        shopCategoryListResponse: state.shopCategoryListResponse,
+        deleteResponses: state.deleteResponses,
+        serviceRemoveResponse: state.serviceRemoveResponse,
+        suggestedCategorySlug: category,
+        suggestedSubCategorySlug: subCategory,
+      );
+    });
   }
 
   Future<bool> uploadProductImages({

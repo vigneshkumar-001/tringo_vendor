@@ -1238,6 +1238,10 @@ class ApiDataSource {
     required String weeklyHours,
     required String apiShopId,
     String? primaryPhoneVerificationToken,
+    String? youtubeUrl,
+    String? facebookUrl,
+    String? twitterUrl,
+    String? instagramUrl,
   }) async {
     try {
       // IMPORTANT:
@@ -1271,6 +1275,10 @@ class ApiDataSource {
         "doorDelivery": doorDelivery,
         "ownerImageUrl": ownerImageUrl,
         "weeklyHours": weeklyHours,
+        "youtubeUrl": (youtubeUrl ?? '').trim().isEmpty ? null : (youtubeUrl ?? '').trim(),
+        "facebookUrl": (facebookUrl ?? '').trim().isEmpty ? null : (facebookUrl ?? '').trim(),
+        "twitterUrl": (twitterUrl ?? '').trim().isEmpty ? null : (twitterUrl ?? '').trim(),
+        "instagramUrl": (instagramUrl ?? '').trim().isEmpty ? null : (instagramUrl ?? '').trim(),
       };
 
       if (phoneVerifyToken != null && phoneVerifyToken.trim().isNotEmpty) {
@@ -1767,6 +1775,60 @@ class ApiDataSource {
     }
   }
 
+  Future<Either<Failure, Map<String, dynamic>>> getFirstProductCategory({
+    required String apiShopId,
+  }) async {
+    try {
+      final url = ApiUrl.firstProductCategory(shopId: apiShopId);
+      dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final data = response.data is Map ? response.data['data'] : null;
+          return Right(data is Map<String, dynamic> ? data : {});
+        }
+        return Left(
+          ServerFailure(response.data['message'] ?? "Something went wrong"),
+        );
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, Map<String, dynamic>>> getFirstServiceCategory({
+    required String apiShopId,
+  }) async {
+    try {
+      final url = ApiUrl.firstServiceCategory(shopId: apiShopId);
+      dynamic response = await Request.sendGetRequest(url, {}, 'Get', true);
+
+      if (response is! DioException) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final data = response.data is Map ? response.data['data'] : null;
+          return Right(data is Map<String, dynamic> ? data : {});
+        }
+        return Left(
+          ServerFailure(response.data['message'] ?? "Something went wrong"),
+        );
+      } else {
+        final errorData = response.response?.data;
+        if (errorData is Map && errorData.containsKey('message')) {
+          return Left(ServerFailure(errorData['message']));
+        }
+        return Left(ServerFailure(response.message ?? "Unknown Dio error"));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   Future<Either<Failure, ProductResponse>> addProduct({
     required String category,
     required String subCategory,
@@ -1778,6 +1840,9 @@ class ApiDataSource {
     String? apiProductId,
     required String description,
     required bool doorDelivery,
+    // 'EXACT' for a fixed price, 'STARTING_AT' for a from-price. Optional so
+    // existing call sites keep working unchanged; backend defaults to EXACT.
+    String? priceType,
   }) async {
     try {
       // 🔹 SHOP ID: can fallback to prefs
@@ -1812,6 +1877,7 @@ class ApiDataSource {
         "offerValue": offerValue,
         "description": description,
         "doorDelivery": doorDelivery,
+        if (priceType != null) "priceType": priceType,
       };
 
       final response = await Request.sendRequest(url, payload, 'Post', true);
@@ -2215,6 +2281,10 @@ class ApiDataSource {
     required String apiServiceId,
     required String subCategory,
     required List<String> tags,
+    // 'EXACT' for a fixed price, 'STARTING_AT' for a from-price. Optional so
+    // existing call sites keep working unchanged; backend defaults to
+    // STARTING_AT for services.
+    String? priceType,
   }) async {
     try {
       final savedServiceId = await AppPrefs.getServiceId();
@@ -2251,6 +2321,7 @@ class ApiDataSource {
         "categoryId": categoryId,
         "subCategory": subCategory,
         "tags": tags,
+        if (priceType != null) "priceType": priceType,
       };
 
       final response = await Request.sendRequest(url, payload, 'Post', true);

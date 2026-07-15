@@ -998,10 +998,10 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                                             (data.ratingCount ?? 0).toString(),
 
                                         //  show both prices
+                                        priceCaption: 'Starts at',
                                         offAmound:
-                                            '₹${offer.toStringAsFixed(0)}',
-                                        oldAmound:
                                             '₹${startsAt.toStringAsFixed(0)}',
+                                        oldAmound: '',
 
                                         km: '',
                                         location: '',
@@ -1539,6 +1539,10 @@ class _ShopDetailsEditState extends ConsumerState<ShopDetailsEdit> {
                               initialPrimaryMobile: shop?.shopPhone,
                               initialWhatsapp: shop?.shopWhatsapp,
                               initialEmail: shop?.shopContactEmail,
+                              initialYoutubeUrl: shop?.shopYoutubeUrl,
+                              initialFacebookUrl: shop?.shopFacebookUrl,
+                              initialTwitterUrl: shop?.shopTwitterUrl,
+                              initialInstagramUrl: shop?.shopInstagramUrl,
                               // no separate name fields in model → use slug as display text for now
                               initialCategoryName: shop?.category ?? "",
                               initialCategorySlug: shop?.category,

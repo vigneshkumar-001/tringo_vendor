@@ -52,6 +52,7 @@ class ServiceInfoNotifier extends Notifier<ServiceInfoState> {
     required String subCategory,
     String? apiShopId,
     required List<String> tags,
+    String? priceType,
   }) async {
     state = const ServiceInfoState(isLoading: true);
 
@@ -68,6 +69,7 @@ class ServiceInfoNotifier extends Notifier<ServiceInfoState> {
       categoryId: categoryId,
       subCategory: subCategory,
       tags: tags,
+      priceType: priceType,
     );
 
     if (!ref.mounted) return false;
@@ -92,6 +94,7 @@ class ServiceInfoNotifier extends Notifier<ServiceInfoState> {
               "categoryId": categoryId,
               "subCategory": subCategory,
               "tags": tags,
+              "priceType": priceType,
               "createdAt": DateTime.now().millisecondsSinceEpoch,
             },
           );

@@ -123,6 +123,14 @@ class ApiUrl {
     return "${base}api/v1/shops/$shopId/products";
   }
 
+  static String firstProductCategory({required String shopId}) {
+    return "${base}api/v1/shops/$shopId/products/first-category";
+  }
+
+  static String firstServiceCategory({required String shopId}) {
+    return "${base}api/v1/shops/$shopId/services/first-category";
+  }
+
   static String updateProducts({required String productId}) {
     return "${base}api/v1/products/$productId";
   }

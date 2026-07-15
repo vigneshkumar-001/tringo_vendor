@@ -46,6 +46,10 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
   final String? initialPrimaryMobile;
   final String? initialWhatsapp;
   final String? initialEmail;
+  final String? initialYoutubeUrl;
+  final String? initialFacebookUrl;
+  final String? initialTwitterUrl;
+  final String? initialInstagramUrl;
   final String? initialCategoryName;
   final String? initialCategorySlug;
   final String? initialSubCategoryName;
@@ -79,6 +83,10 @@ class ShopCategoryInfo extends ConsumerStatefulWidget {
     this.initialPrimaryMobile,
     this.initialWhatsapp,
     this.initialEmail,
+    this.initialYoutubeUrl,
+    this.initialFacebookUrl,
+    this.initialTwitterUrl,
+    this.initialInstagramUrl,
     this.initialCategoryName,
     this.initialCategorySlug,
     this.initialSubCategoryName,
@@ -114,6 +122,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
   final TextEditingController _gpsController = TextEditingController();
   final TextEditingController _whatsappController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _youtubeUrlController = TextEditingController();
+  final TextEditingController _facebookUrlController = TextEditingController();
+  final TextEditingController _twitterUrlController = TextEditingController();
+  final TextEditingController _instagramUrlController = TextEditingController();
 
   final TextEditingController addressTamilNameController =
       TextEditingController();
@@ -736,6 +748,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     _setIfEmpty(_whatsappController, _stripIndianCode(p2));
 
     _setIfEmpty(_emailController, (raw["contactEmail"] ?? "").toString());
+    _setIfEmpty(_youtubeUrlController, (raw["youtubeUrl"] ?? "").toString());
+    _setIfEmpty(_facebookUrlController, (raw["facebookUrl"] ?? "").toString());
+    _setIfEmpty(_twitterUrlController, (raw["twitterUrl"] ?? "").toString());
+    _setIfEmpty(_instagramUrlController, (raw["instagramUrl"] ?? "").toString());
 
     // âœ… Door delivery (bool -> Yes/No)
     final dd = raw["doorDelivery"];
@@ -817,6 +833,20 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     // ðŸ‘‰ email
     if (widget.initialEmail?.isNotEmpty ?? false) {
       _emailController.text = widget.initialEmail!;
+    }
+
+    // ðŸ‘‰ social links
+    if (widget.initialYoutubeUrl?.isNotEmpty ?? false) {
+      _youtubeUrlController.text = widget.initialYoutubeUrl!;
+    }
+    if (widget.initialFacebookUrl?.isNotEmpty ?? false) {
+      _facebookUrlController.text = widget.initialFacebookUrl!;
+    }
+    if (widget.initialTwitterUrl?.isNotEmpty ?? false) {
+      _twitterUrlController.text = widget.initialTwitterUrl!;
+    }
+    if (widget.initialInstagramUrl?.isNotEmpty ?? false) {
+      _instagramUrlController.text = widget.initialInstagramUrl!;
     }
 
     // ðŸ‘‰ category / subcategory
@@ -908,6 +938,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
     _primaryMobileController.dispose();
     _whatsappController.dispose();
     _emailController.dispose();
+    _youtubeUrlController.dispose();
+    _facebookUrlController.dispose();
+    _twitterUrlController.dispose();
+    _instagramUrlController.dispose();
     _subCategoryController.dispose();
     super.dispose();
   }
@@ -1843,6 +1877,82 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                         // },
                       ),
                       SizedBox(height: 25),
+                      Text(
+                        'YouTube Link (Optional)',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
+                      const SizedBox(height: 10),
+                      CommonContainer.fillingContainer(
+                        keyboardType: TextInputType.url,
+                        controller: _youtubeUrlController,
+                        verticalDivider: true,
+                        text: 'YouTube Link',
+                        validator: (v) {
+                          final value = (v ?? '').trim();
+                          if (value.isNotEmpty && Uri.tryParse(value)?.hasScheme != true) {
+                            return 'Enter a valid link';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 25),
+                      Text(
+                        'Facebook Link (Optional)',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
+                      const SizedBox(height: 10),
+                      CommonContainer.fillingContainer(
+                        keyboardType: TextInputType.url,
+                        controller: _facebookUrlController,
+                        verticalDivider: true,
+                        text: 'Facebook Link',
+                        validator: (v) {
+                          final value = (v ?? '').trim();
+                          if (value.isNotEmpty && Uri.tryParse(value)?.hasScheme != true) {
+                            return 'Enter a valid link';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 25),
+                      Text(
+                        'Twitter / X Link (Optional)',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
+                      const SizedBox(height: 10),
+                      CommonContainer.fillingContainer(
+                        keyboardType: TextInputType.url,
+                        controller: _twitterUrlController,
+                        verticalDivider: true,
+                        text: 'Twitter / X Link',
+                        validator: (v) {
+                          final value = (v ?? '').trim();
+                          if (value.isNotEmpty && Uri.tryParse(value)?.hasScheme != true) {
+                            return 'Enter a valid link';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 25),
+                      Text(
+                        'Instagram Link (Optional)',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
+                      const SizedBox(height: 10),
+                      CommonContainer.fillingContainer(
+                        keyboardType: TextInputType.url,
+                        controller: _instagramUrlController,
+                        verticalDivider: true,
+                        text: 'Instagram Link',
+                        validator: (v) {
+                          final value = (v ?? '').trim();
+                          if (value.isNotEmpty && Uri.tryParse(value)?.hasScheme != true) {
+                            return 'Enter a valid link';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 25),
                       // if (widget.isService ??
                       //     false || widget.pages != 'AboutMeScreens')
                       if (!(widget.isService ?? false)) ...[
@@ -2043,6 +2153,10 @@ class _ShopCategoryInfotate extends ConsumerState<ShopCategoryInfo> {
                                 primaryPhone: primaryPhoneToSend,
                                 category: categorySlug,
                                 contactEmail: _emailController.text.trim(),
+                                youtubeUrl: _youtubeUrlController.text.trim(),
+                                facebookUrl: _facebookUrlController.text.trim(),
+                                twitterUrl: _twitterUrlController.text.trim(),
+                                instagramUrl: _instagramUrlController.text.trim(),
                                 descriptionEn:
                                     _descriptionEnglishController.text.trim(),
                                 descriptionTa:

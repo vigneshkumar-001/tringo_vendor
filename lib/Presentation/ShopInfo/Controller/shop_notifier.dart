@@ -122,6 +122,10 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
     required String weeklyHours,
     String? shopId,
     File? ownerImageFile,
+    String? youtubeUrl,
+    String? facebookUrl,
+    String? twitterUrl,
+    String? instagramUrl,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -156,6 +160,10 @@ class ShopNotifier extends Notifier<ShopCategoryState> {
       doorDelivery: doorDelivery,
       ownerImageUrl: ownerImageUrlStr,
       weeklyHours: weeklyHours,
+      youtubeUrl: youtubeUrl,
+      facebookUrl: facebookUrl,
+      twitterUrl: twitterUrl,
+      instagramUrl: instagramUrl,
     );
 
     return result.fold(

@@ -47,6 +47,10 @@ class ShopData {
   final String? shopPhone;
   final String? shopWhatsapp;
   final String? shopContactEmail;
+  final String? shopYoutubeUrl;
+  final String? shopFacebookUrl;
+  final String? shopTwitterUrl;
+  final String? shopInstagramUrl;
 
   final bool? shopDoorDelivery;
   final bool? shopIsTrusted;
@@ -81,6 +85,10 @@ class ShopData {
     this.shopPhone,
     this.shopWhatsapp,
     this.shopContactEmail,
+    this.shopYoutubeUrl,
+    this.shopFacebookUrl,
+    this.shopTwitterUrl,
+    this.shopInstagramUrl,
     this.shopDoorDelivery,
     this.shopIsTrusted,
     this.shopRating,
@@ -122,6 +130,10 @@ class ShopData {
       shopPhone: json['shopPhone'],
       shopWhatsapp: json['shopWhatsapp'],
       shopContactEmail: json['shopContactEmail'],
+      shopYoutubeUrl: json['shopYoutubeUrl'],
+      shopFacebookUrl: json['shopFacebookUrl'],
+      shopTwitterUrl: json['shopTwitterUrl'],
+      shopInstagramUrl: json['shopInstagramUrl'],
 
       shopDoorDelivery: json['shopDoorDelivery'] as bool? ?? false,
       shopIsTrusted: json['shopIsTrusted'] as bool? ?? false,

@@ -15,6 +15,17 @@ import '../../pay_success_and_cancel.dart';
 import '../Controller/subscription_notifier.dart';
 import 'ccavenue_checkout_screen.dart';
 
+// e.g. price="3999", durationDays=365 -> 333 (30-day month, rounded)
+int? formatPricePerMonth(String? price, int? durationDays) {
+  final numericPrice = double.tryParse(price ?? '');
+  if (numericPrice == null || durationDays == null || durationDays <= 0) {
+    return null;
+  }
+  final months = durationDays / 30;
+  if (months <= 0) return null;
+  return (numericPrice / months).round();
+}
+
 class SubscriptionScreen extends ConsumerStatefulWidget {
   final bool showSkip;
   final String businessProfileId;
@@ -288,6 +299,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                         child: _BillingOptions(
                           index: index, //  add this
                           price: data.price.toString(),
+                          durationDays: data.durationDays,
                           isBestValue: data.isBestValue,
                           boxColor: _colorFromHex(
                             data.color,
@@ -753,6 +765,7 @@ class _BillingOptions extends StatelessWidget {
     required this.type,
     required this.onChanged,
     required this.price,
+    required this.durationDays,
     required this.isBestValue,
     required this.boxColor,
   });
@@ -763,13 +776,16 @@ class _BillingOptions extends StatelessWidget {
 
   final String type;
   final String price;
+  final int durationDays;
   final bool isBestValue;
   final Color boxColor; // per-plan color from API
 
   @override
   Widget build(BuildContext context) {
+    final perMonth = formatPricePerMonth(price, durationDays);
     return _BillingChip(
       labelTop: '₹ $price',
+      labelMid: perMonth != null ? '(₹$perMonth/mo)' : null,
       labelBottom: type,
       boxColor: boxColor,
       selected: selectedIndex == index, // ✅ compare with index
@@ -782,6 +798,7 @@ class _BillingOptions extends StatelessWidget {
 class _BillingChip extends StatelessWidget {
   const _BillingChip({
     required this.labelTop,
+    this.labelMid,
     required this.labelBottom,
     required this.selected,
     required this.onTap,
@@ -790,6 +807,8 @@ class _BillingChip extends StatelessWidget {
   });
 
   final String labelTop;
+  // Optional "(₹xxx/mo)" line shown between the price and the duration.
+  final String? labelMid;
 
   final String labelBottom;
   final bool selected;
@@ -810,8 +829,8 @@ class _BillingChip extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           SizedBox(
-            width: 145,
-            height: 72,
+            width: 160,
+            height: labelMid != null ? 84 : 72,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               padding: EdgeInsets.only(
@@ -850,10 +869,25 @@ class _BillingChip extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       color: onColor,
-                      fontSize: 18,
+                      fontSize: 17,
                       height: 1.0,
                     ),
                   ),
+                  if (labelMid != null) ...[
+                    const SizedBox(height: 1),
+                    Text(
+                      labelMid!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: onColor.withOpacity(0.85),
+                        fontSize: 10,
+                        height: 1.0,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Text(
                     labelBottom,

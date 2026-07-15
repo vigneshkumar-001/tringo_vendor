@@ -311,6 +311,7 @@ class OfflineSyncEngine {
       offerValue: (payload["offerValue"] ?? "").toString(),
       price: payload["price"],
       doorDelivery: _toBool(payload["doorDelivery"]),
+      priceType: payload["priceType"] as String?,
     );
 
     return await res.fold<Future<String?>>(
@@ -369,6 +370,7 @@ class OfflineSyncEngine {
       categoryId: (payload["categoryId"] ?? "").toString(),
       subCategory: (payload["subCategory"] ?? "").toString(),
       tags: tags,
+      priceType: payload["priceType"] as String?,
     );
 
     return await res.fold<Future<String?>>(

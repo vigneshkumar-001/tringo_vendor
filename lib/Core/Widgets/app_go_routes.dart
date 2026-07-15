@@ -310,6 +310,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             initialPrimaryMobile: args['initialPrimaryMobile'] as String?,
             initialWhatsapp: args['initialWhatsapp'] as String?,
             initialEmail: args['initialEmail'] as String?,
+            initialYoutubeUrl: args['initialYoutubeUrl'] as String?,
+            initialFacebookUrl: args['initialFacebookUrl'] as String?,
+            initialTwitterUrl: args['initialTwitterUrl'] as String?,
+            initialInstagramUrl: args['initialInstagramUrl'] as String?,
             initialCategoryName: args['initialCategoryName'] as String?,
             initialCategorySlug: args['initialCategorySlug'] as String?,
             initialSubCategoryName: args['initialSubCategoryName'] as String?,
@@ -368,7 +372,25 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.productCategoryScreensPath,
         name: AppRoutes.productCategoryScreens,
-        builder: (context, state) => const ProductCategoryScreens(),
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is Map<String, dynamic>) {
+            return ProductCategoryScreens(
+              isService: extra['isService'] as bool?,
+              isIndividual: extra['isIndividual'] as bool?,
+              shopId: extra['shopId'] as String?,
+              productId: extra['productId'] as String?,
+              page: extra['page'] as String?,
+              pages: extra['pages'] as String?,
+            );
+          }
+
+          if (extra is String) {
+            return ProductCategoryScreens(pages: extra);
+          }
+
+          return const ProductCategoryScreens();
+        },
       ),
       GoRoute(
         path: AppRoutes.addProductListPath,

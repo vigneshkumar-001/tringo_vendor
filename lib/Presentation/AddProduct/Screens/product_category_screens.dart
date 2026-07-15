@@ -70,6 +70,12 @@ class _ProductCategoryScreensState
   bool _subCategoryHasError = false;
   bool _doorDelivery = false;
 
+  // 'EXACT' shows customers a fixed price ("₹199"); 'STARTING_AT' shows a
+  // from-price ("Starting at ₹199"), useful when there are multiple
+  // variants/packages. Mirrors the priceType field in PublicShopRegistration
+  // on the website and PriceType enum on the backend.
+  String _priceType = 'EXACT';
+
   List<ShopCategoryListData>? _selectedCategoryChildren;
 
   final TextEditingController _categoryController = TextEditingController();
@@ -117,8 +123,18 @@ class _ProductCategoryScreensState
             final isLoading = productState.isGetLoading;
             final categories =
                 productState.shopCategoryListResponse?.data ?? [];
+            final suggestedSlug = productState.suggestedCategorySlug;
 
             List<ShopCategoryListData> filtered = List.from(categories);
+            if (suggestedSlug != null && suggestedSlug.isNotEmpty) {
+              final suggestedIndex = filtered.indexWhere(
+                (c) => c.slug == suggestedSlug,
+              );
+              if (suggestedIndex > 0) {
+                final suggested = filtered.removeAt(suggestedIndex);
+                filtered.insert(0, suggested);
+              }
+            }
 
             return StatefulBuilder(
               builder: (context, setModalState) {
@@ -222,15 +238,61 @@ class _ProductCategoryScreensState
                                     itemCount: filtered.length,
                                     itemBuilder: (context, index) {
                                       final category = filtered[index];
+                                      final isSuggested =
+                                          suggestedSlug != null &&
+                                          suggestedSlug.isNotEmpty &&
+                                          category.slug == suggestedSlug;
                                       return ListTile(
-                                        title: Text(category.name),
-                                        trailing:
-                                            category.children.isNotEmpty
-                                                ? const Icon(
-                                                  Icons.arrow_forward_ios,
-                                                  size: 14,
+                                        tileColor: isSuggested
+                                            ? AppColor.darkBlue.withOpacity(
+                                                0.06,
+                                              )
+                                            : null,
+                                        title: Text(
+                                          category.name,
+                                          style: isSuggested
+                                              ? const TextStyle(
+                                                  fontWeight: FontWeight.w700,
                                                 )
-                                                : null,
+                                              : null,
+                                        ),
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (isSuggested)
+                                              Container(
+                                                margin: const EdgeInsets.only(
+                                                  right: 8,
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 3,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColor.darkBlue,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        20,
+                                                      ),
+                                                ),
+                                                child: const Text(
+                                                  'Suggested',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11,
+                                                    fontWeight:
+                                                        FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (category.children.isNotEmpty)
+                                              const Icon(
+                                                Icons.arrow_forward_ios,
+                                                size: 14,
+                                              ),
+                                          ],
+                                        ),
                                         onTap: () {
                                           Navigator.pop(context);
                                           setState(() {
@@ -412,17 +474,64 @@ class _ProductCategoryScreensState
     _offerController.text = widget.initialOfferLabel ?? offers.first;
     _offerPriceController.text = widget.initialOfferValue ?? '5%';
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(productNotifierProvider.notifier)
-          .fetchProductCategories(apiShopId: widget.shopId);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final notifier = ref.read(productNotifierProvider.notifier);
+      await notifier.fetchProductCategories(apiShopId: widget.shopId);
+
+      // Only suggest a category when adding a brand-new item (no category
+      // already chosen/prefilled from an edit flow) and we know the shop.
+      final isFreshCreate = productCategorySlug.trim().isEmpty;
+      final shopId = widget.shopId ?? '';
+      if (isFreshCreate && shopId.trim().isNotEmpty && mounted) {
+        final isServiceFlow =
+            widget.isService ??
+            RegistrationProductSeivice.instance.isServiceBusiness;
+        await notifier.fetchSuggestedCategory(
+          shopId: shopId,
+          isService: isServiceFlow,
+        );
+      }
     });
+  }
+
+  // Untyped list on purpose: this codebase resolves `ShopCategoryListData`
+  // through two differently-cased import paths that the analyzer treats as
+  // distinct types, so a `List<ShopCategoryListData>` parameter here would
+  // reject the very list it's meant to search. Dynamic dispatch on `.slug`
+  // / `.children` / `.name` still works fine at runtime either way.
+  dynamic _findCategoryBySlug(List categories, String slug) {
+    for (final category in categories) {
+      if (category.slug == slug) return category;
+      final match = _findCategoryBySlug(category.children as List, slug);
+      if (match != null) return match;
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final productState = ref.watch(productNotifierProvider);
     final serviceState = ref.watch(serviceInfoNotifierProvider);
+
+    // Auto-fill the category field with the shop's first-created
+    // product/service category once it's fetched — only while the field is
+    // still empty, so it never overrides a manual pick or an edit prefill.
+    ref.listen(productNotifierProvider, (previous, next) {
+      final suggestedSlug = next.suggestedCategorySlug;
+      if (suggestedSlug == null || suggestedSlug.isEmpty) return;
+      if (_categoryController.text.trim().isNotEmpty) return;
+
+      final match = _findCategoryBySlug(
+        next.shopCategoryListResponse?.data ?? [],
+        suggestedSlug,
+      );
+      if (match == null) return;
+
+      setState(() {
+        _categoryController.text = match.name;
+        productCategorySlug = match.slug;
+      });
+    });
 
     final bool isServiceFlow =
         widget.isService ??
@@ -670,6 +779,34 @@ class _ProductCategoryScreensState
                         controller: _productPriceController,
                       ),
 
+                      const SizedBox(height: 16),
+                      Text(
+                        'Price Type',
+                        style: AppTextStyles.mulish(color: AppColor.mildBlack),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _PriceTypeChip(
+                              label: 'Exact Price',
+                              selected: _priceType == 'EXACT',
+                              onTap: () =>
+                                  setState(() => _priceType = 'EXACT'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _PriceTypeChip(
+                              label: 'Starting Price',
+                              selected: _priceType == 'STARTING_AT',
+                              onTap: () =>
+                                  setState(() => _priceType = 'STARTING_AT'),
+                            ),
+                          ),
+                        ],
+                      ),
+
                       const SizedBox(height: 25),
 
                       Text(
@@ -799,6 +936,7 @@ class _ProductCategoryScreensState
                                   subCategory:
                                       _subCategoryController.text.trim(),
                                   tags: const [],
+                                  priceType: _priceType,
                                 );
 
                             if (!success) {
@@ -830,6 +968,7 @@ class _ProductCategoryScreensState
                                   offerValue: _offerPriceController.text.trim(),
                                   description:
                                       _descriptionController.text.trim(),
+                                  priceType: _priceType,
                                 );
 
                             if (!success) {
@@ -894,6 +1033,41 @@ class _ProductCategoryScreensState
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PriceTypeChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PriceTypeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? AppColor.black : AppColor.lightGray,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.mulish(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: selected ? AppColor.white : AppColor.mildBlack,
           ),
         ),
       ),

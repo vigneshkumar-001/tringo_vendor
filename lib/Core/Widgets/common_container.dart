@@ -2667,6 +2667,7 @@ class CommonContainer {
     required String ratingCount,
     required String offAmound,
     required String oldAmound,
+    String? priceCaption,
     required String km,
     required String location,
     double imageHeight = 160,
@@ -2814,6 +2815,18 @@ class CommonContainer {
                         ],
                       ),
                       SizedBox(height: 7),
+                      if (priceCaption != null && priceCaption.trim().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            priceCaption,
+                            style: AppTextStyles.mulish(
+                              fontSize: 13,
+                              color: AppColor.gray84,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       Row(
                         children: [
                           Text(

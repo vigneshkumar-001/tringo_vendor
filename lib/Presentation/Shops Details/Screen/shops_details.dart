@@ -725,9 +725,10 @@ class _ShopsDetailsState extends ConsumerState<ShopsDetails> {
                                         (data.ratingCount ?? 0).toString(),
 
                                     //  show both prices
-                                    offAmound: '₹${offer.toStringAsFixed(0)}',
-                                    oldAmound:
+                                    priceCaption: 'Starts at',
+                                    offAmound:
                                         '₹${startsAt.toStringAsFixed(0)}',
+                                    oldAmound: '',
 
                                     km: '',
                                     location: '',

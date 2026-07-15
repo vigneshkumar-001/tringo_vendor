@@ -520,13 +520,18 @@ class _SearchKeywordState extends ConsumerState<SearchKeyword> {
                           );
 
                            if (success) {
-                             final shopId = await AppPrefs.getSopId();
+                             final session = RegistrationProductSeivice.instance;
                              if (widget.page == 'shopDetailsEdit') {
                               Navigator.pop(context, true);
                              } else {
                                context.pushNamed(
                                  AppRoutes.productCategoryScreens,
-                                 extra: 'SearchKeyword',
+                                 extra: {
+                                   'pages': 'SearchKeyword',
+                                   'isService': session.isServiceBusiness,
+                                   'isIndividual':
+                                       session.businessType == BusinessType.individual,
+                                 },
                                );
                             }
                           } else {
